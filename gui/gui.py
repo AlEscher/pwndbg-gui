@@ -5,6 +5,7 @@ from pathlib import Path
 
 import PySide6
 from PySide6.QtCore import QProcess, Slot
+from PySide6.QtGui import QTextOption
 from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit
 
 from main_text_edit import MainTextEdit
@@ -55,7 +56,7 @@ class PwnDbgGui(QWidget):
             logger.info("Closing GDB process")
             self.gdb.kill()
             self.gdb.waitForFinished()
-            logger.debug("Waited for GDB process with state: %s", self.gdb.state())
+            logger.debug("Waited for GDB process with current state: %s", self.gdb.state())
 
     @Slot()
     def file_button_clicked(self):

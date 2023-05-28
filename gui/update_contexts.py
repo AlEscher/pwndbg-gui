@@ -33,7 +33,7 @@ class UpdateContexts(QObject):
                 self.update_context.emit(segment, content.decode())
             except OSError as e:
                 logger.debug(e)
-        logger.debug("Reading stdout from GDB")
+        logger.debug("Reading stdout from GDB with state %s", self.gui.gdb.state())
         content = self.gui.gdb.readAll()
         self.update_context.emit("main", content.data().decode())
         logger.info("Finished reading data for contexts")
