@@ -1,15 +1,14 @@
 # This Python file uses the following encoding: utf-8
 import logging
-import os
 import sys
-from typing import Tuple, Dict
+from pathlib import Path
 
 import PySide6
 from PySide6.QtCore import QProcess, Slot
-from PySide6.QtWidgets import QApplication, QWidget, QFileDialog
+from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit
 
 from main_text_edit import MainTextEdit
-from pty_util import close_pty_pair
+from pty_util import close_pty_pair, create_pty_devices
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -20,9 +19,13 @@ logger = logging.getLogger(__file__)
 
 
 class PwnDbgGui(QWidget):
-    def __init__(self, ttys: Dict[str, Tuple[int, int]], parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
+        self.gdbinit = Path.home() / ".gdbinit"
+        self.gdbinit_backup = self.gdbinit.read_bytes()
         self.gdb: QProcess | None = None
+        logger.info("Creating PTY devices")
+        ttys = create_pty_devices(["stack"])
         self.ttys = ttys
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
@@ -41,15 +44,18 @@ class PwnDbgGui(QWidget):
         # Replace the "Main" widget with our custom implementation
         main_text_edit = MainTextEdit(parent=self, gdb=self.gdb)
         self.ui.splitter.replaceWidget(0, main_text_edit)
+        self.seg_to_widget["main"] = main_text_edit
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
         """Called when window is closed. Cleanup all ptys and terminate the gdb process"""
+        logger.debug("Resetting gdbinit")
+        self.gdbinit.write_bytes(self.gdbinit_backup)
         map(close_pty_pair, self.ttys.values())
         if self.gdb:
             logger.info("Closing GDB process")
             self.gdb.kill()
             self.gdb.waitForFinished()
-
+            logger.debug("Waited for GDB process with state: %s", self.gdb.state())
 
     @Slot()
     def file_button_clicked(self):
@@ -60,9 +66,15 @@ class PwnDbgGui(QWidget):
             file_name = dialog.selectedFiles()[0]
             self.start_gdb(file_name)
 
+    @Slot(str, str)
+    def update_context(self, context: str, content: str):
+        widget: QTextEdit | QTextBrowser = self.seg_to_widget[context]
+        logger.debug("Updating context %s with \"%s...\"", widget.objectName(), content[:100])
+        widget.setText(content)
 
-def run_gui(ttys: Dict[str, Tuple[int, int]]):
+
+def run_gui():
     app = QApplication(sys.argv)
-    widget = PwnDbgGui(ttys)
+    widget = PwnDbgGui()
     widget.show()
     sys.exit(app.exec())

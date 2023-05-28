@@ -13,14 +13,15 @@ def create_and_register_context(section: str) -> Tuple[int, int]:
     logger.info("Opened PTY for %s with master %s and slave %s", section, os.ttyname(master), os.ttyname(slave))
     init_cmd = f"contextoutput(\"{section}\", \"{os.ttyname(slave)}\", True)\n"
     open(gdbinit_path, "a").write(init_cmd)
+    os.close(slave)
     return master, slave
 
 
-def create_pty_devices() -> Dict[str, Tuple[int, int]]:
+def create_pty_devices(contexts: List[str]) -> Dict[str, Tuple[int, int]]:
     """Create one pty for each context, return a list of tuples (master, slave) And register them with pwndbg. See also
     https://github.com/pwndbg/pwndbg/blob/dev/FEATURES.md#splitting--layouting-context"""
     open(gdbinit_path, "a").write("python\nfrom pwndbg.commands.context import contextoutput, output, clear_screen\n")
-    pty_devices = dict(map(lambda section: (section, create_and_register_context(section)), ["stack"]))
+    pty_devices = dict(map(lambda section: (section, create_and_register_context(section)), contexts))
     open(gdbinit_path, "a").write("end\n")
     return pty_devices
 
