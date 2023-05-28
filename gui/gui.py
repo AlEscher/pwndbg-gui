@@ -53,6 +53,8 @@ class PwnDbgGui(QWidget):
         self.gdbinit.write_bytes(self.gdbinit_backup)
         map(close_pty_pair, self.ttys.values())
         if self.gdb:
+            logger.debug("Stopping MainTextEdit update thread")
+            self.seg_to_widget["main"].stop_thread.emit()
             logger.info("Closing GDB process")
             self.gdb.kill()
             self.gdb.waitForFinished()

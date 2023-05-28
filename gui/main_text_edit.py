@@ -14,6 +14,7 @@ logger = logging.getLogger(__file__)
 
 class MainTextEdit(QTextEdit):
     do_work = Signal()
+    stop_thread = Signal()
 
     def __init__(self, parent: 'PwnDbgGui', gdb: QProcess):
         super().__init__(parent)
@@ -31,6 +32,7 @@ class MainTextEdit(QTextEdit):
         self.update_worker.update_context.connect(self.parent.update_context)
         self.do_work.connect(self.update_worker.update_contexts)
         self.update_thread.finished.connect(self.update_worker.deleteLater)
+        self.stop_thread.connect(self.update_thread.quit)
         logger.debug("Starting new worker thread in MainTextEdit")
         self.update_thread.start()
 
@@ -45,8 +47,8 @@ class MainTextEdit(QTextEdit):
         if len(lines) > 0:
             cmd = lines[-1]
             cmd = cmd[cmd.find(">") + 1:]
-            logger.debug("Sending command '%s' to gdb from main text edit", cmd)
-            self.gdb.write(cmd.encode())
+            logger.debug("Sending command '%s' to gdb with state %s", cmd, self.gdb.state())
+            self.gdb.write(cmd.encode() + b"\n")
             self.do_work.emit()
             return
         logger.debug("No lines to send as command!")
