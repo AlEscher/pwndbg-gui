@@ -22,6 +22,7 @@ class MainTextEdit(QTextEdit):
         self.update_worker = UpdateContexts(parent)
         self.gdb = gdb
         self.parent = parent
+        self.setObjectName("main")
         self.start_update_worker()
 
     def start_update_worker(self):
@@ -30,8 +31,10 @@ class MainTextEdit(QTextEdit):
         self.update_worker.moveToThread(self.update_thread)
         # Allow the worker to update contexts in the GUI thread
         self.update_worker.update_context.connect(self.parent.update_context)
+        # Allow giving the thread work from outside
         self.do_work.connect(self.update_worker.update_contexts)
         self.update_thread.finished.connect(self.update_worker.deleteLater)
+        # Allow stopping the thread from outside
         self.stop_thread.connect(self.update_thread.quit)
         logger.debug("Starting new worker thread in MainTextEdit")
         self.update_thread.start()

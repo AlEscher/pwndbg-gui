@@ -46,6 +46,7 @@ class PwnDbgGui(QWidget):
         main_text_edit = MainTextEdit(parent=self, gdb=self.gdb)
         self.ui.splitter.replaceWidget(0, main_text_edit)
         self.seg_to_widget["main"] = main_text_edit
+        self.seg_to_widget["main"].do_work.emit()
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
         """Called when window is closed. Cleanup all ptys and terminate the gdb process"""
@@ -56,7 +57,7 @@ class PwnDbgGui(QWidget):
             logger.debug("Stopping MainTextEdit update thread")
             self.seg_to_widget["main"].stop_thread.emit()
             logger.info("Closing GDB process")
-            self.gdb.kill()
+            self.gdb.close()
             self.gdb.waitForFinished()
             logger.debug("Waited for GDB process with current state: %s", self.gdb.state())
 
