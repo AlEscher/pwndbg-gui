@@ -1,33 +1,31 @@
-import os
-import pty
 import logging
-from typing import List, Tuple, Dict
+import os
+import tempfile
+from typing import List, Dict
 
 logger = logging.getLogger(__file__)
 
 gdbinit_path = os.path.expanduser("~/.gdbinit")
 
 
-def create_and_register_context(section: str) -> Tuple[int, int]:
-    (master, slave) = pty.openpty()
-    logger.info("Opened PTY for %s with master %s and slave %s", section, os.ttyname(master), os.ttyname(slave))
-    init_cmd = f"contextoutput(\"{section}\", \"{os.ttyname(slave)}\", True)\n"
+def create_and_register_context(section: str) -> str:
+    pipe = tempfile.mktemp(prefix=f"pwndbgGUI-{section}-", suffix=".tmp")
+    os.mkfifo(path=pipe)
+    logger.info("Created pipe for %s as %s", section, pipe)
+    init_cmd = f"contextoutput(\"{section}\", \"{pipe}\", False)\n"
     open(gdbinit_path, "a").write(init_cmd)
-    os.close(slave)
-    return master, slave
+    return pipe
 
 
-def create_pty_devices(contexts: List[str]) -> Dict[str, Tuple[int, int]]:
+def create_pipes(contexts: List[str]) -> Dict[str, str]:
     """Create one pty for each context, return a list of tuples (master, slave) And register them with pwndbg. See also
     https://github.com/pwndbg/pwndbg/blob/dev/FEATURES.md#splitting--layouting-context"""
     open(gdbinit_path, "a").write("python\nfrom pwndbg.commands.context import contextoutput, output, clear_screen\n")
-    pty_devices = dict(map(lambda section: (section, create_and_register_context(section)), contexts))
+    pipes = dict(map(lambda section: (section, create_and_register_context(section)), contexts))
     open(gdbinit_path, "a").write("end\n")
-    return pty_devices
+    return pipes
 
 
-def close_pty_pair(pty_pair: Tuple[int, int]):
-    master, slave = pty_pair
-    logger.info("Closing %d and %d", os.ttyname(master), os.ttyname(slave))
-    os.close(master)
-    os.close(slave)
+def delete_pipe(pipe: str):
+    logger.debug("Deleting %s", pipe)
+    os.remove(pipe)

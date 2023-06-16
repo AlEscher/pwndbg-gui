@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QTextEdit
 
 from update_contexts import UpdateContexts
 
+# Prevent circular import error
 if TYPE_CHECKING:
     from gui import PwnDbgGui
 

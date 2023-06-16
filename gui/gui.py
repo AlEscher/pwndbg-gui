@@ -9,7 +9,7 @@ from PySide6.QtGui import QTextOption
 from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit
 
 from main_text_edit import MainTextEdit
-from pty_util import close_pty_pair, create_pty_devices
+from pty_util import delete_pipe, create_pipes
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -25,9 +25,8 @@ class PwnDbgGui(QWidget):
         self.gdbinit = Path.home() / ".gdbinit"
         self.gdbinit_backup = self.gdbinit.read_bytes()
         self.gdb: QProcess | None = None
-        logger.info("Creating PTY devices")
-        ttys = create_pty_devices(["stack"])
-        self.ttys = ttys
+        logger.info("Creating pipes")
+        self.pipes = create_pipes(["stack"])
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
         self.ui.file_button.clicked.connect(self.file_button_clicked)
@@ -38,7 +37,8 @@ class PwnDbgGui(QWidget):
         logger.info("Starting GDB process with target %s", debugee)
         self.gdb = QProcess()
         self.gdb.setProgram("gdb")
-        self.gdb.setArguments(debugee)
+        self.gdb.setArguments([debugee])
+        self.gdb.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
         self.gdb.start()
         self.gdb.waitForStarted()
         logger.info("GDB running with state %s", self.gdb.state())
@@ -52,7 +52,8 @@ class PwnDbgGui(QWidget):
         """Called when window is closed. Cleanup all ptys and terminate the gdb process"""
         logger.debug("Resetting gdbinit")
         self.gdbinit.write_bytes(self.gdbinit_backup)
-        map(close_pty_pair, self.ttys.values())
+        for pipe in self.pipes.values():
+            delete_pipe(pipe)
         if self.gdb:
             logger.debug("Stopping MainTextEdit update thread")
             self.seg_to_widget["main"].stop_thread.emit()
@@ -64,8 +65,9 @@ class PwnDbgGui(QWidget):
     @Slot()
     def file_button_clicked(self):
         dialog = QFileDialog(self)
-        dialog.setFileMode(QFileDialog.ExistingFile)
-        dialog.setViewMode(QFileDialog.Detail)
+
+        dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+        dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
             self.start_gdb(file_name)
