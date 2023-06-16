@@ -24,7 +24,6 @@ class PwnDbgGui(QWidget):
         super().__init__(parent)
         self.gdbinit = Path.home() / ".gdbinit"
         self.gdbinit_backup = self.gdbinit.read_bytes()
-        self.gdb: QProcess | None = None
         logger.info("Creating pipes")
         self.pipes = create_pipes(["stack"])
         self.ui = Ui_PwnDbgGui()
@@ -34,19 +33,11 @@ class PwnDbgGui(QWidget):
 
     def start_gdb(self, debugee: str):
         """Runs gdb with the given program and waits for gdb to have started"""
-        logger.info("Starting GDB process with target %s", debugee)
-        self.gdb = QProcess()
-        self.gdb.setProgram("gdb")
-        self.gdb.setArguments([debugee])
-        self.gdb.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
-        self.gdb.start()
-        self.gdb.waitForStarted()
-        logger.info("GDB running with state %s", self.gdb.state())
         # Replace the "Main" widget with our custom implementation
-        main_text_edit = MainTextEdit(parent=self, gdb=self.gdb)
+        main_text_edit = MainTextEdit(parent=self, debugee=debugee)
         self.ui.splitter.replaceWidget(0, main_text_edit)
         self.seg_to_widget["main"] = main_text_edit
-        self.seg_to_widget["main"].do_work.emit()
+        self.seg_to_widget["main"].gdb_read.emit()
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
         """Called when window is closed. Cleanup all ptys and terminate the gdb process"""
@@ -54,13 +45,9 @@ class PwnDbgGui(QWidget):
         self.gdbinit.write_bytes(self.gdbinit_backup)
         for pipe in self.pipes.values():
             delete_pipe(pipe)
-        if self.gdb:
-            logger.debug("Stopping MainTextEdit update thread")
-            self.seg_to_widget["main"].stop_thread.emit()
-            logger.info("Closing GDB process")
-            self.gdb.close()
-            self.gdb.waitForFinished()
-            logger.debug("Waited for GDB process with current state: %s", self.gdb.state())
+        logger.debug("Stopping MainTextEdit update thread")
+        self.seg_to_widget["main"].gdb_stop.emit()
+        self.seg_to_widget["main"].stop_thread.emit()
 
     @Slot()
     def file_button_clicked(self):
@@ -73,7 +60,7 @@ class PwnDbgGui(QWidget):
             self.start_gdb(file_name)
 
     @Slot(str, str)
-    def update_context(self, context: str, content: str):
+    def update_pane(self, context: str, content: str):
         widget: QTextEdit | QTextBrowser = self.seg_to_widget[context]
         logger.debug("Updating context %s with \"%s...\"", widget.objectName(), content[:100])
         widget.setText(content)
