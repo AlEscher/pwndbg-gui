@@ -43,14 +43,13 @@ class GdbHandler(QObject):
             except OSError as e:
                 logger.debug(e)
         logger.debug("Reading stdout from GDB with state %s", self.gdb.state())
-        content_read: List[str] = []
-        content = ""
-        while "pwndbg>" not in content:
+        content_read: List[bytes] = []
+        content = b""
+        while b"pwndbg>" not in content:
             self.gdb.waitForReadyRead()
-            content = self.gdb.readAllStandardOutput().data().decode()
-            logger.debug(content)
+            content = self.gdb.readAllStandardOutput().data()
             content_read.append(content)
-        self.update_gui.emit("main", "".join(content_read))
+        self.update_gui.emit("main", b"".join(content_read).decode())
         logger.info("Finished reading data for contexts")
 
     @Slot()
