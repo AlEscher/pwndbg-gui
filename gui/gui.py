@@ -4,8 +4,8 @@ import sys
 from pathlib import Path
 
 import PySide6
-from PySide6.QtCore import QProcess, Slot
-from PySide6.QtGui import QTextOption
+from PySide6.QtCore import Slot
+from PySide6.QtGui import QTextOption, QTextCursor
 from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit
 
 from main_text_edit import MainTextEdit
@@ -64,6 +64,9 @@ class PwnDbgGui(QWidget):
         widget: QTextEdit | QTextBrowser = self.seg_to_widget[context]
         logger.debug("Updating context %s with \"%s...\"", widget.objectName(), content[:100])
         widget.setText(content)
+        cursor = widget.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
+        widget.setTextCursor(cursor)
 
 
 def run_gui():
