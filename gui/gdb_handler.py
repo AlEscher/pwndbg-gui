@@ -46,7 +46,8 @@ class GdbHandler(QObject):
         content_read: List[bytes] = []
         content = b""
         while b"pwndbg>" not in content:
-            self.gdb.waitForReadyRead()
+            if not self.gdb.waitForReadyRead(1000):
+                break
             content = self.gdb.readAllStandardOutput().data()
             content_read.append(content)
         self.update_gui.emit("main", b"".join(content_read).decode())
