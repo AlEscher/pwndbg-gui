@@ -19,10 +19,12 @@ class GdbHandler(QObject):
         super().__init__()
         self.gui = gui
         self.gdb: QProcess | None = None
+        self.past_commands: List[str] = []
 
     @Slot()
     def send_command(self, cmd: str):
         self.gdb.write(cmd.encode() + b"\n")
+        self.past_commands.append(cmd)
 
     @Slot()
     def update_contexts(self):
@@ -40,10 +42,15 @@ class GdbHandler(QObject):
                 os.close(pipe)
             except OSError as e:
                 logger.debug(e)
-        self.gdb.waitForReadyRead()
         logger.debug("Reading stdout from GDB with state %s", self.gdb.state())
-        content = self.gdb.readAllStandardOutput()
-        self.update_gui.emit("main", content.data().decode())
+        content_read: List[str] = []
+        content = ""
+        while "pwndbg>" not in content:
+            self.gdb.waitForReadyRead()
+            content = self.gdb.readAllStandardOutput().data().decode()
+            logger.debug(content)
+            content_read.append(content)
+        self.update_gui.emit("main", "".join(content_read))
         logger.info("Finished reading data for contexts")
 
     @Slot()
