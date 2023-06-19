@@ -19,7 +19,7 @@ A GUI is also more intuitive to use, having the user remember less commands and 
 
 ## Existing alternatives
 
-There are a lot of plugins, addons and programs that try to ease the use of `gdb` or `pwndbg`. 
+There are **a lot** of plugins, addons and programs that try to ease the use of `gdb`. 
 However most stick to the terminal approach to visualise different contexts like [splitmind](https://github.com/jerdna-regeiz/splitmind), [GDB Dashboard](https://github.com/cyrus-and/gdb-dashboard) or [Hyperpwn](https://github.com/bet4it/hyperpwn).
 
 We have not found a `pwndbg` specific GUI, but some standalone GUI programs for debugging with gdb like [gdbGUI](https://www.gdbgui.com/), [KDbg](https://www.kdbg.org/), or [Nemiver](https://wiki.gnome.org/Apps/Nemiver).
