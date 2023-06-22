@@ -8,27 +8,24 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
-                            Qt)
-from PySide6.QtWidgets import (QFrame, QPushButton, QSplitter, QTextBrowser, QTextEdit)
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QSizePolicy, QSplitter, QTextBrowser,
+    QTextEdit, QWidget)
 
 class Ui_PwnDbgGui(object):
     def setupUi(self, PwnDbgGui):
         if not PwnDbgGui.objectName():
             PwnDbgGui.setObjectName(u"PwnDbgGui")
-        PwnDbgGui.resize(1380, 1066)
-        self.line = QFrame(PwnDbgGui)
-        self.line.setObjectName(u"line")
-        self.line.setGeometry(QRect(10, 30, 1361, 16))
-        self.line.setFrameShape(QFrame.Shape.HLine)
-        self.line.setFrameShadow(QFrame.Shadow.Sunken)
-        self.file_button = QPushButton(PwnDbgGui)
-        self.file_button.setObjectName(u"file_button")
-        self.file_button.setGeometry(QRect(10, 10, 80, 24))
+        PwnDbgGui.resize(1367, 1037)
         self.splitter_5 = QSplitter(PwnDbgGui)
         self.splitter_5.setObjectName(u"splitter_5")
-        self.splitter_5.setGeometry(QRect(10, 40, 1361, 1021))
+        self.splitter_5.setGeometry(QRect(0, 10, 1361, 1021))
         self.splitter_5.setOrientation(Qt.Vertical)
         self.splitter_4 = QSplitter(self.splitter_5)
         self.splitter_4.setObjectName(u"splitter_4")
@@ -71,10 +68,9 @@ class Ui_PwnDbgGui(object):
         self.retranslateUi(PwnDbgGui)
 
         QMetaObject.connectSlotsByName(PwnDbgGui)
-
     # setupUi
 
     def retranslateUi(self, PwnDbgGui):
         PwnDbgGui.setWindowTitle(QCoreApplication.translate("PwnDbgGui", u"PwnDbgGui", None))
-        self.file_button.setText(QCoreApplication.translate("PwnDbgGui", u"Select File", None))
     # retranslateUi
+

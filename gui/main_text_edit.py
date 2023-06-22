@@ -24,28 +24,28 @@ class MainTextEdit(ContextWindow):
     def __init__(self, parent: 'PwnDbgGui', debugee: str):
         super().__init__(parent)
         self.update_thread = QThread()
-        self.update_worker = GdbHandler(parent)
+        self.gdb_handler = GdbHandler(parent)
         self.parent = parent
         self.setObjectName("main")
         self.start_update_worker(debugee)
 
     def start_update_worker(self, debugee: str):
         self.update_thread = QThread()
-        self.update_worker = GdbHandler(self.parent)
-        self.update_worker.moveToThread(self.update_thread)
+        self.gdb_handler = GdbHandler(self.parent)
+        self.gdb_handler.moveToThread(self.update_thread)
         # Allow the worker to update contexts in the GUI thread
-        self.update_worker.update_gui.connect(self.parent.update_pane)
+        self.gdb_handler.update_gui.connect(self.parent.update_pane)
         # Allow giving the thread work from outside
-        self.gdb_read.connect(self.update_worker.update_contexts)
-        self.gdb_write.connect(self.update_worker.send_command)
+        self.gdb_read.connect(self.gdb_handler.update_contexts)
+        self.gdb_write.connect(self.gdb_handler.send_command)
         # Thread cleanup
-        self.update_thread.finished.connect(self.update_worker.deleteLater)
+        self.update_thread.finished.connect(self.gdb_handler.deleteLater)
         # Allow stopping the thread from outside
         self.stop_thread.connect(self.update_thread.quit)
-        self.gdb_stop.connect(self.update_worker.stop_gdb)
+        self.gdb_stop.connect(self.gdb_handler.stop_gdb)
         logger.debug("Starting new worker thread in MainTextEdit")
         self.update_thread.start()
-        self.gdb_start.connect(self.update_worker.start_gdb)
+        self.gdb_start.connect(self.gdb_handler.start_gdb)
         self.gdb_start.emit(debugee)
 
     def keyPressEvent(self, event):

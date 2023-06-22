@@ -5,8 +5,8 @@ from pathlib import Path
 
 import PySide6
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QTextOption, QTextCursor
-from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit
+from PySide6.QtGui import QTextOption, QTextCursor, QAction
+from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit, QMainWindow
 
 from context_window import ContextWindow
 from main_text_edit import MainTextEdit
@@ -20,7 +20,7 @@ from ui_form import Ui_PwnDbgGui
 logger = logging.getLogger(__file__)
 
 
-class PwnDbgGui(QWidget):
+class PwnDbgGui(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.gdbinit = Path.home() / ".gdbinit"
@@ -29,8 +29,18 @@ class PwnDbgGui(QWidget):
         self.pipes = create_pipes([])
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
-        self.ui.file_button.clicked.connect(self.file_button_clicked)
         self.seg_to_widget = dict(stack=self.ui.stack)
+        self.setup_menu()
+
+    def setup_menu(self):
+        menu_bar = self.menuBar()
+        debug_menu = menu_bar.addMenu("&Debug")
+        debug_toolbar = self.addToolBar("Debug")
+        start_action = QAction("Start Program", self)
+        start_action.setToolTip("Start the program to debug")
+        start_action.triggered.connect(self.file_button_clicked)
+        debug_menu.addAction(start_action)
+        debug_toolbar.addAction(start_action)
 
     def start_gdb(self, debugee: str):
         """Runs gdb with the given program and waits for gdb to have started"""
@@ -71,6 +81,6 @@ class PwnDbgGui(QWidget):
 
 def run_gui():
     app = QApplication(sys.argv)
-    widget = PwnDbgGui()
-    widget.show()
+    window = PwnDbgGui()
+    window.show()
     sys.exit(app.exec())
