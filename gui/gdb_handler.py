@@ -32,9 +32,10 @@ class GdbHandler(QObject):
         for segment, pipe_path in self.gui.pipes.items():
             try:
                 pipe = os.open(pipe_path, os.O_RDONLY | os.O_NONBLOCK)
-                if pipe in select.select([pipe], [], [], 0)[0]:
+                # if pipe in select.select([pipe], [], [], 0)[0]:
+                content = os.read(pipe, 64000)
+                if content != b"":
                     logger.debug("Reading from %s at %s", segment, pipe_path)
-                    content = os.read(pipe, 4096)
                     logger.debug("Writing to %s", self.gui.seg_to_widget[segment].objectName())
                     self.update_gui.emit(segment, content)
                 else:
