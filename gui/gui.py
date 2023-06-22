@@ -25,7 +25,7 @@ class PwnDbgGui(QWidget):
         self.gdbinit = Path.home() / ".gdbinit"
         self.gdbinit_backup = self.gdbinit.read_bytes()
         logger.info("Creating pipes")
-        self.pipes = create_pipes([])
+        self.pipes = create_pipes(["stack"])
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
         self.ui.file_button.clicked.connect(self.file_button_clicked)
