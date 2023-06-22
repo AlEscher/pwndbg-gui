@@ -6,9 +6,9 @@ from typing import List
 
 import PySide6
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QTextOption, QTextCursor, QAction
+from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence
 from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
-    QLineEdit
+    QLineEdit, QMessageBox
 
 from context_window import ContextWindow
 from main_text_edit import MainTextEdit
@@ -41,22 +41,37 @@ class PwnDbgGui(QMainWindow):
         debug_toolbar = self.addToolBar("Debug")
 
         start_action = QAction("Start Program", self)
-        start_action.setToolTip("Start the program to debug")
+        start_action.setStatusTip("Start the program to debug")
         start_action.triggered.connect(self.select_file)
         debug_menu.addAction(start_action)
         debug_toolbar.addAction(start_action)
 
         attach_name_action = QAction("Attach Via Name", self)
-        attach_name_action.setToolTip("Attach to a running program via its name (must be unique)")
+        attach_name_action.setStatusTip("Attach to a running program via its name (must be unique)")
         attach_name_action.triggered.connect(self.query_process_name)
         debug_menu.addAction(attach_name_action)
         debug_toolbar.addAction(attach_name_action)
 
         attach_pid_action = QAction("Attach Via PID", self)
-        attach_pid_action.setToolTip("Attach to a running program via its pid")
+        attach_pid_action.setStatusTip("Attach to a running program via its pid")
         attach_pid_action.triggered.connect(self.query_process_pid)
         debug_menu.addAction(attach_pid_action)
         debug_toolbar.addAction(attach_pid_action)
+
+        debug_menu.addSeparator()
+        exit_action = QAction("E&xit", self)
+        exit_action.setShortcut(QKeySequence.StandardKey.Quit)
+        exit_action.setStatusTip("Exit the application")
+        exit_action.triggered.connect(self.close)
+        debug_menu.addAction(exit_action)
+
+        about_menu = self.menu_bar.addMenu("About")
+        about_action = QAction("About", self)
+        about_action.triggered.connect(self.about)
+        about_menu.addAction(about_action)
+        about_qt_action = QAction("About Qt", self)
+        about_qt_action.triggered.connect(QApplication.aboutQt)
+        about_menu.addAction(about_qt_action)
 
     def start_gdb(self, args: List[str]):
         """Runs gdb with the given program and waits for gdb to have started"""
@@ -87,7 +102,8 @@ class PwnDbgGui(QMainWindow):
 
     @Slot()
     def query_process_name(self):
-        name, ok = QInputDialog.getText(self, "Enter a running process name", "Name:", QLineEdit.EchoMode.Normal, "vuln")
+        name, ok = QInputDialog.getText(self, "Enter a running process name", "Name:", QLineEdit.EchoMode.Normal,
+                                        "vuln")
         if ok and name:
             args = ["-p", f"$(pidof {name})"]
             self.start_gdb(args)
@@ -106,6 +122,12 @@ class PwnDbgGui(QMainWindow):
         cursor = widget.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
         widget.setTextCursor(cursor)
+
+    @Slot()
+    def about(self):
+        QMessageBox.about(self, "About PwndbgGui", "The <b>Application</b> example demonstrates how to "
+                                                   "write modern GUI applications using Qt, with a menu bar, "
+                                                   "toolbars, and a status bar.")
 
 
 def run_gui():
