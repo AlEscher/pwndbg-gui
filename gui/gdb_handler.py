@@ -47,7 +47,7 @@ class GdbHandler(QObject):
         content_read: List[bytes] = []
         content = b""
         while b"pwndbg>" not in content:
-            if not self.gdb.waitForReadyRead(1000):
+            if not self.gdb.waitForReadyRead(2000):
                 break
             content = self.gdb.readAllStandardOutput().data()
             content_read.append(content)
@@ -55,12 +55,12 @@ class GdbHandler(QObject):
         logger.info("Finished reading data for contexts")
 
     @Slot()
-    def start_gdb(self, argument: str):
+    def start_gdb(self, arguments: List[str]):
         """Runs gdb with the given program and waits for gdb to have started"""
-        logger.info("Starting GDB process with target %s", argument)
+        logger.info("Starting GDB process with target %s", arguments)
         self.gdb = QProcess()
         self.gdb.setProgram("gdb")
-        self.gdb.setArguments([argument])
+        self.gdb.setArguments(arguments)
         self.gdb.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
         self.gdb.start()
         self.gdb.waitForStarted()

@@ -18,18 +18,18 @@ class MainTextEdit(ContextWindow):
     gdb_read = Signal()
     gdb_write = Signal(str)
     gdb_stop = Signal()
-    gdb_start = Signal(str)
+    gdb_start = Signal(list)
     stop_thread = Signal()
 
-    def __init__(self, parent: 'PwnDbgGui', debugee: str):
+    def __init__(self, parent: 'PwnDbgGui', args: List[str]):
         super().__init__(parent)
         self.update_thread = QThread()
         self.gdb_handler = GdbHandler(parent)
         self.parent = parent
         self.setObjectName("main")
-        self.start_update_worker(debugee)
+        self.start_update_worker(args)
 
-    def start_update_worker(self, debugee: str):
+    def start_update_worker(self, args: List[str]):
         self.update_thread = QThread()
         self.gdb_handler = GdbHandler(self.parent)
         self.gdb_handler.moveToThread(self.update_thread)
@@ -46,7 +46,7 @@ class MainTextEdit(ContextWindow):
         logger.debug("Starting new worker thread in MainTextEdit")
         self.update_thread.start()
         self.gdb_start.connect(self.gdb_handler.start_gdb)
-        self.gdb_start.emit(debugee)
+        self.gdb_start.emit(args)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
