@@ -13,7 +13,7 @@ logger = logging.getLogger(__file__)
 
 
 class GdbHandler(QObject):
-    update_gui = Signal(str, str)
+    update_gui = Signal(str, bytes)
 
     def __init__(self, gui: 'PwnDbgGui'):
         super().__init__()
@@ -51,7 +51,7 @@ class GdbHandler(QObject):
                 break
             content = self.gdb.readAllStandardOutput().data()
             content_read.append(content)
-        self.update_gui.emit("main", b"".join(content_read).decode())
+        self.update_gui.emit("main", b"".join(content_read))
         logger.info("Finished reading data for contexts")
 
     @Slot()

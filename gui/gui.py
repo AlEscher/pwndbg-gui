@@ -8,6 +8,7 @@ from PySide6.QtCore import Slot
 from PySide6.QtGui import QTextOption, QTextCursor
 from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit
 
+from context_window import ContextWindow
 from main_text_edit import MainTextEdit
 from pty_util import delete_pipe, create_pipes
 # Important:
@@ -52,7 +53,6 @@ class PwnDbgGui(QWidget):
     @Slot()
     def file_button_clicked(self):
         dialog = QFileDialog(self)
-
         dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
@@ -60,10 +60,10 @@ class PwnDbgGui(QWidget):
             self.start_gdb(file_name)
 
     @Slot(str, str)
-    def update_pane(self, context: str, content: str):
-        widget: QTextEdit | QTextBrowser = self.seg_to_widget[context]
+    def update_pane(self, context: str, content: bytes):
+        widget: QTextEdit | QTextBrowser | ContextWindow = self.seg_to_widget[context]
         logger.debug("Updating context %s with \"%s...\"", widget.objectName(), content[:100])
-        widget.setText(content)
+        widget.add_gdb_output(content)
         cursor = widget.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
         widget.setTextCursor(cursor)
