@@ -49,7 +49,6 @@ class GdbHandler(QObject):
             if not self.gdb.waitForReadyRead(1000):
                 break
             content = self.gdb.readAllStandardOutput().data()
-            logger.debug(content)
             content_read.append(content)
         self.update_gui.emit("main", b"".join(content_read))
         logger.info("Finished reading data for contexts")

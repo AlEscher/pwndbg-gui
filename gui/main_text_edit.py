@@ -58,7 +58,7 @@ class MainTextEdit(ContextWindow):
         lines = self.toPlainText().splitlines(keepends=True)
         if len(lines) > 0:
             cmd = lines[-1]
-            cmd = cmd[cmd.find(">") + 17:]
+            cmd = cmd[cmd.find(">")+1:]
             logger.debug("Sending command '%s' to gdb", cmd)
             self.gdb_write.emit(cmd)
             self.gdb_read.emit()
