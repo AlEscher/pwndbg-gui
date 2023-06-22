@@ -8,15 +8,10 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QFrame, QPushButton, QSizePolicy,
-    QSplitter, QTextBrowser, QTextEdit, QWidget)
+from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
+                            Qt)
+from PySide6.QtWidgets import (QFrame, QPushButton, QSplitter, QTextBrowser, QTextEdit)
+
 
 class Ui_PwnDbgGui(object):
     def setupUi(self, PwnDbgGui):
@@ -26,8 +21,8 @@ class Ui_PwnDbgGui(object):
         self.line = QFrame(PwnDbgGui)
         self.line.setObjectName(u"line")
         self.line.setGeometry(QRect(10, 30, 1361, 16))
-        self.line.setFrameShape(QFrame.HLine)
-        self.line.setFrameShadow(QFrame.Sunken)
+        self.line.setFrameShape(QFrame.Shape.HLine)
+        self.line.setFrameShadow(QFrame.Shadow.Sunken)
         self.file_button = QPushButton(PwnDbgGui)
         self.file_button.setObjectName(u"file_button")
         self.file_button.setGeometry(QRect(10, 10, 80, 24))
@@ -76,10 +71,10 @@ class Ui_PwnDbgGui(object):
         self.retranslateUi(PwnDbgGui)
 
         QMetaObject.connectSlotsByName(PwnDbgGui)
+
     # setupUi
 
     def retranslateUi(self, PwnDbgGui):
         PwnDbgGui.setWindowTitle(QCoreApplication.translate("PwnDbgGui", u"PwnDbgGui", None))
         self.file_button.setText(QCoreApplication.translate("PwnDbgGui", u"Select File", None))
     # retranslateUi
-

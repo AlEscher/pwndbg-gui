@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt, QProcess, QThread, Signal
 from PySide6.QtWidgets import QTextEdit
 
 from gdb_handler import GdbHandler
+from context_window import ContextWindow
 
 # Prevent circular import error
 if TYPE_CHECKING:
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-class MainTextEdit(QTextEdit):
+class MainTextEdit(ContextWindow):
     gdb_read = Signal()
     gdb_write = Signal(str)
     gdb_stop = Signal()
