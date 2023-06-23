@@ -22,6 +22,8 @@ from gui.ui_form import Ui_PwnDbgGui
 
 logger = logging.getLogger(__file__)
 
+import gdb
+
 
 class PwnDbgGui(QMainWindow):
     def __init__(self, parent=None):
@@ -87,8 +89,8 @@ class PwnDbgGui(QMainWindow):
         """Called when window is closed. Cleanup all ptys and terminate the gdb process"""
         logger.debug("Resetting gdbinit")
         self.gdbinit.write_bytes(self.gdbinit_backup)
-        for pipe in self.pipes.values():
-            delete_pipe(pipe)
+        #for pipe in self.pipes.values():
+        #    delete_pipe(pipe)
         logger.debug("Stopping MainTextEdit update thread")
         self.seg_to_widget["main"].gdb_stop.emit()
         self.seg_to_widget["main"].stop_thread.emit()

@@ -28,8 +28,8 @@ class GdbHandler(QObject):
 
     @Slot()
     def update_contexts(self):
-        return
         logger.info("Starting updating contexts")
+        '''
         for segment, pipe_path in self.gui.pipes.items():
             try:
                 pipe = os.open(pipe_path, os.O_RDONLY | os.O_NONBLOCK)
@@ -44,6 +44,7 @@ class GdbHandler(QObject):
                 os.close(pipe)
             except OSError as e:
                 logger.debug(e)
+        '''
         logger.debug("Reading stdout from GDB with state %s", self.gdb.state())
         content_read: List[bytes] = []
         content = b""
