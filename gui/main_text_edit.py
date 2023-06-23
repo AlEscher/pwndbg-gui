@@ -1,11 +1,10 @@
 import logging
 from typing import TYPE_CHECKING, List
 
-from PySide6.QtCore import Qt, QProcess, QThread, Signal
-from PySide6.QtWidgets import QTextEdit
+from PySide6.QtCore import Qt, QThread, Signal
 
 from gdb_handler import GdbHandler
-from context_window import ContextWindow
+from context_text_window import ContextWindow
 
 # Prevent circular import error
 if TYPE_CHECKING:
