@@ -10,10 +10,8 @@ from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence
 from PySide6.QtWidgets import QApplication, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox
 
-import gui
-from gui.context_text_window import ContextWindow
 from gui.main_text_edit import MainTextEdit
-from gui.pipe_util import delete_pipe, create_pipes
+from gui.parser import ContextParser
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -33,6 +31,7 @@ class PwnDbgGui(QMainWindow):
         self.ui.setupUi(self)
         self.setCentralWidget(self.ui.splitter_5)
         self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm, backtrace=self.ui.backtrace, regs=self.ui.regs)
+        self.parser = ContextParser()
         self.setup_menu()
 
     def setup_menu(self):
@@ -112,9 +111,10 @@ class PwnDbgGui(QMainWindow):
 
     @Slot(str, str)
     def update_pane(self, context: str, content: bytes):
-        widget: QTextEdit | QTextBrowser | ContextWindow = self.seg_to_widget[context]
+        widget: QTextEdit | QTextBrowser = self.seg_to_widget[context]
         logger.debug("Updating context %s with \"%s...\"", widget.objectName(), content[:100])
-        widget.add_gdb_output(content)
+        html = self.parser.to_html(content)
+        widget.setHtml(html)
         cursor = widget.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
         widget.setTextCursor(cursor)

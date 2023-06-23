@@ -2,9 +2,9 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtWidgets import QTextEdit
 
 from gui.gdb_handler import GdbHandler
-from gui.context_text_window import ContextWindow
 
 # Prevent circular import error
 if TYPE_CHECKING:
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-class MainTextEdit(ContextWindow):
+class MainTextEdit(QTextEdit):
     gdb_write = Signal(str)
     gdb_start = Signal(list)
     stop_thread = Signal()

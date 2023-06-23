@@ -18,9 +18,6 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QSizePolicy, QSplitter, QTextEdit,
     QWidget)
 
-from gui.context_text_window import ContextWindow
-
-
 class Ui_PwnDbgGui(object):
     def setupUi(self, PwnDbgGui):
         if not PwnDbgGui.objectName():
@@ -36,24 +33,24 @@ class Ui_PwnDbgGui(object):
         self.splitter_2 = QSplitter(self.splitter_4)
         self.splitter_2.setObjectName(u"splitter_2")
         self.splitter_2.setOrientation(Qt.Vertical)
-        self.disasm = ContextWindow(self.splitter_2)
+        self.disasm = QTextEdit(self.splitter_2)
         self.disasm.setObjectName(u"disasm")
         self.splitter_2.addWidget(self.disasm)
-        self.code = ContextWindow(self.splitter_2)
+        self.code = QTextEdit(self.splitter_2)
         self.code.setObjectName(u"code")
         self.splitter_2.addWidget(self.code)
         self.splitter_4.addWidget(self.splitter_2)
         self.splitter_3 = QSplitter(self.splitter_4)
         self.splitter_3.setObjectName(u"splitter_3")
         self.splitter_3.setOrientation(Qt.Vertical)
-        self.regs = ContextWindow(self.splitter_3)
+        self.regs = QTextEdit(self.splitter_3)
         self.regs.setObjectName(u"regs")
         self.splitter_3.addWidget(self.regs)
-        self.backtrace = ContextWindow(self.splitter_3)
+        self.backtrace = QTextEdit(self.splitter_3)
         self.backtrace.setObjectName(u"backtrace")
         self.splitter_3.addWidget(self.backtrace)
         self.splitter_4.addWidget(self.splitter_3)
-        self.stack = ContextWindow(self.splitter_4)
+        self.stack = QTextEdit(self.splitter_4)
         self.stack.setObjectName(u"stack")
         self.splitter_4.addWidget(self.stack)
         self.splitter_5.addWidget(self.splitter_4)
