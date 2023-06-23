@@ -32,5 +32,5 @@ class GdbHandler(QObject):
     def start_gdb(self, arguments: List[str]):
         """Runs gdb with the given program and waits for gdb to have started"""
         logger.info("Setting GDB target to %s", arguments)
-        cmd = "file " + " ".join(arguments)
+        cmd = " ".join(arguments)
         gdb.execute(cmd)

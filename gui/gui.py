@@ -90,20 +90,20 @@ class PwnDbgGui(QMainWindow):
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
-            self.start_gdb([file_name])
+            self.start_gdb(["file", file_name])
 
     @Slot()
     def query_process_name(self):
         name, ok = QInputDialog.getText(self, "Enter a running process name", "Name:", QLineEdit.EchoMode.Normal,
                                         "vuln")
         if ok and name:
-            args = ["-p", f"$(pidof {name})"]
+            args = ["attach", f"$(pidof {name})"]
             self.start_gdb(args)
 
     def query_process_pid(self):
         pid, ok = QInputDialog.getInt(self, "Enter a running process pid", "PID:", minValue=0)
         if ok and pid > 0:
-            args = ["-p", str(pid)]
+            args = ["attach", str(pid)]
             self.start_gdb(args)
 
     @Slot(str, str)
