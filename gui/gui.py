@@ -29,8 +29,8 @@ class PwnDbgGui(QMainWindow):
         self.menu_bar = None
         self.gdbinit = Path.home() / ".gdbinit"
         self.gdbinit_backup = self.gdbinit.read_bytes()
-        logger.info("Creating pipes")
-        self.pipes = create_pipes(["stack"])
+        #logger.info("Creating pipes")
+        #self.pipes = create_pipes(["stack"])
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
         self.setCentralWidget(self.ui.splitter_5)
@@ -137,3 +137,9 @@ def run_gui():
     window = PwnDbgGui()
     window.show()
     sys.exit(app.exec())
+
+
+def test_fun(data):
+    print("RAN THROUGH THE TEST")
+    print(data)
+    print("RAN THROUGH THE TEST")

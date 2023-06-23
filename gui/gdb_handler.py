@@ -28,6 +28,7 @@ class GdbHandler(QObject):
 
     @Slot()
     def update_contexts(self):
+        return
         logger.info("Starting updating contexts")
         for segment, pipe_path in self.gui.pipes.items():
             try:
