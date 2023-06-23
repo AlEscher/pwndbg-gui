@@ -25,10 +25,9 @@ class PwnDbgGui(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.menu_bar = None
-        self.gdbinit = Path.home() / ".gdbinit"
-        self.gdbinit_backup = self.gdbinit.read_bytes()
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
+        # Make all widgets resizable with the window
         self.setCentralWidget(self.ui.splitter_5)
         self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm, backtrace=self.ui.backtrace, regs=self.ui.regs)
         self.parser = ContextParser()
@@ -81,8 +80,6 @@ class PwnDbgGui(QMainWindow):
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
         """Called when window is closed. Cleanup all ptys and terminate the gdb process"""
-        logger.debug("Resetting gdbinit")
-        self.gdbinit.write_bytes(self.gdbinit_backup)
         logger.debug("Stopping MainTextEdit update thread")
         self.seg_to_widget["main"].stop_thread.emit()
 
@@ -131,10 +128,3 @@ def run_gui():
     window = PwnDbgGui()
     window.show()
     sys.exit(app.exec())
-
-
-class TestClass:
-    def __call__(self, *args, **kwargs):
-        logger.debug("RAN THROUGH THE TEST")
-        logger.debug(args)
-        logger.debug("RAN THROUGH THE TEST")
