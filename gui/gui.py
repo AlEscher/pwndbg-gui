@@ -10,14 +10,15 @@ from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence
 from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox
 
-from context_window import ContextWindow
-from main_text_edit import MainTextEdit
-from pipe_util import delete_pipe, create_pipes
+import gui
+from gui.context_window import ContextWindow
+from gui.main_text_edit import MainTextEdit
+from gui.pipe_util import delete_pipe, create_pipes
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
-from ui_form import Ui_PwnDbgGui
+from gui.ui_form import Ui_PwnDbgGui
 
 logger = logging.getLogger(__file__)
 

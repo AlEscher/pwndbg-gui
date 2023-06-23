@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING, List
 from PySide6.QtCore import Qt, QProcess, QThread, Signal
 from PySide6.QtWidgets import QTextEdit
 
-from gdb_handler import GdbHandler
-from context_window import ContextWindow
+from gui.gdb_handler import GdbHandler
+from gui.context_window import ContextWindow
 
 # Prevent circular import error
 if TYPE_CHECKING:
-    from gui import PwnDbgGui
+    from gui.gui import PwnDbgGui
 
 logger = logging.getLogger(__file__)
 

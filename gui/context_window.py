@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QTextEdit
 
 # Prevent circular import error
 if TYPE_CHECKING:
-    from gui import PwnDbgGui
+    from gui.gui import PwnDbgGui
 
 logger = logging.getLogger(__file__)
 
