@@ -14,9 +14,7 @@ logger = logging.getLogger(__file__)
 
 
 class MainTextEdit(ContextWindow):
-    gdb_read = Signal()
     gdb_write = Signal(str)
-    gdb_stop = Signal()
     gdb_start = Signal(list)
     stop_thread = Signal()
 
@@ -35,13 +33,11 @@ class MainTextEdit(ContextWindow):
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.parent.update_pane)
         # Allow giving the thread work from outside
-        self.gdb_read.connect(self.gdb_handler.update_contexts)
         self.gdb_write.connect(self.gdb_handler.send_command)
         # Thread cleanup
         self.update_thread.finished.connect(self.gdb_handler.deleteLater)
         # Allow stopping the thread from outside
         self.stop_thread.connect(self.update_thread.quit)
-        self.gdb_stop.connect(self.gdb_handler.stop_gdb)
         logger.debug("Starting new worker thread in MainTextEdit")
         self.update_thread.start()
         self.gdb_start.connect(self.gdb_handler.start_gdb)
@@ -60,6 +56,5 @@ class MainTextEdit(ContextWindow):
             cmd = cmd[cmd.find(">")+1:]
             logger.debug("Sending command '%s' to gdb", cmd)
             self.gdb_write.emit(cmd)
-            self.gdb_read.emit()
             return
         logger.debug("No lines to send as command!")

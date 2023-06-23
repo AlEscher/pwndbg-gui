@@ -83,16 +83,12 @@ class PwnDbgGui(QMainWindow):
         main_text_edit = MainTextEdit(parent=self, args=args)
         self.ui.splitter.replaceWidget(0, main_text_edit)
         self.seg_to_widget["main"] = main_text_edit
-        self.seg_to_widget["main"].gdb_read.emit()
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
         """Called when window is closed. Cleanup all ptys and terminate the gdb process"""
         logger.debug("Resetting gdbinit")
         self.gdbinit.write_bytes(self.gdbinit_backup)
-        #for pipe in self.pipes.values():
-        #    delete_pipe(pipe)
         logger.debug("Stopping MainTextEdit update thread")
-        self.seg_to_widget["main"].gdb_stop.emit()
         self.seg_to_widget["main"].stop_thread.emit()
 
     @Slot()

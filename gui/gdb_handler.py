@@ -1,6 +1,7 @@
 import logging
 import os
 import select
+import gdb
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import QObject, Slot, Signal, QProcess
@@ -23,8 +24,9 @@ class GdbHandler(QObject):
 
     @Slot()
     def send_command(self, cmd: str):
-        self.gdb.write(cmd.encode() + b"\n")
-        self.past_commands.append(cmd)
+        response = gdb.execute(cmd, to_string=True)
+        logger.debug(response[:100])
+        self.update_gui.emit("main", response.encode())
 
     @Slot()
     def update_contexts(self):
@@ -59,18 +61,6 @@ class GdbHandler(QObject):
     @Slot()
     def start_gdb(self, arguments: List[str]):
         """Runs gdb with the given program and waits for gdb to have started"""
-        logger.info("Starting GDB process with target %s", arguments)
-        self.gdb = QProcess()
-        self.gdb.setProgram("gdb")
-        self.gdb.setArguments(arguments)
-        self.gdb.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
-        self.gdb.start()
-        self.gdb.waitForStarted()
-        logger.info("GDB running with state %s", self.gdb.state())
-
-    @Slot()
-    def stop_gdb(self):
-        logger.info("Closing GDB process")
-        self.gdb.close()
-        self.gdb.waitForFinished()
-        logger.debug("Waited for GDB process with current state: %s", self.gdb.state())
+        logger.info("Setting GDB target to %s", arguments)
+        cmd = "file " + " ".join(arguments)
+        gdb.execute(cmd)
