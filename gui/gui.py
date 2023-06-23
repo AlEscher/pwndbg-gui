@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QApplication, QFileDialog, QTextBrowser, QTextEdit
     QLineEdit, QMessageBox
 
 import gui
-from gui.context_window import ContextWindow
+from gui.context_text_window import ContextWindow
 from gui.main_text_edit import MainTextEdit
 from gui.pipe_util import delete_pipe, create_pipes
 # Important:

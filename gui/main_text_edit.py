@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List
 from PySide6.QtCore import Qt, QThread, Signal
 
 from gui.gdb_handler import GdbHandler
-from gui.context_window import ContextWindow
+from gui.context_text_window import ContextWindow
 
 # Prevent circular import error
 if TYPE_CHECKING:
