@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QTextEdit
+from PySide6.QtWidgets import QTextEdit, QWidget
 
 # Prevent circular import error
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ logger = logging.getLogger(__file__)
 
 
 class ContextWindow(QTextEdit):
-    def __init__(self, parent: 'PwnDbgGui', ):
+    def __init__(self, parent: QWidget, ):
         super().__init__(parent)
 
     def add_gdb_output(self, gdb_output: bytes):

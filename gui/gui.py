@@ -22,8 +22,6 @@ from gui.ui_form import Ui_PwnDbgGui
 
 logger = logging.getLogger(__file__)
 
-import gdb
-
 
 class PwnDbgGui(QMainWindow):
     def __init__(self, parent=None):
@@ -31,12 +29,10 @@ class PwnDbgGui(QMainWindow):
         self.menu_bar = None
         self.gdbinit = Path.home() / ".gdbinit"
         self.gdbinit_backup = self.gdbinit.read_bytes()
-        #logger.info("Creating pipes")
-        #self.pipes = create_pipes(["stack"])
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
         self.setCentralWidget(self.ui.splitter_5)
-        self.seg_to_widget = dict(stack=self.ui.stack)
+        self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm, backtrace=self.ui.backtrace, regs=self.ui.regs)
         self.setup_menu()
 
     def setup_menu(self):
@@ -137,7 +133,8 @@ def run_gui():
     sys.exit(app.exec())
 
 
-def test_fun(data):
-    print("RAN THROUGH THE TEST")
-    print(data)
-    print("RAN THROUGH THE TEST")
+class TestClass:
+    def __call__(self, *args, **kwargs):
+        logger.debug("RAN THROUGH THE TEST")
+        logger.debug(args)
+        logger.debug("RAN THROUGH THE TEST")

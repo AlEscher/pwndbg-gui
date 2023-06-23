@@ -1,7 +1,10 @@
 import logging
 from typing import TYPE_CHECKING, List
 
+# These imports are broken here, but will work via .gdbinit
 import gdb
+from pwndbg.commands.context import context_stack, context_regs, context_disasm, context_code, context_backtrace
+
 from PySide6.QtCore import QObject, Slot, Signal, QProcess
 
 # Prevent circular import error
@@ -14,16 +17,21 @@ logger = logging.getLogger(__file__)
 class GdbHandler(QObject):
     update_gui = Signal(str, bytes)
 
-    def __init__(self, gui: 'PwnDbgGui'):
+    def __init__(self, active_contexts: List[str]):
         super().__init__()
-        self.gui = gui
-        self.gdb: QProcess | None = None
         self.past_commands: List[str] = []
+        self.context_to_func = dict(regs=context_regs, stack=context_stack, disasm=context_disasm, code=context_code, backtrace=context_backtrace)
+        self.active_contexts = active_contexts
 
     @Slot()
     def send_command(self, cmd: str):
         response = gdb.execute(cmd, from_tty=True, to_string=True)
         self.update_gui.emit("main", response.encode())
+        # Update contexts
+        for context, func in self.context_to_func.items():
+            if context in self.active_contexts:
+                context_data: List[str] = func()
+                self.update_gui.emit(context, "\n".join(context_data).encode())
 
     @Slot()
     def start_gdb(self, arguments: List[str]):

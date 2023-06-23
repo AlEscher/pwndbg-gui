@@ -21,14 +21,13 @@ class MainTextEdit(ContextWindow):
     def __init__(self, parent: 'PwnDbgGui', args: List[str]):
         super().__init__(parent)
         self.update_thread = QThread()
-        self.gdb_handler = GdbHandler(parent)
+        self.gdb_handler = GdbHandler(active_contexts=parent.seg_to_widget.keys())
         self.parent = parent
         self.setObjectName("main")
         self.start_update_worker(args)
 
     def start_update_worker(self, args: List[str]):
         self.update_thread = QThread()
-        self.gdb_handler = GdbHandler(self.parent)
         self.gdb_handler.moveToThread(self.update_thread)
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.parent.update_pane)

@@ -15,8 +15,11 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QSizePolicy, QSplitter, QTextBrowser,
-    QTextEdit, QWidget)
+from PySide6.QtWidgets import (QApplication, QSizePolicy, QSplitter, QTextEdit,
+    QWidget)
+
+from gui.context_text_window import ContextWindow
+
 
 class Ui_PwnDbgGui(object):
     def setupUi(self, PwnDbgGui):
@@ -33,24 +36,24 @@ class Ui_PwnDbgGui(object):
         self.splitter_2 = QSplitter(self.splitter_4)
         self.splitter_2.setObjectName(u"splitter_2")
         self.splitter_2.setOrientation(Qt.Vertical)
-        self.disasm = QTextBrowser(self.splitter_2)
+        self.disasm = ContextWindow(self.splitter_2)
         self.disasm.setObjectName(u"disasm")
         self.splitter_2.addWidget(self.disasm)
-        self.code = QTextBrowser(self.splitter_2)
+        self.code = ContextWindow(self.splitter_2)
         self.code.setObjectName(u"code")
         self.splitter_2.addWidget(self.code)
         self.splitter_4.addWidget(self.splitter_2)
         self.splitter_3 = QSplitter(self.splitter_4)
         self.splitter_3.setObjectName(u"splitter_3")
         self.splitter_3.setOrientation(Qt.Vertical)
-        self.regs = QTextBrowser(self.splitter_3)
+        self.regs = ContextWindow(self.splitter_3)
         self.regs.setObjectName(u"regs")
         self.splitter_3.addWidget(self.regs)
-        self.io = QTextBrowser(self.splitter_3)
-        self.io.setObjectName(u"io")
-        self.splitter_3.addWidget(self.io)
+        self.backtrace = ContextWindow(self.splitter_3)
+        self.backtrace.setObjectName(u"backtrace")
+        self.splitter_3.addWidget(self.backtrace)
         self.splitter_4.addWidget(self.splitter_3)
-        self.stack = QTextBrowser(self.splitter_4)
+        self.stack = ContextWindow(self.splitter_4)
         self.stack.setObjectName(u"stack")
         self.splitter_4.addWidget(self.stack)
         self.splitter_5.addWidget(self.splitter_4)

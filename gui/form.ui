@@ -33,17 +33,17 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QTextBrowser" name="disasm"/>
-     <widget class="QTextBrowser" name="code"/>
+     <widget class="QTextEdit" name="disasm"/>
+     <widget class="QTextEdit" name="code"/>
     </widget>
     <widget class="QSplitter" name="splitter_3">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QTextBrowser" name="regs"/>
-     <widget class="QTextBrowser" name="io"/>
+     <widget class="QTextEdit" name="regs"/>
+     <widget class="QTextEdit" name="backtrace"/>
     </widget>
-    <widget class="QTextBrowser" name="stack"/>
+    <widget class="QTextEdit" name="stack"/>
    </widget>
    <widget class="QSplitter" name="splitter">
     <property name="orientation">
