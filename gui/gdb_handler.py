@@ -1,15 +1,10 @@
 import logging
-from typing import TYPE_CHECKING, List
+from typing import List
 
 # These imports are broken here, but will work via .gdbinit
 import gdb
+from PySide6.QtCore import QObject, Slot, Signal
 from pwndbg.commands.context import context_stack, context_regs, context_disasm, context_code, context_backtrace
-
-from PySide6.QtCore import QObject, Slot, Signal, QProcess
-
-# Prevent circular import error
-if TYPE_CHECKING:
-    from gui import PwnDbgGui
 
 logger = logging.getLogger(__file__)
 
