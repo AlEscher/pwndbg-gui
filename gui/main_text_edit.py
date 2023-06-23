@@ -1,8 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, List
 
-from PySide6.QtCore import Qt, QProcess, QThread, Signal
-from PySide6.QtWidgets import QTextEdit
+from PySide6.QtCore import Qt, QThread, Signal
 
 from gui.gdb_handler import GdbHandler
 from gui.context_window import ContextWindow

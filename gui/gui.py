@@ -7,7 +7,7 @@ from typing import List
 import PySide6
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence
-from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
+from PySide6.QtWidgets import QApplication, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox
 
 import gui
@@ -33,6 +33,7 @@ class PwnDbgGui(QMainWindow):
         self.pipes = create_pipes(["stack"])
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
+        self.setCentralWidget(self.ui.splitter_5)
         self.seg_to_widget = dict(stack=self.ui.stack)
         self.setup_menu()
 
