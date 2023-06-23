@@ -15,17 +15,17 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QSizePolicy, QSplitter, QTextBrowser,
-    QTextEdit, QWidget)
+from PySide6.QtWidgets import (QApplication, QGridLayout, QSizePolicy, QSplitter,
+    QTextBrowser, QTextEdit, QWidget)
 
 class Ui_PwnDbgGui(object):
     def setupUi(self, PwnDbgGui):
         if not PwnDbgGui.objectName():
             PwnDbgGui.setObjectName(u"PwnDbgGui")
-        PwnDbgGui.resize(1367, 1037)
+        PwnDbgGui.resize(1474, 1037)
         self.splitter_5 = QSplitter(PwnDbgGui)
+        PwnDbgGui.setCentralWidget(self.splitter_5)
         self.splitter_5.setObjectName(u"splitter_5")
-        self.splitter_5.setGeometry(QRect(0, 10, 1361, 1021))
         self.splitter_5.setOrientation(Qt.Vertical)
         self.splitter_4 = QSplitter(self.splitter_5)
         self.splitter_4.setObjectName(u"splitter_4")
@@ -64,6 +64,7 @@ class Ui_PwnDbgGui(object):
         self.ipython.setObjectName(u"ipython")
         self.splitter.addWidget(self.ipython)
         self.splitter_5.addWidget(self.splitter)
+
 
         self.retranslateUi(PwnDbgGui)
 
