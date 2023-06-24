@@ -71,7 +71,7 @@ class PwnDbgGui(QMainWindow):
         about_qt_action.triggered.connect(QApplication.aboutQt)
         about_menu.addAction(about_qt_action)
 
-    def start_gdb(self, args: List[str]):
+    def set_gdb_target(self, args: List[str]):
         """Runs gdb with the given program and waits for gdb to have started"""
         # Replace the "Main" widget with our custom implementation
         main_text_edit = MainTextEdit(parent=self, args=args)
@@ -90,7 +90,7 @@ class PwnDbgGui(QMainWindow):
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
-            self.start_gdb(["file", file_name])
+            self.set_gdb_target(["file", file_name])
 
     @Slot()
     def query_process_name(self):
@@ -98,13 +98,13 @@ class PwnDbgGui(QMainWindow):
                                         "vuln")
         if ok and name:
             args = ["attach", f"$(pidof {name})"]
-            self.start_gdb(args)
+            self.set_gdb_target(args)
 
     def query_process_pid(self):
         pid, ok = QInputDialog.getInt(self, "Enter a running process pid", "PID:", minValue=0)
         if ok and pid > 0:
             args = ["attach", str(pid)]
-            self.start_gdb(args)
+            self.set_gdb_target(args)
 
     @Slot(str, str)
     def update_pane(self, context: str, content: bytes):

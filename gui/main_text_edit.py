@@ -39,7 +39,7 @@ class MainTextEdit(QTextEdit):
         self.stop_thread.connect(self.update_thread.quit)
         logger.debug("Starting new worker thread in MainTextEdit")
         self.update_thread.start()
-        self.gdb_start.connect(self.gdb_handler.start_gdb)
+        self.gdb_start.connect(self.gdb_handler.set_target)
         self.gdb_start.emit(args)
 
     def keyPressEvent(self, event):

@@ -47,8 +47,8 @@ class GdbHandler(QObject):
                 self.update_gui.emit(context, "\n".join(context_data).encode())
 
     @Slot()
-    def start_gdb(self, arguments: List[str]):
-        """Runs gdb with the given program and waits for gdb to have started"""
+    def set_target(self, arguments: List[str]):
+        """Execute the given command, use for setting the debugging target"""
         logger.info("Setting GDB target to %s", arguments)
         cmd = " ".join(arguments)
         gdb.execute(cmd)
