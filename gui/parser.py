@@ -12,10 +12,15 @@ class ContextParser:
         # Misuse QTextEdit as a HTML parser
         self.parser = QTextEdit()
 
-    def parse(self, raw_output: bytes):
+    def reset(self):
         self.parser.clear()
-        tokens = raw_output.split(b"\x1b[")
+        self.parser.setFontUnderline(False)
+        self.parser.setFontItalic(False)
         self.reset_font()
+
+    def parse(self, raw_output: bytes):
+        self.reset()
+        tokens = raw_output.split(b"\x1b[")
         for token in tokens:
             self.parse_ascii_control(token)
         self.reset_font()
