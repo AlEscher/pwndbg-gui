@@ -69,11 +69,17 @@ class ContextParser:
             # TODO, Ignore for now
             pass
         # Font
+        elif start.startswith(b"0m"):
+            self.reset_font()
+            self.parser.insertPlainText(token[2:].decode())
         elif start.startswith(b"1m"):
             self.parser.setFontWeight(QFont.Weight.Bold)
             self.parser.insertPlainText(token[2:].decode())
-        elif start.startswith(b"0m"):
-            self.reset_font()
+        elif start.startswith(b"3m"):
+            self.parser.setFontItalic(not self.parser.fontItalic())
+            self.parser.insertPlainText(token[2:].decode())
+        elif start.startswith(b"4m"):
+            self.parser.setFontUnderline(not self.parser.fontUnderline())
             self.parser.insertPlainText(token[2:].decode())
         else:
             self.parser.insertPlainText(token.decode())
