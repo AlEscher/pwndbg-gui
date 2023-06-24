@@ -1,15 +1,18 @@
 # This Python file uses the following encoding: utf-8
 import logging
 import sys
-from pathlib import Path
 from typing import List
 
 import PySide6
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence
+from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence, QFont
 from PySide6.QtWidgets import QApplication, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox
 
+from gui.constants import PwndbgGuiConstants
+from gui.custom_widgets.context_list_widget import ContextListWidget
+from gui.custom_widgets.context_text_edit import ContextTextEdit
+from gui.html_style_delegate import HTMLDelegate
 from gui.main_text_edit import MainTextEdit
 from gui.parser import ContextParser
 # Important:
@@ -28,10 +31,34 @@ class PwnDbgGui(QMainWindow):
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
         # Make all widgets resizable with the window
-        self.setCentralWidget(self.ui.splitter_5)
+        self.setCentralWidget(self.ui.top_splitter)
+        self.setup_custom_widgets()
         self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm, backtrace=self.ui.backtrace, regs=self.ui.regs)
         self.parser = ContextParser()
         self.setup_menu()
+
+    def setup_custom_widgets(self):
+        """Ugly workaround to allow to use custom widgets.
+            Using custom widgets in Qt Designer seems to only work for C++"""
+        # Widget index depends on the order they were added in ui_form.py
+        logger.debug("Replacing widgets with custom implementations")
+        self.ui.stack = ContextListWidget(self)
+        self.ui.stack.setObjectName("stack")
+        self.ui.stack.setItemDelegate(HTMLDelegate())
+        self.ui.splitter_4.replaceWidget(2, self.ui.stack)
+        self.ui.regs = ContextListWidget(self)
+        self.ui.regs.setObjectName("regs")
+        self.ui.regs.setItemDelegate(HTMLDelegate())
+        self.ui.splitter_3.replaceWidget(0, self.ui.regs)
+        self.ui.backtrace = ContextTextEdit(self)
+        self.ui.backtrace.setObjectName("backtrace")
+        self.ui.splitter_3.replaceWidget(1, self.ui.backtrace)
+        self.ui.disasm = ContextTextEdit(self)
+        self.ui.disasm.setObjectName("disasm")
+        self.ui.code_splitter.replaceWidget(0, self.ui.disasm)
+        self.ui.code = ContextTextEdit(self)
+        self.ui.code.setObjectName("code")
+        self.ui.code_splitter.replaceWidget(1, self.ui.code)
 
     def setup_menu(self):
         self.menu_bar = self.menuBar()
@@ -71,7 +98,7 @@ class PwnDbgGui(QMainWindow):
         about_qt_action.triggered.connect(QApplication.aboutQt)
         about_menu.addAction(about_qt_action)
 
-    def start_gdb(self, args: List[str]):
+    def set_gdb_target(self, args: List[str]):
         """Runs gdb with the given program and waits for gdb to have started"""
         # Replace the "Main" widget with our custom implementation
         main_text_edit = MainTextEdit(parent=self, args=args)
@@ -90,7 +117,7 @@ class PwnDbgGui(QMainWindow):
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
-            self.start_gdb(["file", file_name])
+            self.set_gdb_target(["file", file_name])
 
     @Slot()
     def query_process_name(self):
@@ -98,23 +125,20 @@ class PwnDbgGui(QMainWindow):
                                         "vuln")
         if ok and name:
             args = ["attach", f"$(pidof {name})"]
-            self.start_gdb(args)
+            self.set_gdb_target(args)
 
     def query_process_pid(self):
         pid, ok = QInputDialog.getInt(self, "Enter a running process pid", "PID:", minValue=0)
         if ok and pid > 0:
             args = ["attach", str(pid)]
-            self.start_gdb(args)
+            self.set_gdb_target(args)
 
     @Slot(str, str)
     def update_pane(self, context: str, content: bytes):
-        widget: QTextEdit | QTextBrowser = self.seg_to_widget[context]
+        widget: ContextTextEdit | ContextListWidget = self.seg_to_widget[context]
         logger.debug("Updating context %s with \"%s...\"", widget.objectName(), content[:100])
         html = self.parser.to_html(content)
-        widget.setHtml(html)
-        cursor = widget.textCursor()
-        cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
-        widget.setTextCursor(cursor)
+        widget.add_content(html)
 
     @Slot()
     def about(self):
@@ -124,6 +148,10 @@ class PwnDbgGui(QMainWindow):
 
 
 def run_gui():
+    # Set font where characters are all equally wide (monospace) to help with formatting and alignment
+    font = QFont(PwndbgGuiConstants.FONT)
+    font.setStyleHint(QFont.StyleHint.Monospace)
+    QApplication.setFont(font)
     app = QApplication(sys.argv)
     window = PwnDbgGui()
     window.show()

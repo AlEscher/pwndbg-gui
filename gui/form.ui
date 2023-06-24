@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>PwnDbgGui</string>
   </property>
-  <widget class="QSplitter" name="splitter_5">
+  <widget class="QSplitter" name="top_splitter">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -29,21 +29,33 @@
     <property name="orientation">
      <enum>Qt::Horizontal</enum>
     </property>
-    <widget class="QSplitter" name="splitter_2">
+    <widget class="QSplitter" name="code_splitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QTextEdit" name="disasm"/>
-     <widget class="QTextEdit" name="code"/>
+     <widget class="QTextEdit" name="disasm">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="code">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
     <widget class="QSplitter" name="splitter_3">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
      <widget class="QTextEdit" name="regs"/>
-     <widget class="QTextEdit" name="backtrace"/>
+     <widget class="QTextEdit" name="backtrace">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
-    <widget class="QTextEdit" name="stack"/>
+    <widget class="QListWidget" name="stack"/>
    </widget>
    <widget class="QSplitter" name="splitter">
     <property name="orientation">

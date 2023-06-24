@@ -2,8 +2,8 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, QThread, Signal
-from PySide6.QtWidgets import QTextEdit
 
+from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.gdb_handler import GdbHandler
 
 # Prevent circular import error
@@ -13,13 +13,14 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-class MainTextEdit(QTextEdit):
+class MainTextEdit(ContextTextEdit):
     gdb_write = Signal(str)
     gdb_start = Signal(list)
     stop_thread = Signal()
 
     def __init__(self, parent: 'PwnDbgGui', args: List[str]):
         super().__init__(parent)
+        self.setReadOnly(False)
         self.update_thread = QThread()
         self.gdb_handler = GdbHandler(active_contexts=parent.seg_to_widget.keys())
         self.parent = parent
@@ -39,7 +40,7 @@ class MainTextEdit(QTextEdit):
         self.stop_thread.connect(self.update_thread.quit)
         logger.debug("Starting new worker thread in MainTextEdit")
         self.update_thread.start()
-        self.gdb_start.connect(self.gdb_handler.start_gdb)
+        self.gdb_start.connect(self.gdb_handler.set_target)
         self.gdb_start.emit(args)
 
     def keyPressEvent(self, event):
