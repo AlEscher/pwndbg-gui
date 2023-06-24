@@ -77,9 +77,6 @@ class ContextParser:
         elif start == b"39m":
             self.parser.setTextColor(Qt.GlobalColor.white)
             self.parser.insertPlainText(token.strip(start).decode())
-        #elif start == b"91m":
-            # TODO, Ignore for now
-        #   pass
         # Font
         elif start.startswith(b"0m"):
             self.reset_font()
