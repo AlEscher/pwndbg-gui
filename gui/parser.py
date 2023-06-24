@@ -4,6 +4,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QColor
 from PySide6.QtWidgets import QTextEdit
 
+from gui.constants import PwndbgGuiConstants
+
 
 class ContextParser:
     def __init__(self):
@@ -62,8 +64,8 @@ class ContextParser:
             start = token[:token.index(b"m")]
             args = start.split(b";")
             if args[1].isdigit() and int(args[1]) == 5:
-                color = convert_8bit_to_32bit(int(args[2]))
-                self.parser.setTextColor(QColor.fromRgba(color))
+                color = PwndbgGuiConstants.ANSI_COLOR_TO_RGB[int(args[2])]
+                self.parser.setTextColor(QColor.fromRgb(color[0], color[1], color[2]))
             elif args[1].isdigit() and int(args[1]) == 2:
                 r = int(args[2])
                 g = int(args[3])
@@ -93,22 +95,3 @@ class ContextParser:
             self.parser.insertPlainText(token[2:].decode())
         else:
             self.parser.insertPlainText(token.decode())
-
-
-# ChatGPT:
-def convert_8bit_to_32bit(rgb_8bit):
-    # Extracting the 8-bit color components
-    red = (rgb_8bit >> 5) & 0b111  # 3 bits for red
-    green = (rgb_8bit >> 2) & 0b111  # 3 bits for green
-    blue = rgb_8bit & 0b11  # 2 bits for blue
-
-    # Expanding the color values to 32-bit
-    red_32bit = (red << 5) | (red << 2) | (red >> 1)
-    green_32bit = (green << 5) | (green << 2) | (green >> 1)
-    blue_32bit = (blue << 6) | (blue << 4) | (blue << 2) | blue
-    alpha_32bit = 0xFF  # Alpha value set to maximum (255)
-
-    # Combining the 32-bit color components
-    rgb_32bit = (alpha_32bit << 24) | (red_32bit << 16) | (green_32bit << 8) | blue_32bit
-
-    return rgb_32bit
