@@ -64,6 +64,13 @@ class ContextParser:
             if args[1].isdigit() and int(args[1]) == 5:
                 color = convert_8bit_to_32bit(int(args[2]))
                 self.parser.setTextColor(QColor.fromRgba(color))
+            elif args[1].isdigit() and int(args[1]) == 2:
+                r = int(args[2])
+                g = int(args[3])
+                b = int(args[4])
+                self.parser.setTextColor(QColor.fromRgb(r, g, b, 255))
+            # Add the "m" into the start for stripping
+            start = token[:token.index(b"m")+1]
             self.parser.insertPlainText(token.strip(start).decode())
         elif start == b"91m":
             # TODO, Ignore for now
