@@ -25,6 +25,11 @@ sys.stdout = GDB_OUT
 logger = logging.getLogger(__file__)
 
 
+def is_target_running():
+    # https://stackoverflow.com/a/30259980
+    return any([t.is_valid() for t in gdb.selected_inferior().threads()])
+
+
 class GdbHandler(QObject):
     update_gui = Signal(str, bytes)
 
@@ -40,6 +45,10 @@ class GdbHandler(QObject):
         main_response = GDB_OUT.getvalue()
         logger.info("logged from __stdout__: %s", main_response)
         self.update_gui.emit("main", main_response.encode() + response.encode())
+
+        if not is_target_running():
+            return
+
         # Update contexts
         for context, func in self.context_to_func.items():
             if context in self.active_contexts:
