@@ -8,14 +8,13 @@ from gui.constants import PwndbgGuiConstants
 
 
 class ContextParser:
+    """Parses raw output from gdb/pwndbg containing ASCII control characters into equivalent HTML code"""
     def __init__(self):
         # Misuse QTextEdit as a HTML parser
         self.parser = QTextEdit()
 
     def reset(self):
         self.parser.clear()
-        self.parser.setFontUnderline(False)
-        self.parser.setFontItalic(False)
         self.reset_font()
 
     def parse(self, raw_output: bytes):
@@ -32,6 +31,8 @@ class ContextParser:
     def reset_font(self):
         self.parser.setFontWeight(QFont.Weight.Normal)
         self.parser.setTextColor(Qt.GlobalColor.white)
+        self.parser.setFontUnderline(False)
+        self.parser.setFontItalic(False)
 
     def parse_ascii_control(self, token: bytes):
         # Remove weird bytes, e.g. in \x01\x1b[31m\x1b[1m\x02pwndbg> \x01\x1b[0m\x1b[31m\x1b[0m\x02
