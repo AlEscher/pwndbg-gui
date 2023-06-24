@@ -3,6 +3,7 @@ from PySide6.QtGui import QTextDocument, QAbstractTextDocumentLayout
 from PySide6.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem, QStyle
 
 
+# https://stackoverflow.com/a/66091713
 class HTMLDelegate(QStyledItemDelegate):
     def __init__(self):
         super().__init__()

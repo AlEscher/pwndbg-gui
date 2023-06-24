@@ -2,7 +2,6 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, QThread, Signal
-from PySide6.QtWidgets import QTextEdit
 
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.gdb_handler import GdbHandler
@@ -21,6 +20,7 @@ class MainTextEdit(ContextTextEdit):
 
     def __init__(self, parent: 'PwnDbgGui', args: List[str]):
         super().__init__(parent)
+        self.setReadOnly(False)
         self.update_thread = QThread()
         self.gdb_handler = GdbHandler(active_contexts=parent.seg_to_widget.keys())
         self.parent = parent

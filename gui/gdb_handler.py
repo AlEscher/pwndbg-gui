@@ -26,7 +26,7 @@ logger = logging.getLogger(__file__)
 
 
 def is_target_running():
-    # https://stackoverflow.com/a/30259980
+    # https://sourceware.org/gdb/onlinedocs/gdb/Threads-In-Python.html#Threads-In-Python
     return any([t.is_valid() for t in gdb.selected_inferior().threads()])
 
 

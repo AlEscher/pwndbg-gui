@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 class ContextTextEdit(QTextEdit):
     def __init__(self, parent: 'PwnDbgGui', ):
         super().__init__(parent)
+        self.setReadOnly(True)
 
     def add_content(self, content: str):
         self.setHtml(content)
