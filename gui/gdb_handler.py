@@ -52,7 +52,7 @@ class GdbHandler(QObject):
         # Update contexts
         for context, func in self.context_to_func.items():
             if context in self.active_contexts:
-                context_data: List[str] = func()
+                context_data: List[str] = func(with_banner=False)
                 self.update_gui.emit(context, "\n".join(context_data).encode())
 
     @Slot()
