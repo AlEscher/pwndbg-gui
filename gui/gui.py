@@ -6,10 +6,11 @@ from typing import List
 
 import PySide6
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence
+from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence, QFont
 from PySide6.QtWidgets import QApplication, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox
 
+from gui.PwndbgGuiConstants import PwndbgGuiConstants
 from gui.main_text_edit import MainTextEdit
 from gui.parser import ContextParser
 # Important:
@@ -124,6 +125,10 @@ class PwnDbgGui(QMainWindow):
 
 
 def run_gui():
+    # Set font where characters are all equally wide (monospace) to help with formatting and alignment
+    font = QFont(PwndbgGuiConstants.FONT)
+    font.setStyleHint(QFont.StyleHint.Monospace)
+    QApplication.setFont(font)
     app = QApplication(sys.argv)
     window = PwnDbgGui()
     window.show()

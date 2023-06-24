@@ -1,0 +1,2 @@
+class PwndbgGuiConstants:
+    FONT = "Consolas"
