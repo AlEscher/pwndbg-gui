@@ -72,9 +72,12 @@ class ContextParser:
             # Add the "m" into the start for stripping
             start = token[:token.index(b"m")+1]
             self.parser.insertPlainText(token.strip(start).decode())
-        elif start == b"91m":
+        elif start == b"39m":
+            self.parser.setTextColor(Qt.GlobalColor.white)
+            self.parser.insertPlainText(token.strip(start).decode())
+        #elif start == b"91m":
             # TODO, Ignore for now
-            pass
+        #   pass
         # Font
         elif start.startswith(b"0m"):
             self.reset_font()
