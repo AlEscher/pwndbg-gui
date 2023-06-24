@@ -12,6 +12,7 @@ class ContextListWidget(QListWidget):
         super().__init__(parent)
 
     def add_content(self, content: str):
+        self.clear()
         lines = content.splitlines()
         # Remove unneeded lines containing only HTML, as "content" will be a full HTML document returned by the parser
         body_start = lines.index(next(line for line in lines if "<body" in line))
