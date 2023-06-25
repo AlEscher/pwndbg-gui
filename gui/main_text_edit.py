@@ -96,12 +96,13 @@ class MainTextEdit(ContextTextEdit):
         logger.debug("No lines to send to inferior!")
 
     def cont_handler(self, event):
-        # logger.info("event type: continue (inferior runs)")
+        # logger.debug("event type: continue (inferior runs)")
         InferiorHandler.INFERIOR_STATUS = 1
         self.inferior_read.emit()
+        logger.debug("emitted read")
 
     def exit_handler(self, event):
-        # logger.info("event type: exit (inferior exited)")
+        # logger.debug("event type: exit (inferior exited)")
         InferiorHandler.INFERIOR_STATUS = 0
         if hasattr(event, 'exit_code'):
             logger.debug("exit code: %d" % event.exit_code)
@@ -109,17 +110,17 @@ class MainTextEdit(ContextTextEdit):
             logger.debug("exit code not available")
 
     def stop_handler(self, event):
-        # logger.info("event type: stop (inferior stopped)")
+        # logger.debug("event type: stop (inferior stopped)")
         InferiorHandler.INFERIOR_STATUS = 2
         if hasattr(event, 'breakpoints'):
             print("Hit breakpoint(s): {} at {}".format(event.breakpoints[0].number, event.breakpoints[0].location))
             print("hit count: {}".format(event.breakpoints[0].hit_count))
         else:
-            # logger.info("no breakpoint was hit")
+            # logger.debug("no breakpoint was hit")
             pass
 
     def call_handler(self, event):
-        # logger.info("event type: call (inferior calls function)")
+        # logger.debug("event type: call (inferior calls function)")
         if hasattr(event, 'address'):
             logger.debug("function to be called at: %s" % hex(event.address))
         else:
