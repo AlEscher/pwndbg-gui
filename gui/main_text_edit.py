@@ -27,6 +27,9 @@ class MainTextEdit(ContextTextEdit):
         self.setObjectName("main")
         self.start_update_worker(args)
 
+    def add_content(self, content: str):
+        super().add_content(self.toHtml() + content)
+
     def start_update_worker(self, args: List[str]):
         self.update_thread = QThread()
         self.gdb_handler.moveToThread(self.update_thread)
