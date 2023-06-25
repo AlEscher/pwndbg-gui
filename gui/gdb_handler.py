@@ -35,7 +35,6 @@ class GdbHandler(QObject):
         if not is_target_running():
             return
         # Update contexts
-        self.inferior_read()
         for context, func in self.context_to_func.items():
             if context in self.active_contexts:
                 context_data: List[str] = func(with_banner=False)

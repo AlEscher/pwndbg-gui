@@ -33,7 +33,7 @@ class PwnDbgGui(QMainWindow):
         # Make all widgets resizable with the window
         self.setCentralWidget(self.ui.top_splitter)
         self.setup_custom_widgets()
-        self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm, backtrace=self.ui.backtrace, regs=self.ui.regs)
+        self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm, backtrace=self.ui.backtrace, regs=self.ui.regs, ipython=self.ui.ipython)
         self.parser = ContextParser()
         self.setup_menu()
 
