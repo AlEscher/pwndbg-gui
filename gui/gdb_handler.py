@@ -23,10 +23,11 @@ class GdbHandler(QObject):
     def __init__(self, active_contexts: List[str]):
         super().__init__()
         self.past_commands: List[str] = []
-        self.context_to_func = dict(regs=context_regs, stack=context_stack, disasm=context_disasm, code=context_code, backtrace=context_backtrace)
+        self.context_to_func = dict(regs=context_regs, stack=context_stack, disasm=context_disasm, code=context_code,
+                                    backtrace=context_backtrace)
         self.active_contexts = active_contexts
 
-    @Slot()
+    @Slot(str)
     def send_command(self, cmd: str):
         response = gdb.execute(cmd, from_tty=True, to_string=True)
         self.update_gui.emit("main", response.encode())
@@ -34,12 +35,13 @@ class GdbHandler(QObject):
         if not is_target_running():
             return
         # Update contexts
+        self.inferior_read()
         for context, func in self.context_to_func.items():
             if context in self.active_contexts:
                 context_data: List[str] = func(with_banner=False)
                 self.update_gui.emit(context, "\n".join(context_data).encode())
 
-    @Slot()
+    @Slot(list)
     def set_target(self, arguments: List[str]):
         """Execute the given command, use for setting the debugging target"""
         logger.info("Setting GDB target to %s", arguments)
