@@ -42,7 +42,6 @@ class MainTextEdit(ContextTextEdit):
     def add_content(self, content: str):
         super().add_content(self.toHtml() + content)
 
-
     def start_update_worker(self, args: List[str]):
         self.update_thread = QThread()
         self.gdb_handler.moveToThread(self.update_thread)
@@ -69,7 +68,7 @@ class MainTextEdit(ContextTextEdit):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            if  InferiorHandler.INFERIOR_STATUS == 1:
+            if InferiorHandler.INFERIOR_STATUS == 1:
                 # Inferior is running, send to inferior
                 self.submit_input()
             else:
@@ -95,12 +94,12 @@ class MainTextEdit(ContextTextEdit):
         logger.debug("No lines to send to inferior!")
 
     def cont_handler(self, event):
-        #logger.info("event type: continue (inferior runs)")
+        # logger.info("event type: continue (inferior runs)")
         InferiorHandler.INFERIOR_STATUS = 1
         self.inferior_read.emit()
 
     def exit_handler(self, event):
-        #logger.info("event type: exit (inferior exited)")
+        # logger.info("event type: exit (inferior exited)")
         InferiorHandler.INFERIOR_STATUS = 0
         if hasattr(event, 'exit_code'):
             logger.info("exit code: %d" % event.exit_code)
@@ -108,20 +107,18 @@ class MainTextEdit(ContextTextEdit):
             logger.info("exit code not available")
 
     def stop_handler(self, event):
-        #logger.info("event type: stop (inferior stopped)")
+        # logger.info("event type: stop (inferior stopped)")
         InferiorHandler.INFERIOR_STATUS = 2
         if hasattr(event, 'breakpoints'):
             print("Hit breakpoint(s): {} at {}".format(event.breakpoints[0].number, event.breakpoints[0].location))
             print("hit count: {}".format(event.breakpoints[0].hit_count))
         else:
-            logger.info("no breakpoint was hit")
+            # logger.info("no breakpoint was hit")
+            pass
 
     def call_handler(self, event):
-        #logger.info("event type: call (inferior calls function)")
+        # logger.info("event type: call (inferior calls function)")
         if hasattr(event, 'address'):
             logger.info("function to be called at: %s" % hex(event.address))
         else:
             logger.info("function address not available")
-
-
-

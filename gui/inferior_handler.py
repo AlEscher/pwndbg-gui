@@ -43,7 +43,6 @@ class InferiorHandler(QObject):
                 self.update_gui.emit("main", inferior_read)
             except BlockingIOError:
                 # No data available currently
-                time.sleep(0.2)
                 continue
 
     @Slot(bytes)
