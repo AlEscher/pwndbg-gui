@@ -35,7 +35,6 @@ class GdbHandler(QObject):
         if not is_target_running():
             return
         # Update contexts
-        self.inferior_read()
         for context, func in self.context_to_func.items():
             if context in self.active_contexts:
                 context_data: List[str] = func(with_banner=False)
@@ -47,3 +46,13 @@ class GdbHandler(QObject):
         logger.info("Setting GDB target to %s", arguments)
         cmd = " ".join(arguments)
         gdb.execute(cmd)
+
+    @Slot(list)
+    def change_setting(self, arguments: List[str]):
+        gdb.execute("set " + " ".join(arguments))
+
+    @Slot(int)
+    def update_stack_lines(self, new_value: int):
+        self.change_setting(["context-stack-lines", str(new_value)])
+        context_data: List[str] = context_stack(with_banner=False)
+        self.update_gui.emit("stack", "\n".join(context_data).encode())
