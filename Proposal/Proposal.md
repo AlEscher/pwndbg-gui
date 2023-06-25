@@ -40,7 +40,7 @@ This allows us to aggregate and customize output and simplify command input (e.g
 - [x] Resizable, scrollable panes
 - [x] Allow to start a local executable, or attach to an already running one (latter requires `sudo`)
 - [X] Include banners/header for panes
-- [ ] Add `fs_base` to register section
+- [ ] ~~Add `fs_base` to register section~~ (Crashes GDB for some reason `Recursive internal problem.`)
 - [ ] Convenience buttons (maybe hotkeys) / fields for `c`, `r`, `n`, `s`, `ni`, `si`, `search`
 - [x] +/- buttons for adding `pwndbg` context-stack lines
 - [ ] Editing of memory (e.g. registers, stack, heap) via UI (e.g. double-click on stack line)
