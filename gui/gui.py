@@ -4,10 +4,10 @@ import sys
 from typing import List
 
 import PySide6
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, Qt
 from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence, QFont
 from PySide6.QtWidgets import QApplication, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
-    QLineEdit, QMessageBox
+    QLineEdit, QMessageBox, QGroupBox, QVBoxLayout, QWidget, QSplitter
 
 from gui.constants import PwndbgGuiConstants
 from gui.custom_widgets.context_list_widget import ContextListWidget
@@ -45,20 +45,33 @@ class PwnDbgGui(QMainWindow):
         self.ui.stack = ContextListWidget(self)
         self.ui.stack.setObjectName("stack")
         self.ui.stack.setItemDelegate(HTMLDelegate())
-        self.ui.splitter_4.replaceWidget(2, self.ui.stack)
+        self.setup_context_pane(self.ui.stack, title="Stack", splitter=self.ui.splitter_4, index=2)
         self.ui.regs = ContextListWidget(self)
         self.ui.regs.setObjectName("regs")
         self.ui.regs.setItemDelegate(HTMLDelegate())
-        self.ui.splitter_3.replaceWidget(0, self.ui.regs)
+        self.setup_context_pane(self.ui.regs, title="Registers", splitter=self.ui.splitter_3, index=0)
         self.ui.backtrace = ContextTextEdit(self)
         self.ui.backtrace.setObjectName("backtrace")
-        self.ui.splitter_3.replaceWidget(1, self.ui.backtrace)
+        self.setup_context_pane(self.ui.backtrace, title="Backtrace", splitter=self.ui.splitter_3, index=1)
         self.ui.disasm = ContextTextEdit(self)
         self.ui.disasm.setObjectName("disasm")
-        self.ui.code_splitter.replaceWidget(0, self.ui.disasm)
+        self.setup_context_pane(self.ui.disasm, title="Disassembly", splitter=self.ui.code_splitter, index=0)
         self.ui.code = ContextTextEdit(self)
         self.ui.code.setObjectName("code")
-        self.ui.code_splitter.replaceWidget(1, self.ui.code)
+        self.setup_context_pane(self.ui.code, title="Code", splitter=self.ui.code_splitter, index=1)
+
+    def setup_context_pane(self, context_widget: QWidget, title: str, splitter: QSplitter, index: int):
+        """Sets up the layout for a context pane"""
+        # GroupBox needs to have parent before being added to splitter (see SO below)
+        context_box = QGroupBox(title, self)
+        context_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        context_box.setFlat(True)
+        context_layout = QVBoxLayout()
+        context_layout.addWidget(context_widget)
+        context_box.setLayout(context_layout)
+        splitter.replaceWidget(index, context_box)
+        # https://stackoverflow.com/a/66067630
+        context_box.show()
 
     def setup_menu(self):
         self.menu_bar = self.menuBar()
@@ -106,7 +119,7 @@ class PwnDbgGui(QMainWindow):
         self.seg_to_widget["main"] = main_text_edit
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
-        """Called when window is closed. Cleanup all ptys and terminate the gdb process"""
+        """Called when window is closed. Stop our worker thread"""
         logger.debug("Stopping MainTextEdit update thread")
         self.seg_to_widget["main"].stop_thread.emit()
 
