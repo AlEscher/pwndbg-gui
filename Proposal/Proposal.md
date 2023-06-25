@@ -37,12 +37,12 @@ This allows us to aggregate and customize output and simplify command input (e.g
 ## Features
 
 - [ ] Multi pane setup similar to [Splitting contexts](https://github.com/pwndbg/pwndbg/blob/dev/FEATURES.md#splitting--layouting-context)
-- [ ] Resizable, scrollable panes
-- [ ] Allow to start a local executable, or attach to an already running one (latter requires `sudo`)
-- [ ] Include banners/header for panes
+- [x] Resizable, scrollable panes
+- [x] Allow to start a local executable, or attach to an already running one (latter requires `sudo`)
+- [X] Include banners/header for panes
 - [ ] Add `fs_base` to register section
 - [ ] Convenience buttons (maybe hotkeys) / fields for `c`, `r`, `n`, `s`, `ni`, `si`, `search`
-- [ ] +/- buttons for adding `pwndbg` context-stack lines
+- [x] +/- buttons for adding `pwndbg` context-stack lines
 - [ ] Editing of memory (e.g. registers, stack, heap) via UI (e.g. double-click on stack line)
 - [ ] New context: Heap
     - Add a new context to the ones `pwndbg` already offers (stack, backtrace, etc...) for the heap

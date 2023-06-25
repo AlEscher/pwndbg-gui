@@ -17,6 +17,18 @@ def is_target_running():
     return any([t.is_valid() for t in gdb.selected_inferior().threads()])
 
 
+def get_fs_base() -> str:
+    try:
+        output: str = gdb.execute("info register fs_base", to_string=True)
+        parts = output.split()
+        if "fs_base" in output and len(parts) > 1:
+            return f"FS {parts[1]}"
+        else:
+            return ""
+    except gdb.error:
+        return ""
+
+
 class GdbHandler(QObject):
     update_gui = Signal(str, bytes)
 
@@ -29,7 +41,11 @@ class GdbHandler(QObject):
 
     @Slot(str)
     def send_command(self, cmd: str):
-        response = gdb.execute(cmd, from_tty=True, to_string=True)
+        try:
+            response = gdb.execute(cmd, from_tty=True, to_string=True)
+        except gdb.error as e:
+            logger.warning("Error while executing command '%s': '%s'", cmd, str(e))
+            response = str(e) + "\n"
         self.update_gui.emit("main", response.encode())
 
         if not is_target_running():
@@ -38,6 +54,8 @@ class GdbHandler(QObject):
         for context, func in self.context_to_func.items():
             if context in self.active_contexts:
                 context_data: List[str] = func(with_banner=False)
+                if context == "backtrace":
+                    context_data.append(get_fs_base())
                 self.update_gui.emit(context, "\n".join(context_data).encode())
 
     @Slot(list)
@@ -46,3 +64,13 @@ class GdbHandler(QObject):
         logger.info("Setting GDB target to %s", arguments)
         cmd = " ".join(arguments)
         gdb.execute(cmd)
+
+    @Slot(list)
+    def change_setting(self, arguments: List[str]):
+        gdb.execute("set " + " ".join(arguments))
+
+    @Slot(int)
+    def update_stack_lines(self, new_value: int):
+        self.change_setting(["context-stack-lines", str(new_value)])
+        context_data: List[str] = context_stack(with_banner=False)
+        self.update_gui.emit("stack", "\n".join(context_data).encode())

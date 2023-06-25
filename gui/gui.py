@@ -4,10 +4,10 @@ import sys
 from typing import List
 
 import PySide6
-from PySide6.QtCore import Slot, Qt
+from PySide6.QtCore import Slot, Qt, Signal
 from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence, QFont
 from PySide6.QtWidgets import QApplication, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
-    QLineEdit, QMessageBox, QGroupBox, QVBoxLayout, QWidget, QSplitter
+    QLineEdit, QMessageBox, QGroupBox, QVBoxLayout, QWidget, QSplitter, QHBoxLayout, QSpinBox, QLabel
 
 from gui.constants import PwndbgGuiConstants
 from gui.custom_widgets.context_list_widget import ContextListWidget
@@ -25,8 +25,11 @@ logger = logging.getLogger(__file__)
 
 
 class PwnDbgGui(QMainWindow):
+    change_gdb_setting = Signal(list)
+
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.stack_lines_incrementor : QSpinBox = None
         self.menu_bar = None
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
@@ -67,6 +70,8 @@ class PwnDbgGui(QMainWindow):
         context_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
         context_box.setFlat(True)
         context_layout = QVBoxLayout()
+        if context_widget == self.ui.stack:
+            self.add_stack_header(context_layout)
         context_layout.addWidget(context_widget)
         context_box.setLayout(context_layout)
         splitter.replaceWidget(index, context_box)
@@ -117,11 +122,23 @@ class PwnDbgGui(QMainWindow):
         main_text_edit = MainTextEdit(parent=self, args=args)
         self.ui.splitter.replaceWidget(0, main_text_edit)
         self.seg_to_widget["main"] = main_text_edit
+        self.stack_lines_incrementor.valueChanged.connect(main_text_edit.gdb_handler.update_stack_lines)
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
         """Called when window is closed. Stop our worker thread"""
         logger.debug("Stopping MainTextEdit update thread")
         self.seg_to_widget["main"].stop_thread.emit()
+
+    def add_stack_header(self, layout: QVBoxLayout):
+        # Add a stack count inc-/decrementor
+        header_layout = QHBoxLayout()
+        header_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        stack_lines_label = QLabel("Stack Lines:")
+        header_layout.addWidget(stack_lines_label)
+        self.stack_lines_incrementor = QSpinBox()
+        self.stack_lines_incrementor.setRange(1, 999)
+        header_layout.addWidget(self.stack_lines_incrementor)
+        layout.addLayout(header_layout)
 
     @Slot()
     def select_file(self):
@@ -146,7 +163,7 @@ class PwnDbgGui(QMainWindow):
             args = ["attach", str(pid)]
             self.set_gdb_target(args)
 
-    @Slot(str, str)
+    @Slot(str, bytes)
     def update_pane(self, context: str, content: bytes):
         widget: ContextTextEdit | ContextListWidget = self.seg_to_widget[context]
         logger.debug("Updating context %s", widget.objectName())
