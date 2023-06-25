@@ -79,8 +79,7 @@ class MainTextEdit(ContextTextEdit):
     def submit_cmd(self):
         lines = self.toPlainText().splitlines(keepends=True)
         if len(lines) > 0:
-            cmd = lines[-1]
-            cmd = cmd[cmd.find(">") + 1:]
+            cmd = lines[-1].replace("\n", "")
             logger.debug("Sending command '%s' to gdb", cmd)
             self.gdb_write.emit(cmd)
             return
@@ -89,7 +88,9 @@ class MainTextEdit(ContextTextEdit):
     def submit_input(self):
         lines = self.toPlainText().splitlines(keepends=True)
         if len(lines) > 0:
-            self.inferior_write.emit(lines[-1])
+            user_input = lines[-1]
+            logger.debug("Sending input '%s' to inferior", user_input)
+            self.inferior_write.emit(user_input)
             return
         logger.debug("No lines to send to inferior!")
 
