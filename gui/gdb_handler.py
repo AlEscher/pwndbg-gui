@@ -19,10 +19,11 @@ def is_target_running():
 
 def get_fs_base() -> str:
     try:
+        logger.debug("Getting fs_base from GDB")
         output: str = gdb.execute("info register fs_base", to_string=True)
         parts = output.split()
         if "fs_base" in output and len(parts) > 1:
-            return f"FS {parts[1]}"
+            return f"FS  {parts[1]}"
         else:
             return ""
     except gdb.error:
@@ -54,8 +55,6 @@ class GdbHandler(QObject):
         for context, func in self.context_to_func.items():
             if context in self.active_contexts:
                 context_data: List[str] = func(with_banner=False)
-                if context == "backtrace":
-                    context_data.append(get_fs_base())
                 self.update_gui.emit(context, "\n".join(context_data).encode())
 
     @Slot(list)
