@@ -37,7 +37,7 @@ class GdbHandler(QObject):
         logger.info("Opened tty for inferior interaction: %s", tty)
         gdb.execute('tty ' + tty)
 
-    @Slot()
+    @Slot(str)
     def send_command(self, cmd: str):
         response = gdb.execute(cmd, from_tty=True, to_string=True)
         self.update_gui.emit("main", response.encode())
@@ -51,7 +51,7 @@ class GdbHandler(QObject):
                 context_data: List[str] = func(with_banner=False)
                 self.update_gui.emit(context, "\n".join(context_data).encode())
 
-    @Slot()
+    @Slot(list)
     def set_target(self, arguments: List[str]):
         """Execute the given command, use for setting the debugging target"""
         logger.info("Setting GDB target to %s", arguments)
@@ -70,7 +70,7 @@ class GdbHandler(QObject):
             logger.debug("INFERIOR LOG: EMPTY")
             return b""
 
-    @Slot()
+    @Slot(bytes)
     def inferior_write(self, inferior_input: bytes) -> bytes:
         os.write(self.master, inferior_input)
 
