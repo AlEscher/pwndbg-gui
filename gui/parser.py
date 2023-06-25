@@ -44,22 +44,22 @@ class ContextParser:
             self.parser.setTextColor(Qt.GlobalColor.black)
             self.parser.insertPlainText(token.replace(start, b"", 1).decode())
         elif start == b"31m":
-            self.parser.setTextColor(Qt.GlobalColor.darkRed)
+            self.parser.setTextColor(PwndbgGuiConstants.RED)
             self.parser.insertPlainText(token.replace(start, b"", 1).decode())
         elif start == b"32m":
-            self.parser.setTextColor(Qt.GlobalColor.darkGreen)
+            self.parser.setTextColor(PwndbgGuiConstants.GREEN)
             self.parser.insertPlainText(token.replace(start, b"", 1).decode())
         elif start == b"33m":
-            self.parser.setTextColor(Qt.GlobalColor.darkYellow)
+            self.parser.setTextColor(PwndbgGuiConstants.YELLOW)
             self.parser.insertPlainText(token.replace(start, b"", 1).decode())
         elif start == b"34m":
-            self.parser.setTextColor(Qt.GlobalColor.darkBlue)
+            self.parser.setTextColor(PwndbgGuiConstants.LIGHT_BLUE)
             self.parser.insertPlainText(token.replace(start, b"", 1).decode())
         elif start == b"35m":
-            self.parser.setTextColor(Qt.GlobalColor.darkMagenta)
+            self.parser.setTextColor(PwndbgGuiConstants.PURPLE)
             self.parser.insertPlainText(token.replace(start, b"", 1).decode())
         elif start == b"36m":
-            self.parser.setTextColor(Qt.GlobalColor.darkCyan)
+            self.parser.setTextColor(PwndbgGuiConstants.CYAN)
             self.parser.insertPlainText(token.replace(start, b"", 1).decode())
         elif start == b"37m":
             self.parser.setTextColor(Qt.GlobalColor.white)

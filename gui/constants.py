@@ -1,5 +1,13 @@
 class PwndbgGuiConstants:
     FONT = "Consolas"
+    BLACK = "#282C34"
+    RED = "#ED254E"
+    GREEN = "#71F79F"
+    YELLOW = "#F9DC5C"
+    LIGHT_BLUE = "#7CB7FF"
+    PURPLE = "#C74DED"
+    CYAN = "#00C1E4"
+    LIGHT_GRAY = "#DCDFE4"
     # Thank you, ChatGPT
     ANSI_COLOR_TO_RGB = {
         0: (0, 0, 0),
