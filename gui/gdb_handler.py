@@ -29,7 +29,11 @@ class GdbHandler(QObject):
 
     @Slot(str)
     def send_command(self, cmd: str):
-        response = gdb.execute(cmd, from_tty=True, to_string=True)
+        try:
+            response = gdb.execute(cmd, from_tty=True, to_string=True)
+        except gdb.error as e:
+            logger.warning("Error while executing command '%s': '%s'", cmd, str(e))
+            response = str(e) + "\n"
         self.update_gui.emit("main", response.encode())
 
         if not is_target_running():

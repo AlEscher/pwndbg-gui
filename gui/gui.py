@@ -71,15 +71,7 @@ class PwnDbgGui(QMainWindow):
         context_box.setFlat(True)
         context_layout = QVBoxLayout()
         if context_widget == self.ui.stack:
-            # Add a stack count inc-/decrementor
-            header_layout = QHBoxLayout()
-            header_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-            stack_lines_label = QLabel("Stack Lines:")
-            header_layout.addWidget(stack_lines_label)
-            self.stack_lines_incrementor = QSpinBox()
-            self.stack_lines_incrementor.setRange(1, 999)
-            header_layout.addWidget(self.stack_lines_incrementor)
-            context_layout.addLayout(header_layout)
+            self.add_stack_header(context_layout)
         context_layout.addWidget(context_widget)
         context_box.setLayout(context_layout)
         splitter.replaceWidget(index, context_box)
@@ -136,6 +128,17 @@ class PwnDbgGui(QMainWindow):
         """Called when window is closed. Stop our worker thread"""
         logger.debug("Stopping MainTextEdit update thread")
         self.seg_to_widget["main"].stop_thread.emit()
+
+    def add_stack_header(self, layout: QVBoxLayout):
+        # Add a stack count inc-/decrementor
+        header_layout = QHBoxLayout()
+        header_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        stack_lines_label = QLabel("Stack Lines:")
+        header_layout.addWidget(stack_lines_label)
+        self.stack_lines_incrementor = QSpinBox()
+        self.stack_lines_incrementor.setRange(1, 999)
+        header_layout.addWidget(self.stack_lines_incrementor)
+        layout.addLayout(header_layout)
 
     @Slot()
     def select_file(self):
