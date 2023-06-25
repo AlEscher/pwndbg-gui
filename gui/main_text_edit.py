@@ -103,9 +103,9 @@ class MainTextEdit(ContextTextEdit):
         # logger.info("event type: exit (inferior exited)")
         InferiorHandler.INFERIOR_STATUS = 0
         if hasattr(event, 'exit_code'):
-            logger.info("exit code: %d" % event.exit_code)
+            logger.debug("exit code: %d" % event.exit_code)
         else:
-            logger.info("exit code not available")
+            logger.debug("exit code not available")
 
     def stop_handler(self, event):
         # logger.info("event type: stop (inferior stopped)")
@@ -120,6 +120,6 @@ class MainTextEdit(ContextTextEdit):
     def call_handler(self, event):
         # logger.info("event type: call (inferior calls function)")
         if hasattr(event, 'address'):
-            logger.info("function to be called at: %s" % hex(event.address))
+            logger.debug("function to be called at: %s" % hex(event.address))
         else:
-            logger.info("function address not available")
+            logger.debug("function address not available")

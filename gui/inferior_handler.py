@@ -27,7 +27,7 @@ class InferiorHandler(QObject):
         fcntl.fcntl(self.master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
         # execute gdb tty command to forward the inferior to this tty
         tty = os.ttyname(self.slave)
-        logger.info("Opened tty for inferior interaction: %s", tty)
+        logger.debug("Opened tty for inferior interaction: %s", tty)
         gdb.execute('tty ' + tty)
 
     @Slot()
@@ -38,12 +38,19 @@ class InferiorHandler(QObject):
                 if not inferior_read:
                     # End-of-file condition reached
                     break
-                logger.info("SENDING SIGNAL:")
-                logger.info(inferior_read)
+                #logger.info("SENDING SIGNAL:")
+                #logger.info(inferior_read)
                 self.update_gui.emit("main", inferior_read)
             except BlockingIOError:
                 # No data available currently
+                time.sleep(0.2)
                 continue
+        try:
+            inferior_read = os.read(self.master, 4096)
+            self.update_gui.emit("main", inferior_read)
+        except BlockingIOError:
+            pass
+
 
     @Slot(bytes)
     def inferior_write(self, inferior_input: bytes) -> bytes:
