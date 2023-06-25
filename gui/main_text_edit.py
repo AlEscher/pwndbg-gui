@@ -68,6 +68,7 @@ class MainTextEdit(ContextTextEdit):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            logger.debug("KEYPRESS DETECTED")
             if InferiorHandler.INFERIOR_STATUS == 1:
                 # Inferior is running, send to inferior
                 self.submit_input()
@@ -89,6 +90,7 @@ class MainTextEdit(ContextTextEdit):
     def submit_input(self):
         lines = self.toPlainText().splitlines(keepends=True)
         if len(lines) > 0:
+            logger.debug("Sending to Inferior %s", lines[-1])
             self.inferior_write.emit(lines[-1])
             return
         logger.debug("No lines to send to inferior!")
@@ -102,9 +104,9 @@ class MainTextEdit(ContextTextEdit):
         # logger.info("event type: exit (inferior exited)")
         InferiorHandler.INFERIOR_STATUS = 0
         if hasattr(event, 'exit_code'):
-            logger.info("exit code: %d" % event.exit_code)
+            logger.debug("exit code: %d" % event.exit_code)
         else:
-            logger.info("exit code not available")
+            logger.debug("exit code not available")
 
     def stop_handler(self, event):
         # logger.info("event type: stop (inferior stopped)")
@@ -119,6 +121,6 @@ class MainTextEdit(ContextTextEdit):
     def call_handler(self, event):
         # logger.info("event type: call (inferior calls function)")
         if hasattr(event, 'address'):
-            logger.info("function to be called at: %s" % hex(event.address))
+            logger.debug("function to be called at: %s" % hex(event.address))
         else:
-            logger.info("function address not available")
+            logger.debug("function address not available")
