@@ -68,7 +68,6 @@ class MainTextEdit(ContextTextEdit):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            logger.debug("KEYPRESS DETECTED")
             if InferiorHandler.INFERIOR_STATUS == 1:
                 # Inferior is running, send to inferior
                 self.submit_input()
@@ -80,8 +79,7 @@ class MainTextEdit(ContextTextEdit):
     def submit_cmd(self):
         lines = self.toPlainText().splitlines(keepends=True)
         if len(lines) > 0:
-            cmd = lines[-1]
-            cmd = cmd[cmd.find(">") + 1:]
+            cmd = lines[-1].replace("\n", "")
             logger.debug("Sending command '%s' to gdb", cmd)
             self.gdb_write.emit(cmd)
             return
@@ -90,8 +88,9 @@ class MainTextEdit(ContextTextEdit):
     def submit_input(self):
         lines = self.toPlainText().splitlines(keepends=True)
         if len(lines) > 0:
-            logger.debug("Sending to Inferior %s", lines[-1])
-            self.inferior_write.emit(lines[-1])
+            user_input = lines[-1]
+            logger.debug("Sending input '%s' to inferior", user_input)
+            self.inferior_write.emit(user_input)
             return
         logger.debug("No lines to send to inferior!")
 
