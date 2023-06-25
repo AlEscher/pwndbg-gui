@@ -26,17 +26,6 @@ class GdbHandler(QObject):
         self.context_to_func = dict(regs=context_regs, stack=context_stack, disasm=context_disasm, code=context_code, backtrace=context_backtrace)
         self.active_contexts = active_contexts
 
-        # open a tty for interaction with the inferior process (allows for separation of contexts)
-        self.master, self.slave = os.openpty()
-        # Set the master file descriptor to non-blocking mode
-        flags = fcntl.fcntl(self.master, fcntl.F_GETFL)
-        fcntl.fcntl(self.master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-        # execute gdb tty command to forward the inferior to this tty
-        tty = os.ttyname(self.slave)
-        logger.info("Opened tty for inferior interaction: %s", tty)
-        gdb.execute('tty ' + tty)
-
-
     @Slot()
     def send_command(self, cmd: str):
         response = gdb.execute(cmd, from_tty=True, to_string=True)
@@ -45,7 +34,6 @@ class GdbHandler(QObject):
         if not is_target_running():
             return
         # Update contexts
-        self.inferior_read()
         for context, func in self.context_to_func.items():
             if context in self.active_contexts:
                 context_data: List[str] = func(with_banner=False)
@@ -57,56 +45,3 @@ class GdbHandler(QObject):
         logger.info("Setting GDB target to %s", arguments)
         cmd = " ".join(arguments)
         gdb.execute(cmd)
-
-    @Slot()
-    def inferior_read(self) -> bytes:
-        try:
-            inferior_read = os.read(self.master, 4096)
-            logger.info("INFERIOR LOG:")
-            logger.info(inferior_read)
-            return inferior_read
-        except BlockingIOError:
-            # No data available currently
-            logger.info("INFERIOR LOG: EMPTY")
-            return b""
-
-
-    @Slot()
-    def inferior_write(self, inferior_input: bytes) -> bytes:
-        os.write(self.master, inferior_input)
-
-
-def cont_handler(event):
-    logger.info("event type: continue (inferior runs)")
-
-
-def exit_handler(event):
-    logger.info("event type: exit (inferior exited)")
-    if hasattr(event, 'exit_code'):
-        logger.info("exit code: %d" % event.exit_code)
-    else:
-        logger.info("exit code not available")
-
-
-def stop_handler(event):
-    logger.info("event type: stop (inferior stopped)")
-    if hasattr(event, 'breakpoints'):
-        logger.info("hit breakpoint(s): %d" % event.breakpoints[0].number)
-        logger.info("at %s", event.breakpoints[0].location)
-        logger.info("hit count: %d", event.breakpoints[0].hit_count)
-    else:
-        logger.info("no breakpoint was hit")
-
-
-def call_handler(event):
-    logger.info("event type: call (inferior calls function)")
-    if hasattr(event, 'address'):
-        logger.info("function to be called at: %s" % hex(event.address))
-    else:
-        logger.info("function address not available")
-
-
-gdb.events.cont.connect(cont_handler)
-gdb.events.exited.connect(exit_handler)
-gdb.events.stop.connect(stop_handler)
-gdb.events.inferior_call.connect(call_handler)
