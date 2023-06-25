@@ -31,6 +31,7 @@ def get_fs_base() -> str:
 
 
 class GdbHandler(QObject):
+    """A wrapper to interact with GDB/pwndbg via gdb.execute"""
     update_gui = Signal(str, bytes)
 
     def __init__(self, active_contexts: List[str]):
@@ -42,6 +43,7 @@ class GdbHandler(QObject):
 
     @Slot(str)
     def send_command(self, cmd: str):
+        """Execute the given command and then update all context panes"""
         try:
             response = gdb.execute(cmd, from_tty=True, to_string=True)
         except gdb.error as e:
@@ -59,6 +61,7 @@ class GdbHandler(QObject):
 
     @Slot(list)
     def set_target(self, arguments: List[str]):
+        """Set the executable target of GDB"""
         """Execute the given command, use for setting the debugging target"""
         logger.info("Setting GDB target to %s", arguments)
         cmd = " ".join(arguments)
@@ -66,10 +69,37 @@ class GdbHandler(QObject):
 
     @Slot(list)
     def change_setting(self, arguments: List[str]):
+        """Change a setting. Calls 'set' followed by the provided arguments"""
         gdb.execute("set " + " ".join(arguments))
 
     @Slot(int)
     def update_stack_lines(self, new_value: int):
+        """Set pwndbg's context-stack-lines to a new value"""
+        logger.debug(f"Changing context-stack-lines to {new_value}")
         self.change_setting(["context-stack-lines", str(new_value)])
         context_data: List[str] = context_stack(with_banner=False)
         self.update_gui.emit("stack", "\n".join(context_data).encode())
+
+    @Slot()
+    def run(self):
+        gdb.execute("r")
+
+    @Slot()
+    def continue_execution(self):
+        gdb.execute("c")
+
+    @Slot()
+    def next(self):
+        gdb.execute("n")
+
+    @Slot()
+    def step(self):
+        gdb.execute("s")
+
+    @Slot()
+    def next_instruction(self):
+        gdb.execute("ni")
+
+    @Slot()
+    def step_into(self):
+        gdb.execute("si")
