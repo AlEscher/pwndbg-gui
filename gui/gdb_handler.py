@@ -6,6 +6,9 @@ import gdb
 from PySide6.QtCore import QObject, Slot, Signal
 from pwndbg.commands.context import context_stack, context_regs, context_disasm, context_code, context_backtrace
 
+import os
+import fcntl
+
 logger = logging.getLogger(__file__)
 
 
@@ -23,6 +26,17 @@ class GdbHandler(QObject):
         self.context_to_func = dict(regs=context_regs, stack=context_stack, disasm=context_disasm, code=context_code, backtrace=context_backtrace)
         self.active_contexts = active_contexts
 
+        # open a tty for interaction with the inferior process (allows for separation of contexts)
+        self.master, self.slave = os.openpty()
+        # Set the master file descriptor to non-blocking mode
+        flags = fcntl.fcntl(self.master, fcntl.F_GETFL)
+        fcntl.fcntl(self.master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+        # execute gdb tty command to forward the inferior to this tty
+        tty = os.ttyname(self.slave)
+        logger.info("Opened tty for inferior interaction: %s", tty)
+        gdb.execute('tty ' + tty)
+
+
     @Slot()
     def send_command(self, cmd: str):
         response = gdb.execute(cmd, from_tty=True, to_string=True)
@@ -31,6 +45,7 @@ class GdbHandler(QObject):
         if not is_target_running():
             return
         # Update contexts
+        self.inferior_read()
         for context, func in self.context_to_func.items():
             if context in self.active_contexts:
                 context_data: List[str] = func(with_banner=False)
@@ -42,6 +57,23 @@ class GdbHandler(QObject):
         logger.info("Setting GDB target to %s", arguments)
         cmd = " ".join(arguments)
         gdb.execute(cmd)
+
+    @Slot()
+    def inferior_read(self) -> bytes:
+        try:
+            inferior_read = os.read(self.master, 4096)
+            logger.info("INFERIOR LOG:")
+            logger.info(inferior_read)
+            return inferior_read
+        except BlockingIOError:
+            # No data available currently
+            logger.info("INFERIOR LOG: EMPTY")
+            return b""
+
+
+    @Slot()
+    def inferior_write(self, inferior_input: bytes) -> bytes:
+        os.write(self.master, inferior_input)
 
 
 def cont_handler(event):
