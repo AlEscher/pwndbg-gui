@@ -10,12 +10,14 @@ from PySide6.QtCore import QObject, Slot, Signal
 import os
 import fcntl
 
+from gui.inferior_state import InferiorState
+
 logger = logging.getLogger(__file__)
 
 
 class InferiorHandler(QObject):
     update_gui = Signal(str, bytes)
-    INFERIOR_STATUS = 0
+    INFERIOR_STATE = InferiorState.EXITED
 
     def __init__(self):
         super().__init__()
@@ -31,16 +33,14 @@ class InferiorHandler(QObject):
         gdb.execute('tty ' + tty)
 
     @Slot()
-    def inferior_read(self) -> bytes:
-        logger.debug("inside read")
-        while InferiorHandler.INFERIOR_STATUS == 1:
+    def inferior_read(self):
+        logger.debug("Reading from inferior")
+        while InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
             try:
                 inferior_read = os.read(self.master, 4096)
                 if not inferior_read:
                     # End-of-file condition reached
                     break
-                #logger.info("SENDING SIGNAL:")
-                #logger.info(inferior_read)
                 self.update_gui.emit("main", inferior_read)
             except BlockingIOError:
                 # No data available currently
@@ -52,8 +52,7 @@ class InferiorHandler(QObject):
         except BlockingIOError:
             pass
 
-
     @Slot(bytes)
-    def inferior_write(self, inferior_input: bytes) -> bytes:
+    def inferior_write(self, inferior_input: bytes):
+        logger.debug("Writing %s to inferior", inferior_input.decode())
         os.write(self.master, inferior_input)
-

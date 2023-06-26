@@ -42,14 +42,15 @@ class GdbHandler(QObject):
         self.active_contexts = active_contexts
 
     @Slot(str)
-    def send_command(self, cmd: str):
+    def send_command(self, cmd: str, capture=True):
         """Execute the given command and then update all context panes"""
         try:
-            response = gdb.execute(cmd, from_tty=True, to_string=True)
+            response = gdb.execute(cmd, from_tty=True, to_string=capture)
         except gdb.error as e:
             logger.warning("Error while executing command '%s': '%s'", cmd, str(e))
             response = str(e) + "\n"
-        self.update_gui.emit("main", response.encode())
+        if capture:
+            self.update_gui.emit("main", response.encode())
 
         if not is_target_running():
             return
@@ -70,12 +71,12 @@ class GdbHandler(QObject):
     @Slot(list)
     def change_setting(self, arguments: List[str]):
         """Change a setting. Calls 'set' followed by the provided arguments"""
+        logging.debug("Changing gdb setting with parameters: %s", arguments)
         gdb.execute("set " + " ".join(arguments))
 
     @Slot(int)
     def update_stack_lines(self, new_value: int):
         """Set pwndbg's context-stack-lines to a new value"""
-        logger.debug(f"Changing context-stack-lines to {new_value}")
         self.change_setting(["context-stack-lines", str(new_value)])
         context_data: List[str] = context_stack(with_banner=False)
         self.update_gui.emit("stack", "\n".join(context_data).encode())

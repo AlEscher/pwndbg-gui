@@ -9,6 +9,8 @@ from gui.gdb_handler import GdbHandler
 
 import gdb
 
+from gui.inferior_state import InferiorState
+
 # Prevent circular import error
 if TYPE_CHECKING:
     from gui.gui import PwnDbgGui
@@ -17,7 +19,7 @@ logger = logging.getLogger(__file__)
 
 
 class MainTextEdit(ContextTextEdit):
-    gdb_write = Signal(str)
+    gdb_write = Signal(str, bool)
     gdb_start = Signal(list)
     stop_thread = Signal()
     inferior_write = Signal(bytes)
@@ -68,7 +70,7 @@ class MainTextEdit(ContextTextEdit):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            if InferiorHandler.INFERIOR_STATUS == 1:
+            if InferiorHandler.INFERIOR_STATE == 1:
                 # Inferior is running, send to inferior
                 self.submit_input()
             else:
@@ -81,7 +83,9 @@ class MainTextEdit(ContextTextEdit):
         if len(lines) > 0:
             cmd = lines[-1].replace("\n", "")
             logger.debug("Sending command '%s' to gdb", cmd)
-            self.gdb_write.emit(cmd)
+            # Do not capture gdb output to a string variable for commands that can change the inferior state
+            capture: bool = cmd not in ["c", "r", "n", "ni", "si", "s"]
+            self.gdb_write.emit(cmd, capture)
             return
         logger.debug("No lines to send as command!")
 
@@ -96,13 +100,13 @@ class MainTextEdit(ContextTextEdit):
 
     def cont_handler(self, event):
         # logger.debug("event type: continue (inferior runs)")
-        InferiorHandler.INFERIOR_STATUS = 1
+        InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
         self.inferior_read.emit()
         logger.debug("emitted read")
 
     def exit_handler(self, event):
         # logger.debug("event type: exit (inferior exited)")
-        InferiorHandler.INFERIOR_STATUS = 0
+        InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
         if hasattr(event, 'exit_code'):
             logger.debug("exit code: %d" % event.exit_code)
         else:
@@ -110,7 +114,7 @@ class MainTextEdit(ContextTextEdit):
 
     def stop_handler(self, event):
         # logger.debug("event type: stop (inferior stopped)")
-        InferiorHandler.INFERIOR_STATUS = 2
+        InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
         if hasattr(event, 'breakpoints'):
             print("Hit breakpoint(s): {} at {}".format(event.breakpoints[0].number, event.breakpoints[0].location))
             print("hit count: {}".format(event.breakpoints[0].hit_count))
