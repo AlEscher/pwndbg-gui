@@ -32,6 +32,7 @@ class InferiorHandler(QObject):
 
     @Slot()
     def inferior_read(self) -> bytes:
+        logger.debug("inside read")
         while InferiorHandler.INFERIOR_STATUS == 1:
             try:
                 inferior_read = os.read(self.master, 4096)
