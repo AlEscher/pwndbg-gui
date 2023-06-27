@@ -28,8 +28,8 @@ class MainContextWidget(QGroupBox):
         super().__init__(parent)
         self.inferior_thread = QThread()
         self.inferior_handler = InferiorHandler()
-        self.buttons_data = {'&r': parent.gdb_handler.run, '&c': parent.gdb_handler.continue_execution, '&n': parent.gdb_handler.next,
-                             '&s': parent.gdb_handler.step, 'ni': parent.gdb_handler.next_instruction, 'si': parent.gdb_handler.step_into}
+        self.buttons_data = {'&r': self.run, '&c': self.continue_execution, '&n': self.next,
+                             '&s': self.step, 'ni': self.next_instruction, 'si': self.step_into}
         self.start_update_worker(parent)
         self.output_widget = MainContextOutput(self)
         self.input_widget = QLineEdit(self)
@@ -83,6 +83,36 @@ class MainContextWidget(QGroupBox):
         else:
             # Enter was pressed, send command to pwndbg
             self.submit_cmd()
+
+    @Slot()
+    def run(self):
+        logger.debug("Executing r callback")
+        self.gdb_write.emit("r", False)
+
+    @Slot()
+    def continue_execution(self):
+        logger.debug("Executing c callback")
+        self.gdb_write.emit("c", False)
+
+    @Slot()
+    def next(self):
+        logger.debug("Executing n callback")
+        self.gdb_write.emit("n", False)
+
+    @Slot()
+    def step(self):
+        logger.debug("Executing s callback")
+        self.gdb_write.emit("s", False)
+
+    @Slot()
+    def next_instruction(self):
+        logger.debug("Executing ni callback")
+        self.gdb_write.emit("ni", False)
+
+    @Slot()
+    def step_into(self):
+        logger.debug("Executing si callback")
+        self.gdb_write.emit("si", False)
 
     def submit_cmd(self):
         cmd = self.input_widget.text()
