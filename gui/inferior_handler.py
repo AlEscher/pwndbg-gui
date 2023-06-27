@@ -50,6 +50,11 @@ class InferiorHandler(QObject):
                 os.write(self.master, self.to_write)
                 self.to_write = b""
             time.sleep(0.2)
+        can_read, _, _ = select.select([self.master], [], [], 0)  # Non-blocking check for readability
+        if can_read:
+            data = os.read(self.master, 4096)
+            # Perform further processing on the data
+            self.update_gui.emit("main", data)
 
     @Slot(bytes)
     def inferior_write(self, inferior_input: bytes):
