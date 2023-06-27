@@ -1,7 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import logging
 import sys
-from typing import List
 
 import PySide6
 from PySide6.QtCore import Slot, Qt, Signal, QThread
@@ -12,15 +11,17 @@ from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QInputDial
 from gui.constants import PwndbgGuiConstants
 from gui.custom_widgets.context_list_widget import ContextListWidget
 from gui.custom_widgets.context_text_edit import ContextTextEdit
+from gui.custom_widgets.main_context_widget import MainContextWidget
 from gui.gdb_handler import GdbHandler
 from gui.html_style_delegate import HTMLDelegate
-from gui.custom_widgets.main_context_widget import MainContextWidget
 from gui.parser import ContextParser
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 from gui.ui_form import Ui_PwnDbgGui
+
+from pwndbg.commands.context import stack_lines as pwndb_stack_lines
 
 logger = logging.getLogger(__file__)
 
@@ -155,7 +156,7 @@ class PwnDbgGui(QMainWindow):
         header_layout.addWidget(stack_lines_label)
         self.stack_lines_incrementor = QSpinBox()
         self.stack_lines_incrementor.setRange(1, 999)
-        self.stack_lines_incrementor.setValue(8)  # Maybe retrieve the set value from gdb?
+        self.stack_lines_incrementor.setValue(int(pwndb_stack_lines))
         header_layout.addWidget(self.stack_lines_incrementor)
         layout.addLayout(header_layout)
 
