@@ -137,8 +137,8 @@ class MainContextWidget(QGroupBox):
         # logger.debug("event type: exit (inferior exited)")
         InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
         if hasattr(event, 'exit_code'):
-            logger.debug("exit code: %d" % event.exit_code)
-            self.gdb_write.emit("Inferior exited with code: " + str(event.exit_code), False)
+            #logger.debug("exit code: %d" % event.exit_code)
+            self.update_gui.emit("main", b"Inferior exited with code: " + str(event.exit_code).encode() + b"\n")
         else:
             logger.debug("exit code not available")
 
