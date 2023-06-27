@@ -23,9 +23,11 @@ class MainContextWidget(QGroupBox):
     stop_thread = Signal()
     inferior_write = Signal(bytes)
     inferior_run = Signal()
+    update_gui = Signal(str, bytes)
 
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
+        self.update_gui.connect(parent.update_pane)
         self.inferior_thread = QThread()
         self.inferior_handler = InferiorHandler()
         self.buttons_data = {'&r': self.run, '&c': self.continue_execution, '&n': self.next,
@@ -77,12 +79,14 @@ class MainContextWidget(QGroupBox):
 
     @Slot()
     def handle_submit(self):
+        user_line = self.input_widget.text()
+        self.update_gui.emit("main", f"> {user_line}\n".encode())
         if InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
             # Inferior is running, send to inferior
-            self.submit_input()
+            self.submit_input(user_line)
         else:
             # Enter was pressed, send command to pwndbg
-            self.submit_cmd()
+            self.submit_cmd(user_line)
 
     @Slot()
     def run(self):
@@ -114,19 +118,13 @@ class MainContextWidget(QGroupBox):
         logger.debug("Executing si callback")
         self.gdb_write.emit("si", True)
 
-    def submit_cmd(self):
-        cmd = self.input_widget.text()
-        logger.debug("Sending command '%s' to gdb", cmd)
-        # Do not capture gdb output to a string variable for commands that can change the inferior state
-        capture: bool = cmd not in ["c", "r", "n", "ni", "si", "s"]
-        capture = True
-        self.gdb_write.emit(cmd, capture)
+    def submit_cmd(self, user_line: str):
+        logger.debug("Sending command '%s' to gdb", user_line)
+        self.gdb_write.emit(user_line, True)
         self.input_widget.clear()
 
-    def submit_input(self):
-        user_input = self.input_widget.text()
-        # logger.debug("Sending input '%s' to inferior", user_input)
-        self.inferior_write.emit(user_input.encode() + b"\n")
+    def submit_input(self, user_line: str):
+        self.inferior_write.emit(user_line.encode() + b"\n")
         self.input_widget.clear()
 
     def cont_handler(self, event):
