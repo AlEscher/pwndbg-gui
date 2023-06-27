@@ -34,12 +34,11 @@ class GdbHandler(QObject):
     """A wrapper to interact with GDB/pwndbg via gdb.execute"""
     update_gui = Signal(str, bytes)
 
-    def __init__(self, active_contexts: List[str]):
+    def __init__(self):
         super().__init__()
         self.past_commands: List[str] = []
         self.context_to_func = dict(regs=context_regs, stack=context_stack, disasm=context_disasm, code=context_code,
                                     backtrace=context_backtrace)
-        self.active_contexts = active_contexts
 
     @Slot(str)
     def send_command(self, cmd: str, capture=True):
@@ -53,12 +52,12 @@ class GdbHandler(QObject):
             self.update_gui.emit("main", response.encode())
 
         if not is_target_running():
+            logger.debug("Target not running, skipping context updates")
             return
         # Update contexts
         for context, func in self.context_to_func.items():
-            if context in self.active_contexts:
-                context_data: List[str] = func(with_banner=False)
-                self.update_gui.emit(context, "\n".join(context_data).encode())
+            context_data: List[str] = func(with_banner=False)
+            self.update_gui.emit(context, "\n".join(context_data).encode())
 
     @Slot(list)
     def set_target(self, arguments: List[str]):
@@ -83,24 +82,30 @@ class GdbHandler(QObject):
 
     @Slot()
     def run(self):
-        gdb.execute("r")
+        logger.debug("Executing r callback")
+        self.send_command("r", capture=False)
 
     @Slot()
     def continue_execution(self):
-        gdb.execute("c")
+        logger.debug("Executing c callback")
+        self.send_command("c", capture=False)
 
     @Slot()
     def next(self):
-        gdb.execute("n")
+        logger.debug("Executing n callback")
+        self.send_command("n", capture=False)
 
     @Slot()
     def step(self):
-        gdb.execute("s")
+        logger.debug("Executing s callback")
+        self.send_command("s", capture=False)
 
     @Slot()
     def next_instruction(self):
-        gdb.execute("ni")
+        logger.debug("Executing ni callback")
+        self.send_command("ni", capture=False)
 
     @Slot()
     def step_into(self):
-        gdb.execute("si")
+        logger.debug("Executing si callback")
+        self.send_command("si", capture=False)

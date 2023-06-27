@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from PySide6.QtGui import QTextCursor
-from PySide6.QtWidgets import QTextEdit
+from PySide6.QtWidgets import QTextEdit, QWidget
 
 # Prevent circular import error
 if TYPE_CHECKING:
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class ContextTextEdit(QTextEdit):
-    def __init__(self, parent: 'PwnDbgGui', ):
+    def __init__(self, parent: QWidget):
         super().__init__(parent)
         self.setReadOnly(True)
 
