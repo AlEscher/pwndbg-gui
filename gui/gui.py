@@ -167,6 +167,7 @@ class PwnDbgGui(QMainWindow):
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
             self.set_gdb_target_signal.emit(["file", file_name])
+            self.update_pane("main", f"Loading file {file_name}\n".encode())
 
     @Slot()
     def query_process_name(self):
@@ -175,12 +176,14 @@ class PwnDbgGui(QMainWindow):
         if ok and name:
             args = ["attach", f"$(pidof {name})"]
             self.set_gdb_target_signal.emit(args)
+            self.update_pane("main", f"Attaching to process {name}\n".encode())
 
     def query_process_pid(self):
         pid, ok = QInputDialog.getInt(self, "Enter a running process pid", "PID:", minValue=0)
         if ok and pid > 0:
             args = ["attach", str(pid)]
             self.set_gdb_target_signal.emit(args)
+            self.update_pane("main", f"Attaching to process {pid}\n".encode())
 
     @Slot(str, bytes)
     def update_pane(self, context: str, content: bytes):

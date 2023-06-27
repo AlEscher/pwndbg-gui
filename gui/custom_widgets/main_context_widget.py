@@ -79,14 +79,12 @@ class MainContextWidget(QGroupBox):
 
     @Slot()
     def handle_submit(self):
-        user_line = self.input_widget.text()
-        self.update_gui.emit("main", f"> {user_line}\n".encode())
         if InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
             # Inferior is running, send to inferior
-            self.submit_input(user_line)
+            self.submit_input()
         else:
             # Enter was pressed, send command to pwndbg
-            self.submit_cmd(user_line)
+            self.submit_cmd()
 
     @Slot()
     def run(self):
@@ -118,12 +116,15 @@ class MainContextWidget(QGroupBox):
         logger.debug("Executing si callback")
         self.gdb_write.emit("si", True)
 
-    def submit_cmd(self, user_line: str):
+    def submit_cmd(self):
+        user_line = self.input_widget.text()
         logger.debug("Sending command '%s' to gdb", user_line)
+        self.update_gui.emit("main", f"> {user_line}\n".encode())
         self.gdb_write.emit(user_line, True)
         self.input_widget.clear()
 
-    def submit_input(self, user_line: str):
+    def submit_input(self):
+        user_line = self.input_widget.text()
         self.inferior_write.emit(user_line.encode() + b"\n")
         self.input_widget.clear()
 
