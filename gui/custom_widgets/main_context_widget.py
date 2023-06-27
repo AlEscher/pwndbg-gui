@@ -23,7 +23,7 @@ class MainContextWidget(QGroupBox):
     gdb_start = Signal(list)
     stop_thread = Signal()
     inferior_write = Signal(bytes)
-    inferior_read = Signal()
+    inferior_run = Signal()
 
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
@@ -72,7 +72,7 @@ class MainContextWidget(QGroupBox):
         # Allow giving the thread work from outside
         self.gdb_write.connect(self.parent.gdb_handler.send_command)
         self.inferior_write.connect(self.inferior_handler.inferior_write)
-        self.inferior_read.connect(self.inferior_handler.inferior_read)
+        self.inferior_run.connect(self.inferior_handler.inferior_runs)
         self.inferior_thread.finished.connect(self.inferior_handler.deleteLater)
         # Allow stopping the thread from outside
         self.stop_thread.connect(self.inferior_thread.quit)
@@ -80,7 +80,7 @@ class MainContextWidget(QGroupBox):
 
     @Slot()
     def handle_submit(self):
-        if InferiorHandler.INFERIOR_STATE == 1:
+        if InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
             # Inferior is running, send to inferior
             self.submit_input()
         else:
@@ -98,14 +98,13 @@ class MainContextWidget(QGroupBox):
     def submit_input(self):
         user_input = self.input_widget.text()
         logger.debug("Sending input '%s' to inferior", user_input)
-        self.inferior_write.emit(user_input)
+        self.inferior_write.emit(user_input.encode() + b"\n")
         self.input_widget.clear()
 
     def cont_handler(self, event):
         # logger.debug("event type: continue (inferior runs)")
         InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
-        #self.inferior_read.emit()
-        #logger.debug("emitted read")
+        self.inferior_run.emit()
 
     def exit_handler(self, event):
         # logger.debug("event type: exit (inferior exited)")
