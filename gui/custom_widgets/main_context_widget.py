@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 
 import gdb
 from PySide6.QtCore import Qt, QThread, Signal, Slot
-from PySide6.QtWidgets import QWidget, QGroupBox, QVBoxLayout, QLineEdit, QButtonGroup, QHBoxLayout, QPushButton
+from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel
 
-from gui.custom_widgets.context_text_edit import ContextTextEdit
+from gui.constants import PwndbgGuiConstants
 from gui.custom_widgets.main_context_output import MainContextOutput
 from gui.gdb_handler import GdbHandler
 from gui.inferior_handler import InferiorHandler
@@ -37,7 +37,7 @@ class MainContextWidget(QGroupBox):
         self.output_widget = MainContextOutput(self)
         self.input_widget = QLineEdit(self)
         self.input_widget.returnPressed.connect(self.handle_submit)
-        self.buttons = QGroupBox(self)
+        self.buttons = QHBoxLayout()
         self.setup_buttons()
         self.setup_widget_layout()
 
@@ -50,19 +50,20 @@ class MainContextWidget(QGroupBox):
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setFlat(True)
         context_layout = QVBoxLayout()
-        context_layout.addWidget(self.buttons)
+        context_layout.addLayout(self.buttons)
         context_layout.addWidget(self.output_widget)
-        context_layout.addWidget(self.input_widget)
+        input_layout = QHBoxLayout()
+        input_layout.addWidget(QLabel(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>"))
+        input_layout.addWidget(self.input_widget)
+        context_layout.addLayout(input_layout)
         self.setLayout(context_layout)
 
     def setup_buttons(self):
         self.buttons.setAlignment(Qt.AlignmentFlag.AlignRight)
-        buttons_layout = QHBoxLayout(self.buttons)
         for label, callback in self.buttons_data.items():
             button = QPushButton(label)
             button.clicked.connect(callback)
-            buttons_layout.addWidget(button)
-        self.buttons.setLayout(buttons_layout)
+            self.buttons.addWidget(button)
 
     def start_update_worker(self):
         self.inferior_thread = QThread()
