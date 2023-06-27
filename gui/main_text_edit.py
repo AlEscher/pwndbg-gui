@@ -25,16 +25,14 @@ class MainTextEdit(ContextTextEdit):
     inferior_write = Signal(bytes)
     inferior_read = Signal()
 
-    def __init__(self, parent: 'PwnDbgGui', args: List[str]):
+    def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
         self.setReadOnly(False)
-        self.update_thread = QThread()
-        self.gdb_handler = GdbHandler(active_contexts=parent.seg_to_widget.keys())
         self.inferior_thread = QThread()
         self.inferior_handler = InferiorHandler()
         self.parent = parent
         self.setObjectName("main")
-        self.start_update_worker(args)
+        self.start_update_worker()
 
         gdb.events.cont.connect(self.cont_handler)
         gdb.events.exited.connect(self.exit_handler)
@@ -44,29 +42,18 @@ class MainTextEdit(ContextTextEdit):
     def add_content(self, content: str):
         super().add_content(self.toHtml() + content)
 
-    def start_update_worker(self, args: List[str]):
-        self.update_thread = QThread()
-        self.gdb_handler.moveToThread(self.update_thread)
+    def start_update_worker(self):
         self.inferior_thread = QThread()
         self.inferior_handler.moveToThread(self.inferior_thread)
-        # Allow the worker to update contexts in the GUI thread
-        self.gdb_handler.update_gui.connect(self.parent.update_pane)
         self.inferior_handler.update_gui.connect(self.parent.update_pane)
         # Allow giving the thread work from outside
-        self.gdb_write.connect(self.gdb_handler.send_command)
+        self.gdb_write.connect(self.parent.gdb_handler.send_command)
         self.inferior_write.connect(self.inferior_handler.inferior_write)
         self.inferior_read.connect(self.inferior_handler.inferior_read)
-        # Thread cleanup
-        self.update_thread.finished.connect(self.gdb_handler.deleteLater)
         self.inferior_thread.finished.connect(self.inferior_handler.deleteLater)
         # Allow stopping the thread from outside
-        self.stop_thread.connect(self.update_thread.quit)
         self.stop_thread.connect(self.inferior_thread.quit)
-        logger.debug("Starting new worker threads in MainTextEdit")
-        self.update_thread.start()
         self.inferior_thread.start()
-        self.gdb_start.connect(self.gdb_handler.set_target)
-        self.gdb_start.emit(args)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
