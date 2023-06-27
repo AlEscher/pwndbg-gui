@@ -10,4 +10,4 @@ class MainContextOutput(ContextTextEdit):
 
     def add_content(self, content: str):
         """Appends content instead of replacing it like other normal ContextTextEdit widgets"""
-        super().add_content(self.toHtml() + content)
+        self.insertHtml(content)
