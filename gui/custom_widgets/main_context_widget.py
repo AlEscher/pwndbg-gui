@@ -7,7 +7,6 @@ from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QP
 
 from gui.constants import PwndbgGuiConstants
 from gui.custom_widgets.main_context_output import MainContextOutput
-from gui.gdb_handler import GdbHandler
 from gui.inferior_handler import InferiorHandler
 from gui.inferior_state import InferiorState
 
@@ -29,11 +28,9 @@ class MainContextWidget(QGroupBox):
         super().__init__(parent)
         self.inferior_thread = QThread()
         self.inferior_handler = InferiorHandler()
-        self.parent = parent
-        gdb_handler: GdbHandler = self.parent.gdb_handler
-        self.buttons_data = {'&r': gdb_handler.run, '&c': gdb_handler.continue_execution, '&n': gdb_handler.next,
-                             '&s': gdb_handler.step, 'ni': gdb_handler.next_instruction, 'si': gdb_handler.step_into}
-        self.start_update_worker()
+        self.buttons_data = {'&r': parent.gdb_handler.run, '&c': parent.gdb_handler.continue_execution, '&n': parent.gdb_handler.next,
+                             '&s': parent.gdb_handler.step, 'ni': parent.gdb_handler.next_instruction, 'si': parent.gdb_handler.step_into}
+        self.start_update_worker(parent)
         self.output_widget = MainContextOutput(self)
         self.input_widget = QLineEdit(self)
         self.input_widget.returnPressed.connect(self.handle_submit)
@@ -65,12 +62,12 @@ class MainContextWidget(QGroupBox):
             button.clicked.connect(callback)
             self.buttons.addWidget(button)
 
-    def start_update_worker(self):
+    def start_update_worker(self, parent: 'PwnDbgGui'):
         self.inferior_thread = QThread()
         self.inferior_handler.moveToThread(self.inferior_thread)
-        self.inferior_handler.update_gui.connect(self.parent.update_pane)
+        self.inferior_handler.update_gui.connect(parent.update_pane)
         # Allow giving the thread work from outside
-        self.gdb_write.connect(self.parent.gdb_handler.send_command)
+        self.gdb_write.connect(parent.gdb_handler.send_command)
         self.inferior_write.connect(self.inferior_handler.inferior_write)
         self.inferior_run.connect(self.inferior_handler.inferior_runs)
         self.inferior_thread.finished.connect(self.inferior_handler.deleteLater)
