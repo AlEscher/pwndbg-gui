@@ -1,14 +1,14 @@
 import logging
-from typing import TYPE_CHECKING, List
-
-from PySide6.QtCore import Qt, QThread, Signal
-
-from gui.custom_widgets.context_text_edit import ContextTextEdit
-from gui.inferior_handler import InferiorHandler
-from gui.gdb_handler import GdbHandler
+from typing import TYPE_CHECKING
 
 import gdb
+from PySide6.QtCore import Qt, QThread, Signal, Slot
+from PySide6.QtWidgets import QWidget, QGroupBox, QVBoxLayout, QLineEdit, QButtonGroup, QHBoxLayout, QPushButton
 
+from gui.custom_widgets.context_text_edit import ContextTextEdit
+from gui.custom_widgets.main_context_output import MainContextOutput
+from gui.gdb_handler import GdbHandler
+from gui.inferior_handler import InferiorHandler
 from gui.inferior_state import InferiorState
 
 # Prevent circular import error
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-class MainTextEdit(ContextTextEdit):
+class MainContextWidget(QGroupBox):
     gdb_write = Signal(str, bool)
     gdb_start = Signal(list)
     stop_thread = Signal()
@@ -27,20 +27,42 @@ class MainTextEdit(ContextTextEdit):
 
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
-        self.setReadOnly(False)
         self.inferior_thread = QThread()
         self.inferior_handler = InferiorHandler()
         self.parent = parent
-        self.setObjectName("main")
+        gdb_handler: GdbHandler = self.parent.gdb_handler
+        self.buttons_data = {'&r': gdb_handler.run, '&c': gdb_handler.continue_execution, '&n': gdb_handler.next,
+                             '&s': gdb_handler.step, 'ni': gdb_handler.next_instruction, 'si': gdb_handler.step_into}
         self.start_update_worker()
+        self.output_widget = MainContextOutput(self)
+        self.input_widget = QLineEdit(self)
+        self.input_widget.returnPressed.connect(self.handle_submit)
+        self.buttons = QGroupBox(self)
+        self.setup_buttons()
+        self.setup_widget_layout()
 
         gdb.events.cont.connect(self.cont_handler)
         gdb.events.exited.connect(self.exit_handler)
         gdb.events.stop.connect(self.stop_handler)
         gdb.events.inferior_call.connect(self.call_handler)
 
-    def add_content(self, content: str):
-        super().add_content(self.toHtml() + content)
+    def setup_widget_layout(self):
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setFlat(True)
+        context_layout = QVBoxLayout()
+        context_layout.addWidget(self.buttons)
+        context_layout.addWidget(self.output_widget)
+        context_layout.addWidget(self.input_widget)
+        self.setLayout(context_layout)
+
+    def setup_buttons(self):
+        self.buttons.setAlignment(Qt.AlignmentFlag.AlignRight)
+        buttons_layout = QHBoxLayout(self.buttons)
+        for label, callback in self.buttons_data.items():
+            button = QPushButton(label)
+            button.clicked.connect(callback)
+            buttons_layout.addWidget(button)
+        self.buttons.setLayout(buttons_layout)
 
     def start_update_worker(self):
         self.inferior_thread = QThread()
@@ -55,35 +77,28 @@ class MainTextEdit(ContextTextEdit):
         self.stop_thread.connect(self.inferior_thread.quit)
         self.inferior_thread.start()
 
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            if InferiorHandler.INFERIOR_STATE == 1:
-                # Inferior is running, send to inferior
-                self.submit_input()
-            else:
-                # Enter was pressed, send command to pwndbg
-                self.submit_cmd()
-        super().keyPressEvent(event)
+    @Slot()
+    def handle_submit(self):
+        if InferiorHandler.INFERIOR_STATE == 1:
+            # Inferior is running, send to inferior
+            self.submit_input()
+        else:
+            # Enter was pressed, send command to pwndbg
+            self.submit_cmd()
 
     def submit_cmd(self):
-        lines = self.toPlainText().splitlines(keepends=True)
-        if len(lines) > 0:
-            cmd = lines[-1].replace("\n", "")
-            logger.debug("Sending command '%s' to gdb", cmd)
-            # Do not capture gdb output to a string variable for commands that can change the inferior state
-            capture: bool = cmd not in ["c", "r", "n", "ni", "si", "s"]
-            self.gdb_write.emit(cmd, capture)
-            return
-        logger.debug("No lines to send as command!")
+        cmd = self.input_widget.text()
+        logger.debug("Sending command '%s' to gdb", cmd)
+        # Do not capture gdb output to a string variable for commands that can change the inferior state
+        capture: bool = cmd not in ["c", "r", "n", "ni", "si", "s"]
+        self.gdb_write.emit(cmd, capture)
+        self.input_widget.clear()
 
     def submit_input(self):
-        lines = self.toPlainText().splitlines(keepends=True)
-        if len(lines) > 0:
-            user_input = lines[-1]
-            logger.debug("Sending input '%s' to inferior", user_input)
-            self.inferior_write.emit(user_input)
-            return
-        logger.debug("No lines to send to inferior!")
+        user_input = self.input_widget.text()
+        logger.debug("Sending input '%s' to inferior", user_input)
+        self.inferior_write.emit(user_input)
+        self.input_widget.clear()
 
     def cont_handler(self, event):
         # logger.debug("event type: continue (inferior runs)")

@@ -5,8 +5,8 @@ from typing import List
 
 import PySide6
 from PySide6.QtCore import Slot, Qt, Signal, QThread
-from PySide6.QtGui import QTextOption, QTextCursor, QAction, QKeySequence, QFont
-from PySide6.QtWidgets import QApplication, QFileDialog, QTextBrowser, QTextEdit, QMainWindow, QInputDialog, \
+from PySide6.QtGui import QTextOption, QAction, QKeySequence, QFont
+from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox, QGroupBox, QVBoxLayout, QWidget, QSplitter, QHBoxLayout, QSpinBox, QLabel
 
 from gui.constants import PwndbgGuiConstants
@@ -14,7 +14,7 @@ from gui.custom_widgets.context_list_widget import ContextListWidget
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.gdb_handler import GdbHandler
 from gui.html_style_delegate import HTMLDelegate
-from gui.main_text_edit import MainTextEdit
+from gui.custom_widgets.main_context_widget import MainContextWidget
 from gui.parser import ContextParser
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -32,9 +32,10 @@ class PwnDbgGui(QMainWindow):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.main_text_edit: MainContextWidget | None = None
         self.gdb_thread = None
-        self.gdb_handler = None
-        self.stack_lines_incrementor: QSpinBox = None
+        self.gdb_handler = GdbHandler()
+        self.stack_lines_incrementor: QSpinBox | None = None
         self.menu_bar = None
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
@@ -42,10 +43,11 @@ class PwnDbgGui(QMainWindow):
         self.setCentralWidget(self.ui.top_splitter)
         self.setup_custom_widgets()
         self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm,
-                                  backtrace=self.ui.backtrace, regs=self.ui.regs, ipython=self.ui.ipython)
+                                  backtrace=self.ui.backtrace, regs=self.ui.regs, ipython=self.ui.ipython,
+                                  main=self.main_text_edit.output_widget)
         self.parser = ContextParser()
-        self.setup_menu()
         self.init_gdb_handler()
+        self.setup_menu()
 
     def setup_custom_widgets(self):
         """Ugly workaround to allow to use custom widgets.
@@ -69,6 +71,10 @@ class PwnDbgGui(QMainWindow):
         self.ui.code = ContextTextEdit(self)
         self.ui.code.setObjectName("code")
         self.setup_context_pane(self.ui.code, title="Code", splitter=self.ui.code_splitter, index=1)
+        self.main_text_edit = MainContextWidget(parent=self)
+        self.ui.splitter.replaceWidget(0, self.main_text_edit)
+        # https://stackoverflow.com/a/66067630
+        self.main_text_edit.show()
 
     def setup_context_pane(self, context_widget: QWidget, title: str, splitter: QSplitter, index: int):
         """Sets up the layout for a context pane"""
@@ -125,9 +131,9 @@ class PwnDbgGui(QMainWindow):
 
     def init_gdb_handler(self):
         self.gdb_thread = QThread()
-        self.gdb_handler = GdbHandler(active_contexts=list(self.seg_to_widget.keys()))
         self.gdb_handler.moveToThread(self.gdb_thread)
         self.set_gdb_target_signal.connect(self.gdb_handler.set_target)
+        self.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.update_pane)
         # Thread cleanup
@@ -135,15 +141,6 @@ class PwnDbgGui(QMainWindow):
         self.stop_gdb_thread.connect(self.gdb_thread.quit)
         logger.debug("Starting new worker threads")
         self.gdb_thread.start()
-
-    def set_gdb_target(self, args: List[str]):
-        """Runs gdb with the given program and waits for gdb to have started"""
-        self.set_gdb_target_signal.emit(args)
-        # Replace the "Main" widget with our custom implementation
-        main_text_edit = MainTextEdit(parent=self)
-        self.ui.splitter.replaceWidget(0, main_text_edit)
-        self.seg_to_widget["main"] = main_text_edit
-        self.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
         """Called when window is closed. Stop our worker thread"""
@@ -169,7 +166,7 @@ class PwnDbgGui(QMainWindow):
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
-            self.set_gdb_target(["file", file_name])
+            self.set_gdb_target_signal.emit(["file", file_name])
 
     @Slot()
     def query_process_name(self):
@@ -177,13 +174,13 @@ class PwnDbgGui(QMainWindow):
                                         "vuln")
         if ok and name:
             args = ["attach", f"$(pidof {name})"]
-            self.set_gdb_target(args)
+            self.set_gdb_target_signal.emit(args)
 
     def query_process_pid(self):
         pid, ok = QInputDialog.getInt(self, "Enter a running process pid", "PID:", minValue=0)
         if ok and pid > 0:
             args = ["attach", str(pid)]
-            self.set_gdb_target(args)
+            self.set_gdb_target_signal.emit(args)
 
     @Slot(str, bytes)
     def update_pane(self, context: str, content: bytes):
