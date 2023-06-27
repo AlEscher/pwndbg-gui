@@ -23,7 +23,7 @@ class MainTextEdit(ContextTextEdit):
     gdb_start = Signal(list)
     stop_thread = Signal()
     inferior_write = Signal(bytes)
-    inferior_read = Signal()
+    inferior_run = Signal()
 
     def __init__(self, parent: 'PwnDbgGui', args: List[str]):
         super().__init__(parent)
@@ -55,7 +55,7 @@ class MainTextEdit(ContextTextEdit):
         # Allow giving the thread work from outside
         self.gdb_write.connect(self.gdb_handler.send_command)
         self.inferior_write.connect(self.inferior_handler.inferior_write)
-        self.inferior_read.connect(self.inferior_handler.inferior_read)
+        self.inferior_run.connect(self.inferior_handler.inferior_runs)
         # Thread cleanup
         self.update_thread.finished.connect(self.gdb_handler.deleteLater)
         self.inferior_thread.finished.connect(self.inferior_handler.deleteLater)
@@ -70,7 +70,7 @@ class MainTextEdit(ContextTextEdit):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            if InferiorHandler.INFERIOR_STATE == 1:
+            if InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
                 # Inferior is running, send to inferior
                 self.submit_input()
             else:
@@ -93,16 +93,15 @@ class MainTextEdit(ContextTextEdit):
         lines = self.toPlainText().splitlines(keepends=True)
         if len(lines) > 0:
             user_input = lines[-1]
-            logger.debug("Sending input '%s' to inferior", user_input)
-            self.inferior_write.emit(user_input)
+            logger.debug("Sending input '%s' to inferior", repr(user_input.encode()))
+            self.inferior_write.emit(user_input.encode() + b"\n")
             return
         logger.debug("No lines to send to inferior!")
 
     def cont_handler(self, event):
         # logger.debug("event type: continue (inferior runs)")
         InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
-        self.inferior_read.emit()
-        logger.debug("emitted read")
+        self.inferior_run.emit()
 
     def exit_handler(self, event):
         # logger.debug("event type: exit (inferior exited)")

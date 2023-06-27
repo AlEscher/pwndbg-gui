@@ -5,10 +5,11 @@ import time
 
 # These imports are broken here, but will work via .gdbinit
 import gdb
-from PySide6.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import QObject, Slot, Signal, QCoreApplication
 
 import os
 import fcntl
+import select
 
 from gui.inferior_state import InferiorState
 
@@ -32,27 +33,24 @@ class InferiorHandler(QObject):
         logger.debug("Opened tty for inferior interaction: %s", tty)
         gdb.execute('tty ' + tty)
 
+        self.to_write = b""
+
     @Slot()
-    def inferior_read(self):
-        logger.debug("Reading from inferior")
+    def inferior_runs(self):
+        logger.debug("Starting Inferior Interaction")
         while InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
-            try:
-                inferior_read = os.read(self.master, 4096)
-                if not inferior_read:
-                    # End-of-file condition reached
-                    break
-                self.update_gui.emit("main", inferior_read)
-            except BlockingIOError:
-                # No data available currently
-                time.sleep(0.2)
-                continue
-        try:
-            inferior_read = os.read(self.master, 4096)
-            self.update_gui.emit("main", inferior_read)
-        except BlockingIOError:
-            pass
+            can_read, _, _ = select.select([self.master], [], [], 0)  # Non-blocking check for readability
+            if can_read:
+                data = os.read(self.master, 4096)
+                # Perform further processing on the data
+                self.update_gui.emit("main", data)
+            QCoreApplication.processEvents()  # Process pending write events
+            if self.to_write != b"":
+                logger.debug("Writing %s to inferior", self.to_write.decode())
+                os.write(self.master, self.to_write)
+                self.to_write = b""
+            time.sleep(0.2)
 
     @Slot(bytes)
     def inferior_write(self, inferior_input: bytes):
-        logger.debug("Writing %s to inferior", inferior_input.decode())
-        os.write(self.master, inferior_input)
+        self.to_write += inferior_input
