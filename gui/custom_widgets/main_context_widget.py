@@ -103,8 +103,8 @@ class MainContextWidget(QGroupBox):
     def cont_handler(self, event):
         # logger.debug("event type: continue (inferior runs)")
         InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
-        self.inferior_read.emit()
-        logger.debug("emitted read")
+        #self.inferior_read.emit()
+        #logger.debug("emitted read")
 
     def exit_handler(self, event):
         # logger.debug("event type: exit (inferior exited)")

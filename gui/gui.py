@@ -33,7 +33,7 @@ class PwnDbgGui(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.main_text_edit: MainContextWidget | None = None
-        self.gdb_thread = None
+        self.gdb_thread: QThread | None = None
         self.gdb_handler = GdbHandler()
         self.stack_lines_incrementor: QSpinBox | None = None
         self.menu_bar = None

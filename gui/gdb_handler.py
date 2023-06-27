@@ -82,30 +82,30 @@ class GdbHandler(QObject):
 
     @Slot()
     def run(self):
-        logger.debug("Executing r")
-        gdb.execute("r")
+        logger.debug("Executing r callback")
+        self.send_command("r", capture=False)
 
     @Slot()
     def continue_execution(self):
-        logger.debug("Executing c")
-        gdb.execute("c")
+        logger.debug("Executing c callback")
+        self.send_command("c", capture=False)
 
     @Slot()
     def next(self):
-        logger.debug("Executing n")
-        gdb.execute("n")
+        logger.debug("Executing n callback")
+        self.send_command("n", capture=False)
 
     @Slot()
     def step(self):
-        logger.debug("Executing s")
-        gdb.execute("s")
+        logger.debug("Executing s callback")
+        self.send_command("s", capture=False)
 
     @Slot()
     def next_instruction(self):
-        logger.debug("Executing ni")
-        gdb.execute("ni")
+        logger.debug("Executing ni callback")
+        self.send_command("ni", capture=False)
 
     @Slot()
     def step_into(self):
-        logger.debug("Executing si")
-        gdb.execute("si")
+        logger.debug("Executing si callback")
+        self.send_command("si", capture=False)
