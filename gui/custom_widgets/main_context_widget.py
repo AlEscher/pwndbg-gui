@@ -87,38 +87,39 @@ class MainContextWidget(QGroupBox):
     @Slot()
     def run(self):
         logger.debug("Executing r callback")
-        self.gdb_write.emit("r", False)
+        self.gdb_write.emit("r", True)
 
     @Slot()
     def continue_execution(self):
         logger.debug("Executing c callback")
-        self.gdb_write.emit("c", False)
+        self.gdb_write.emit("c", True)
 
     @Slot()
     def next(self):
         logger.debug("Executing n callback")
-        self.gdb_write.emit("n", False)
+        self.gdb_write.emit("n", True)
 
     @Slot()
     def step(self):
         logger.debug("Executing s callback")
-        self.gdb_write.emit("s", False)
+        self.gdb_write.emit("s", True)
 
     @Slot()
     def next_instruction(self):
         logger.debug("Executing ni callback")
-        self.gdb_write.emit("ni", False)
+        self.gdb_write.emit("ni", True)
 
     @Slot()
     def step_into(self):
         logger.debug("Executing si callback")
-        self.gdb_write.emit("si", False)
+        self.gdb_write.emit("si", True)
 
     def submit_cmd(self):
         cmd = self.input_widget.text()
         logger.debug("Sending command '%s' to gdb", cmd)
         # Do not capture gdb output to a string variable for commands that can change the inferior state
         capture: bool = cmd not in ["c", "r", "n", "ni", "si", "s"]
+        capture = True
         self.gdb_write.emit(cmd, capture)
         self.input_widget.clear()
 
