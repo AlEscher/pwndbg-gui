@@ -39,6 +39,7 @@ class InferiorHandler(QObject):
     def inferior_runs(self):
         logger.debug("Starting Inferior Interaction")
         while InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
+            time.sleep(0.2)
             can_read, _, _ = select.select([self.master], [], [], 0)  # Non-blocking check for readability
             if can_read:
                 data = os.read(self.master, 4096)
@@ -49,12 +50,7 @@ class InferiorHandler(QObject):
                 logger.debug("Writing %s to inferior", self.to_write.decode())
                 os.write(self.master, self.to_write)
                 self.to_write = b""
-            time.sleep(0.2)
-        can_read, _, _ = select.select([self.master], [], [], 0)  # Non-blocking check for readability
-        if can_read:
-            data = os.read(self.master, 4096)
-            # Perform further processing on the data
-            self.update_gui.emit("main", data)
+
 
     @Slot(bytes)
     def inferior_write(self, inferior_input: bytes):
