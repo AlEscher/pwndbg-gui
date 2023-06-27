@@ -125,7 +125,7 @@ class MainContextWidget(QGroupBox):
 
     def submit_input(self):
         user_input = self.input_widget.text()
-        logger.debug("Sending input '%s' to inferior", user_input)
+        # logger.debug("Sending input '%s' to inferior", user_input)
         self.inferior_write.emit(user_input.encode() + b"\n")
         self.input_widget.clear()
 
@@ -139,6 +139,7 @@ class MainContextWidget(QGroupBox):
         InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
         if hasattr(event, 'exit_code'):
             logger.debug("exit code: %d" % event.exit_code)
+            self.gdb_write.emit("Inferior exited with code: " + str(event.exit_code), False)
         else:
             logger.debug("exit code not available")
 

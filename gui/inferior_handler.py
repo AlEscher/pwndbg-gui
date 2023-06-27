@@ -37,7 +37,7 @@ class InferiorHandler(QObject):
 
     @Slot()
     def inferior_runs(self):
-        logger.debug("Starting Inferior Interaction")
+        # logger.debug("Starting Inferior Interaction")
         while InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
             time.sleep(0.2)
             can_read, _, _ = select.select([self.master], [], [], 0)  # Non-blocking check for readability
@@ -47,7 +47,7 @@ class InferiorHandler(QObject):
                 self.update_gui.emit("main", data)
             QCoreApplication.processEvents()  # Process pending write events
             if self.to_write != b"":
-                logger.debug("Writing %s to inferior", self.to_write.decode())
+                # logger.debug("Writing %s to inferior", self.to_write.decode())
                 os.write(self.master, self.to_write)
                 self.to_write = b""
 
