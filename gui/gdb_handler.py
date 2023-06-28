@@ -9,7 +9,6 @@ from pwndbg.commands.context import context_stack, context_regs, context_disasm,
 from gui.inferior_handler import InferiorHandler
 from gui.inferior_state import InferiorState
 
-from gui.tee import TEE_STDOUT
 logger = logging.getLogger(__file__)
 
 
@@ -70,9 +69,6 @@ class GdbHandler(QObject):
         if capture:
             self.update_gui.emit("main", response.encode())
 
-        catched_tee = TEE_STDOUT.get_output()
-        logger.debug("logged from tee: %s", catched_tee)
-        #self.update_gui.emit("main", catched_tee.encode())
         if not is_target_running():
             logger.debug("Target not running, skipping context updates")
             return
