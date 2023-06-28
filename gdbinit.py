@@ -6,7 +6,3 @@ directory, file = path.split(__file__)
 directory = path.expanduser(directory)
 directory = path.abspath(directory)
 sys.path.append(directory)
-
-# importing our package which will call the main function
-import gui
-
