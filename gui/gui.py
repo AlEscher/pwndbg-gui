@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import logging
 import sys
+from pathlib import Path
 
 import PySide6
 from PySide6.QtCore import Slot, Qt, Signal, QThread
@@ -167,8 +168,10 @@ class PwnDbgGui(QMainWindow):
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
-            self.set_gdb_target_signal.emit(["file", file_name])
             self.update_pane("main", f"Loading file {file_name}\n".encode())
+            self.set_gdb_target_signal.emit(["file", file_name])
+            # GDB only looks for source files in the cwd, so we additionally add the directory of the executable
+            self.set_gdb_target_signal.emit(["dir", str(Path(file_name).parent)])
 
     @Slot()
     def query_process_name(self):
