@@ -22,8 +22,6 @@ from gui.parser import ContextParser
 #     pyside2-uic form.ui -o ui_form.py
 from gui.ui_form import Ui_PwnDbgGui
 
-from pwndbg.commands.context import stack_lines as pwndb_stack_lines
-
 logger = logging.getLogger(__file__)
 
 
@@ -161,7 +159,7 @@ class PwnDbgGui(QMainWindow):
         header_layout.addWidget(stack_lines_label)
         self.stack_lines_incrementor = QSpinBox()
         self.stack_lines_incrementor.setRange(1, 999)
-        self.stack_lines_incrementor.setValue(int(pwndb_stack_lines))
+        self.stack_lines_incrementor.setValue(8)
         header_layout.addWidget(self.stack_lines_incrementor)
         layout.addLayout(header_layout)
 

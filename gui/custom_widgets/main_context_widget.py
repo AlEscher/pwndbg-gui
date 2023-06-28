@@ -1,7 +1,6 @@
 import logging
 from typing import TYPE_CHECKING
 
-import gdb
 from PySide6.QtCore import Qt, QThread, Signal, Slot
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel
 
@@ -39,11 +38,6 @@ class MainContextWidget(QGroupBox):
         self.buttons = QHBoxLayout()
         self.setup_buttons()
         self.setup_widget_layout()
-
-        gdb.events.cont.connect(self.cont_handler)
-        gdb.events.exited.connect(self.exit_handler)
-        gdb.events.stop.connect(self.stop_handler)
-        gdb.events.inferior_call.connect(self.call_handler)
 
     def setup_widget_layout(self):
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
