@@ -30,7 +30,9 @@ logger = logging.getLogger(__file__)
 class PwnDbgGui(QMainWindow):
     change_gdb_setting = Signal(list)
     stop_gdb_thread = Signal()
-    set_gdb_target_signal = Signal(list)
+    set_gdb_file_target_signal = Signal(list)
+    set_gdb_pid_target_signal = Signal(list)
+    set_gdb_source_dir_signal = Signal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -134,7 +136,9 @@ class PwnDbgGui(QMainWindow):
     def init_gdb_handler(self):
         self.gdb_thread = QThread()
         self.gdb_handler.moveToThread(self.gdb_thread)
-        self.set_gdb_target_signal.connect(self.gdb_handler.set_target)
+        self.set_gdb_file_target_signal.connect(self.gdb_handler.set_file_target)
+        self.set_gdb_pid_target_signal.connect(self.gdb_handler.set_pid_target)
+        self.set_gdb_source_dir_signal.connect(self.gdb_handler.set_source_dir)
         self.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.update_pane)
@@ -169,25 +173,25 @@ class PwnDbgGui(QMainWindow):
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
             self.update_pane("main", f"Loading file {file_name}\n".encode())
-            self.set_gdb_target_signal.emit(["file", file_name])
+            self.set_gdb_file_target_signal.emit([file_name])
             # GDB only looks for source files in the cwd, so we additionally add the directory of the executable
-            self.set_gdb_target_signal.emit(["dir", str(Path(file_name).parent)])
+            self.set_gdb_source_dir_signal.emit([str(Path(file_name).parent)])
 
     @Slot()
     def query_process_name(self):
         name, ok = QInputDialog.getText(self, "Enter a running process name", "Name:", QLineEdit.EchoMode.Normal,
                                         "vuln")
         if ok and name:
-            args = ["attach", f"$(pidof {name})"]
-            self.set_gdb_target_signal.emit(args)
+            args = [f"$(pidof {name})"]
             self.update_pane("main", f"Attaching to process {name}\n".encode())
+            self.set_gdb_file_target_signal.emit(args)
 
     def query_process_pid(self):
         pid, ok = QInputDialog.getInt(self, "Enter a running process pid", "PID:", minValue=0)
         if ok and pid > 0:
-            args = ["attach", str(pid)]
-            self.set_gdb_target_signal.emit(args)
+            args = [str(pid)]
             self.update_pane("main", f"Attaching to process {pid}\n".encode())
+            self.set_gdb_file_target_signal.emit(args)
 
     @Slot(str, bytes)
     def update_pane(self, context: str, content: bytes):

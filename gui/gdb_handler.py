@@ -60,12 +60,22 @@ class GdbHandler(QObject):
             self.update_gui.emit(context, "\n".join(context_data).encode())
 
     @Slot(list)
-    def set_target(self, arguments: List[str]):
-        """Set the executable target of GDB"""
-        """Execute the given command, use for setting the debugging target"""
-        logger.info("Setting GDB target to %s", arguments)
+    def execute_cmd(self, arguments: List[str]):
+        """Execute the given command in gdb, without capturing"""
         cmd = " ".join(arguments)
         gdb.execute(cmd)
+
+    @Slot(list)
+    def set_file_target(self, arguments: List[str]):
+        self.execute_cmd(["file"] + arguments)
+
+    @Slot(list)
+    def set_pid_target(self, arguments: List[str]):
+        self.execute_cmd(["attach"] + arguments)
+
+    @Slot(list)
+    def set_source_dir(self, arguments: List[str]):
+        self.execute_cmd(["dir"] + arguments)
 
     @Slot(list)
     def change_setting(self, arguments: List[str]):
