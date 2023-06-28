@@ -19,11 +19,15 @@ def extract_console_payloads(gdbmi_response: list[dict]) -> list[str]:
 
 def find_pwndbg_source_cmd() -> str:
     """Reads the command to load pwndbg from the user's ".gdbinit" file and returns the command"""
-    gdbinit = Path(Path.home() / ".gdbinit")
+    gdbinit = Path(Path.home() / ".gdbinit").resolve()
+    if not gdbinit.exists():
+        logger.warning("Could not find .gdbinit file at %s", str(gdbinit))
     lines = gdbinit.read_text().splitlines()
     for line in lines:
         if "pwndbg" in line:
+            logger.debug("Found pwndbg command: %s", line)
             return line
+    logger.warning("Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
     return ""
 
 
