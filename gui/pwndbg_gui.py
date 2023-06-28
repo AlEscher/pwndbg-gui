@@ -9,18 +9,18 @@ from PySide6.QtGui import QTextOption, QAction, QKeySequence, QFont
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox, QGroupBox, QVBoxLayout, QWidget, QSplitter, QHBoxLayout, QSpinBox, QLabel
 
-from gui.constants import PwndbgGuiConstants
-from gui.custom_widgets.context_list_widget import ContextListWidget
-from gui.custom_widgets.context_text_edit import ContextTextEdit
-from gui.custom_widgets.main_context_widget import MainContextWidget
-from gui.gdb_handler import GdbHandler
-from gui.html_style_delegate import HTMLDelegate
-from gui.parser import ContextParser
+from constants import PwndbgGuiConstants
+from custom_widgets.context_list_widget import ContextListWidget
+from custom_widgets.context_text_edit import ContextTextEdit
+from custom_widgets.main_context_widget import MainContextWidget
+from gdb_handler import GdbHandler
+from html_style_delegate import HTMLDelegate
+from parser import ContextParser
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
-from gui.ui_form import Ui_PwnDbgGui
+from ui_form import Ui_PwnDbgGui
 
 logger = logging.getLogger(__file__)
 

@@ -2,24 +2,10 @@ import logging
 from typing import List
 
 # These imports are broken here, but will work via .gdbinit
-import gdb
 from PySide6.QtCore import QObject, Slot, Signal
 from pygdbmi import gdbcontroller
 
 logger = logging.getLogger(__file__)
-
-
-def get_fs_base() -> str:
-    try:
-        logger.debug("Getting fs_base from GDB")
-        output: str = gdb.execute("info register fs_base", to_string=True)
-        parts = output.split()
-        if "fs_base" in output and len(parts) > 1:
-            return f"FS  {parts[1]}"
-        else:
-            return ""
-    except gdb.error:
-        return ""
 
 
 class GdbHandler(QObject):
@@ -37,7 +23,7 @@ class GdbHandler(QObject):
         """Execute the given command and then update all context panes"""
         try:
             response = self.controller.write(cmd)
-        except gdb.error as e:
+        except Exception as e:
             logger.warning("Error while executing command '%s': '%s'", cmd, str(e))
             response = str(e) + "\n"
         if capture:

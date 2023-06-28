@@ -1,17 +1,21 @@
 import logging
+import os
+import sys
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, QThread, Signal, Slot
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel
 
-from gui.constants import PwndbgGuiConstants
-from gui.custom_widgets.main_context_output import MainContextOutput
-from gui.inferior_handler import InferiorHandler
-from gui.inferior_state import InferiorState
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+from constants import PwndbgGuiConstants
+from custom_widgets.main_context_output import MainContextOutput
+from inferior_handler import InferiorHandler
+from inferior_state import InferiorState
 
 # Prevent circular import error
 if TYPE_CHECKING:
-    from gui.gui import PwnDbgGui
+    from gui.pwndbg_gui import PwnDbgGui
 
 logger = logging.getLogger(__file__)
 

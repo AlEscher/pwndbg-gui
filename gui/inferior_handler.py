@@ -4,14 +4,13 @@ from typing import List
 import time
 
 # These imports are broken here, but will work via .gdbinit
-import gdb
 from PySide6.QtCore import QObject, Slot, Signal, QCoreApplication
 
 import os
 import fcntl
 import select
 
-from gui.inferior_state import InferiorState
+from inferior_state import InferiorState
 
 logger = logging.getLogger(__file__)
 
@@ -31,7 +30,7 @@ class InferiorHandler(QObject):
         # execute gdb tty command to forward the inferior to this tty
         tty = os.ttyname(self.slave)
         logger.debug("Opened tty for inferior interaction: %s", tty)
-        gdb.execute('tty ' + tty)
+        # gdb.execute('tty ' + tty)
 
         self.to_write = b""
 

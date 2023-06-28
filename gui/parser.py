@@ -1,10 +1,8 @@
-from typing import List
-
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QColor
 from PySide6.QtWidgets import QTextEdit
 
-from gui.constants import PwndbgGuiConstants
+from constants import PwndbgGuiConstants
 
 
 class ContextParser:
