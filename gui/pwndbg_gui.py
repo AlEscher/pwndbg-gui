@@ -50,6 +50,7 @@ class PwnDbgGui(QMainWindow):
         self.parser = ContextParser()
         self.init_gdb_handler()
         self.setup_menu()
+        self.gdb_handler.init()
 
     def setup_custom_widgets(self):
         """Ugly workaround to allow to use custom widgets.

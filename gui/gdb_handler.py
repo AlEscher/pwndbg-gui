@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import List
 
 # These imports are broken here, but will work via .gdbinit
@@ -6,6 +7,24 @@ from PySide6.QtCore import QObject, Slot, Signal
 from pygdbmi import gdbcontroller
 
 logger = logging.getLogger(__file__)
+
+
+def extract_console_payloads(gdbmi_response: list[dict]) -> list[str]:
+    result = []
+    for response in gdbmi_response:
+        if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
+            result.append(response["payload"])
+    return result
+
+
+def find_pwndbg_source_cmd() -> str:
+    """Reads the command to load pwndbg from the user's ".gdbinit" file and returns the command"""
+    gdbinit = Path(Path.home() / ".gdbinit")
+    lines = gdbinit.read_text().splitlines()
+    for line in lines:
+        if "pwndbg" in line:
+            return line
+    return ""
 
 
 class GdbHandler(QObject):
@@ -18,48 +37,60 @@ class GdbHandler(QObject):
         self.contexts = ['regs', 'stack', 'disasm', 'code', 'backtrace']
         self.controller = gdbcontroller.GdbController()
 
+    def init(self):
+        """Load pwndbg into gdb. Needs to be called after the GUI has initialized its widgets"""
+        response = extract_console_payloads(self.controller.write(find_pwndbg_source_cmd()))
+        self.update_gui.emit("main", "".join(response).encode())
+
     @Slot(str)
     def send_command(self, cmd: str, capture=True):
         """Execute the given command and then update all context panes"""
         try:
-            response = self.controller.write(cmd)
+            responses = self.controller.write(cmd)
+            result = extract_console_payloads(responses)
+            logger.debug(responses)
         except Exception as e:
             logger.warning("Error while executing command '%s': '%s'", cmd, str(e))
-            response = str(e) + "\n"
+            result = str(e) + "\n"
         if capture:
-            self.update_gui.emit("main", response.encode())
+            self.update_gui.emit("main", "".join(result).encode())
 
         # Update contexts
         for context in self.contexts:
-            context_data: List[str] = self.controller.write(f"context {context}")
-            self.update_gui.emit(context, "\n".join(context_data).encode())
+            responses = self.controller.write(f"context {context}")
+            context_data = extract_console_payloads(responses)
+            self.update_gui.emit(context, "".join(context_data).encode())
 
     @Slot(list)
-    def execute_cmd(self, arguments: List[str]):
+    def execute_cmd(self, arguments: List[str]) -> list[dict]:
         """Execute the given command in gdb"""
-        self.controller.write(" ".join(arguments), read_response=True)
+        return self.controller.write(" ".join(arguments))
 
     @Slot(list)
     def set_file_target(self, arguments: List[str]):
-        self.execute_cmd(["file"] + arguments)
+        result = extract_console_payloads(self.execute_cmd(["file"] + arguments))
+        self.update_gui.emit("main", "".join(result).encode())
 
     @Slot(list)
     def set_pid_target(self, arguments: List[str]):
-        self.execute_cmd(["attach"] + arguments)
+        result = extract_console_payloads(self.execute_cmd(["attach"] + arguments))
+        self.update_gui.emit("main", "".join(result).encode())
 
     @Slot(list)
     def set_source_dir(self, arguments: List[str]):
-        self.execute_cmd(["dir"] + arguments)
+        result = extract_console_payloads(self.execute_cmd(["dir"] + arguments))
+        self.update_gui.emit("main", "".join(result).encode())
 
     @Slot(list)
     def change_setting(self, arguments: List[str]):
         """Change a setting. Calls 'set' followed by the provided arguments"""
         logging.debug("Changing gdb setting with parameters: %s", arguments)
-        self.controller.write(" ".join(["set"] + arguments), timeout_sec=0, raise_error_on_timeout=False, read_response=False)
+        self.controller.write(" ".join(["set"] + arguments), timeout_sec=0, raise_error_on_timeout=False,
+                              read_response=False)
 
     @Slot(int)
     def update_stack_lines(self, new_value: int):
         """Set pwndbg's context-stack-lines to a new value"""
         self.change_setting(["context-stack-lines", str(new_value)])
-        context_data: List[str] = self.controller.write("context stack")
-        self.update_gui.emit("stack", "\n".join(context_data).encode())
+        context_data = extract_console_payloads(self.controller.write("context stack"))
+        self.update_gui.emit("stack", "".join(context_data).encode())
