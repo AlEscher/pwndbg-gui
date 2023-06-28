@@ -31,14 +31,13 @@ class GdbHandler(QObject):
 
         # Update contexts
         for context in self.contexts:
-            context_data: List[str] = self.controller.write(["context", context])
+            context_data: List[str] = self.controller.write(f"context {context}")
             self.update_gui.emit(context, "\n".join(context_data).encode())
 
     @Slot(list)
     def execute_cmd(self, arguments: List[str]):
-        """Execute the given command in gdb, without capturing"""
-        cmd = " ".join(arguments)
-        self.controller.write(arguments, timeout_sec=0, raise_error_on_timeout=False, read_response=False)
+        """Execute the given command in gdb"""
+        self.controller.write(" ".join(arguments), read_response=True)
 
     @Slot(list)
     def set_file_target(self, arguments: List[str]):
@@ -56,7 +55,7 @@ class GdbHandler(QObject):
     def change_setting(self, arguments: List[str]):
         """Change a setting. Calls 'set' followed by the provided arguments"""
         logging.debug("Changing gdb setting with parameters: %s", arguments)
-        self.controller.write(["set"] + arguments, timeout_sec=0, raise_error_on_timeout=False, read_response=False)
+        self.controller.write(" ".join(["set"] + arguments), timeout_sec=0, raise_error_on_timeout=False, read_response=False)
 
     @Slot(int)
     def update_stack_lines(self, new_value: int):
