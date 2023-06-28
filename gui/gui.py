@@ -138,11 +138,13 @@ class PwnDbgGui(QMainWindow):
         self.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.update_pane)
+        self.gdb_handler.inferior_handler.update_gui.connect(self.update_pane)
         # Thread cleanup
         self.gdb_thread.finished.connect(self.gdb_handler.deleteLater)
         self.stop_gdb_thread.connect(self.gdb_thread.quit)
         logger.debug("Starting new worker threads")
         self.gdb_thread.start()
+        self.gdb_handler.inferior_thread.start()
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
         """Called when window is closed. Stop our worker thread"""
