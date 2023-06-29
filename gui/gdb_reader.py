@@ -15,6 +15,7 @@ logger = logging.getLogger(__file__)
 # Reader object to continuously check for data from gdb.
 class GdbReader(QObject):
     update_gui = Signal(str, bytes)
+    set_context_stack_lines = Signal(int)
     inferior_runs = Signal()
 
     def __init__(self, controller: gdbcontroller.GdbController):
@@ -45,8 +46,10 @@ class GdbReader(QObject):
                     self.result = []
             if response["type"] == "notify":
                 if response["message"] == "running":
+                    logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)
                     InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
                 if response["message"] == "stopped":
+                    logger.debug("Setting inferior state to %s", InferiorState.STOPPED.name)
                     InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
                     # fix so that breakpoint hit is counted as result for main window
                     if "reason" in response["payload"]:
@@ -55,4 +58,9 @@ class GdbReader(QObject):
                             self.update_gui.emit("main", ("".join(self.result)).encode())
                             self.result = []
                 if response["message"] == "thread-group-exited":
+                    logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
                     InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
+                if response["message"] == "cmd-param-changed" and response["payload"] is not None:
+                    if response["payload"]["param"] == "context-stack-lines":
+                        self.set_context_stack_lines.emit(int(response["payload"]["value"]))
+
