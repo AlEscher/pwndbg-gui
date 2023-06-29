@@ -48,7 +48,7 @@ class GdbReader(QObject):
                     InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
                     # fix so that breakpoint hit is counted as result for main window
                     if "reason" in response["payload"]:
-                        if response["payload"]["reason"] == "breakpoint-hit":
+                        if response["payload"]["reason"] == "breakpoint-hit" or response["payload"]["reason"] == "end-stepping-range" or response["payload"]["reason"] == "exited":
                             # This must be treated as a main result token
                             self.update_gui.emit("main", ("".join(self.result)).encode())
                             self.result = []
