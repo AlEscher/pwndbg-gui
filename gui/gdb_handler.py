@@ -81,17 +81,17 @@ class GdbHandler(QObject):
     @Slot(list)
     def set_file_target(self, arguments: List[str]):
         result = extract_console_payloads(self.execute_cmd(["file"] + arguments))
-        self.update_gui.emit("main", "".join(result).encode())
+        #self.update_gui.emit("main", "".join(result).encode())
 
     @Slot(list)
     def set_pid_target(self, arguments: List[str]):
         result = extract_console_payloads(self.execute_cmd(["attach"] + arguments))
-        self.update_gui.emit("main", "".join(result).encode())
+        #self.update_gui.emit("main", "".join(result).encode())
 
     @Slot(list)
     def set_source_dir(self, arguments: List[str]):
         result = extract_console_payloads(self.execute_cmd(["dir"] + arguments))
-        self.update_gui.emit("main", "".join(result).encode())
+        #self.update_gui.emit("main", "".join(result).encode())
 
     @Slot(list)
     def change_setting(self, arguments: List[str]):
