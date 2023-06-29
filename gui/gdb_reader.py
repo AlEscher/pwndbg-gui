@@ -46,36 +46,41 @@ class GdbReader(QObject):
             if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
                 self.result.append(response["payload"])
             if response["type"] == "result" and response["message"] == "done":
-                if response["token"] is not None and response["token"] != 0:
-                    # We found a token -> send it to the corresponding context
-                    self.send_update_gui(response["token"])
-                    self.result = []
-                else:
-                    # no token in result -> dropping all previous messages
-                    self.result = []
+                self.handle_result(response)
             if response["type"] == "notify":
-                if response["message"] == "running":
-                    logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)
-                    InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
-                    # When we start the inferior we should flush everything we have to main
+                self.handle_notify(response)
+
+    def handle_result(self, response: dict):
+        if response["token"] is not None and response["token"] != 0:
+            # We found a token -> send it to the corresponding context
+            self.send_update_gui(response["token"])
+            self.result = []
+        else:
+            # no token in result -> dropping all previous messages
+            self.result = []
+
+    def handle_notify(self, response: dict):
+        if response["message"] == "running":
+            logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)
+            InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
+            # When we start the inferior we should flush everything we have to main
+            self.update_gui.emit("main", "".join(self.result).encode())
+            self.result = []
+        if response["message"] == "stopped":
+            # Don't go from EXITED->STOPPED state
+            if InferiorHandler.INFERIOR_STATE != InferiorState.EXITED:
+                logger.debug("Setting inferior state to %s", InferiorState.STOPPED.name)
+                InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
+            '''Stopping due to a breakpoint hit or a step does not give a "result" event, 
+            so we have to parse the notify manually and check whether we want to update our current results to the main context widget'''
+            if "reason" in response["payload"]:
+                if response["payload"]["reason"] == "breakpoint-hit" or response["payload"]["reason"] == "end-stepping-range" or response["payload"]["reason"] == "exited":
+                    # This must be treated as a result token, send results to main context output
                     self.update_gui.emit("main", "".join(self.result).encode())
                     self.result = []
-                if response["message"] == "stopped":
-                    # Don't go from EXITED->STOPPED state
-                    if InferiorHandler.INFERIOR_STATE != InferiorState.EXITED:
-                        logger.debug("Setting inferior state to %s", InferiorState.STOPPED.name)
-                        InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
-                    '''Stopping due to a breakpoint hit or a step does not give a "result" event, 
-                    so we have to parse the notify manually and check whether we want to update our current results to the main context widget'''
-                    if "reason" in response["payload"]:
-                        if response["payload"]["reason"] == "breakpoint-hit" or response["payload"]["reason"] == "end-stepping-range" or response["payload"]["reason"] == "exited":
-                            # This must be treated as a result token, send results to main context output
-                            self.update_gui.emit("main", "".join(self.result).encode())
-                            self.result = []
-                if response["message"] == "thread-group-exited":
-                    logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
-                    InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
-                if response["message"] == "cmd-param-changed" and response["payload"] is not None:
-                    if response["payload"]["param"] == "context-stack-lines" and InferiorHandler.INFERIOR_STATE == InferiorState.QUEUED:
-                        self.set_context_stack_lines.emit(int(response["payload"]["value"]))
-
+        if response["message"] == "thread-group-exited":
+            logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
+            InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
+        if response["message"] == "cmd-param-changed" and response["payload"] is not None:
+            if response["payload"]["param"] == "context-stack-lines" and InferiorHandler.INFERIOR_STATE == InferiorState.QUEUED:
+                self.set_context_stack_lines.emit(int(response["payload"]["value"]))
