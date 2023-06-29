@@ -2,7 +2,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, Signal, Slot
-from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit
+from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QSplitter, QWidget
 
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.parser import ContextParser
@@ -28,6 +28,8 @@ class HeapContextWidget(QGroupBox):
         self.try_malloc_input: QLineEdit | None = None
         # The "top" layout of the whole heap context widget
         self.context_layout = QVBoxLayout()
+        self.context_splitter = QSplitter()
+        self.context_splitter.setOrientation(Qt.Orientation.Vertical)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setFlat(True)
         self.setTitle("Heap")
@@ -39,10 +41,12 @@ class HeapContextWidget(QGroupBox):
 
     def setup_widget_layout(self):
         self.heap_output = ContextTextEdit(self)
-        self.context_layout.addWidget(self.heap_output)
+        self.context_splitter.addWidget(self.heap_output)
+
         self.bins_output = ContextTextEdit(self)
-        self.context_layout.addWidget(self.bins_output)
-        # The overall layout of the TryFree block, containing the input mask and output box
+        self.context_splitter.addWidget(self.bins_output)
+
+        # The overall element of the TryFree block, containing the input mask and output box
         try_free_layout = QVBoxLayout()
         # The layout for the input mask (label and line edit) of the Try Free functionality
         try_free_input_layout = QHBoxLayout()
@@ -53,8 +57,12 @@ class HeapContextWidget(QGroupBox):
         try_free_layout.addLayout(try_free_input_layout)
         self.try_free_output = ContextTextEdit(self)
         try_free_layout.addWidget(self.try_free_output)
-        self.context_layout.addLayout(try_free_layout)
+        # Package the try_free layout in a widget so that we can add it to the splitter
+        try_free_widget = QWidget(self)
+        try_free_widget.setLayout(try_free_layout)
+        self.context_splitter.addWidget(try_free_widget)
 
+        self.context_layout.addWidget(self.context_splitter)
         self.setLayout(self.context_layout)
 
     @Slot()
