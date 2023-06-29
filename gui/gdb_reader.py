@@ -76,6 +76,6 @@ class GdbReader(QObject):
                     logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
                     InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
                 if response["message"] == "cmd-param-changed" and response["payload"] is not None:
-                    if response["payload"]["param"] == "context-stack-lines":
+                    if response["payload"]["param"] == "context-stack-lines" and InferiorHandler.INFERIOR_STATE == InferiorState.QUEUED:
                         self.set_context_stack_lines.emit(int(response["payload"]["value"]))
 
