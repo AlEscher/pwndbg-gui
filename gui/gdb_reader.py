@@ -49,6 +49,10 @@ class GdbReader(QObject):
                 self.handle_result(response)
             if response["type"] == "notify":
                 self.handle_notify(response)
+            # Ugly way of catching specific log
+            if response["type"] == "log" and response["payload"] == "No symbol table is loaded.  Use the \"file\" command.\n":
+                self.result.append(response["payload"])
+
 
     def handle_result(self, response: dict):
         if response["token"] is not None and response["token"] != 0:
