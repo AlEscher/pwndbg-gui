@@ -3,5 +3,6 @@
 -Scrolling of Widgets
 -Attaching to process
 -Setup + Run scripts
+-Rightclick context menu for list widgets
 Maybe:
     - split inferior I/O from main
