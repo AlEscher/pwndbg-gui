@@ -21,13 +21,13 @@ class ResponseToken(Enum):
 
 
 Token_to_Context = {
-    ResponseToken.USER_MAIN.value(): "main",
-    ResponseToken.GUI_MAIN_CONTEXT.value(): "main",
-    ResponseToken.GUI_DISASM_CONTEXT.value(): "disasm",
-    ResponseToken.GUI_CODE_CONTEXT.value(): "code",
-    ResponseToken.GUI_REGS_CONTEXT.value(): "regs",
-    ResponseToken.GUI_BACKTRACE_CONTEXT.value(): "backtrace",
-    ResponseToken.GUI_STACK_CONTEXT.value(): "stack",
+    ResponseToken.USER_MAIN: "main",
+    ResponseToken.GUI_MAIN_CONTEXT: "main",
+    ResponseToken.GUI_DISASM_CONTEXT: "disasm",
+    ResponseToken.GUI_CODE_CONTEXT: "code",
+    ResponseToken.GUI_REGS_CONTEXT: "regs",
+    ResponseToken.GUI_BACKTRACE_CONTEXT: "backtrace",
+    ResponseToken.GUI_STACK_CONTEXT: "stack",
 }
 
 Context_to_Token = dict(map(reversed, Token_to_Context.items()))
