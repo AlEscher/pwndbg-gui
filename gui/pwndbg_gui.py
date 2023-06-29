@@ -149,6 +149,7 @@ class PwnDbgGui(QMainWindow):
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.update_pane)
         self.gdb_reader.update_gui.connect(self.update_pane)
+        self.gdb_reader.set_context_stack_lines.connect(self.set_context_stack_lines)
         # Thread cleanup
         self.gdb_handler_thread.finished.connect(self.gdb_handler.deleteLater)
         self.gdb_reader_thread.finished.connect(self.gdb_reader.deleteLater)
@@ -217,6 +218,10 @@ class PwnDbgGui(QMainWindow):
         QMessageBox.about(self, "About PwndbgGui", "The <b>Application</b> example demonstrates how to "
                                                    "write modern GUI applications using Qt, with a menu bar, "
                                                    "toolbars, and a status bar.")
+
+    @Slot(int)
+    def set_context_stack_lines(self, stack_lines: int):
+        self.stack_lines_incrementor.setValue(stack_lines)
 
 
 def run_gui():
