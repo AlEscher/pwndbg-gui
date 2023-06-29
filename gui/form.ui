@@ -62,7 +62,7 @@
      <enum>Qt::Horizontal</enum>
     </property>
     <widget class="QTextEdit" name="main"/>
-    <widget class="QTextEdit" name="ipython"/>
+    <widget class="QTextEdit" name="heap"/>
    </widget>
   </widget>
  </widget>
