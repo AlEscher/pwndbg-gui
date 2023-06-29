@@ -88,3 +88,15 @@ class GdbHandler(QObject):
         """Set pwndbg's context-stack-lines to a new value"""
         self.change_setting(["context-stack-lines", str(new_value)])
         self.write_to_controller(ResponseToken.GUI_STACK_CONTEXT, "context stack")
+
+    @Slot()
+    def execute_heap_cmd(self):
+        self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
+
+    @Slot()
+    def execute_bins_cmd(self):
+        self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
+
+    @Slot(str)
+    def execute_try_free(self, param: str):
+        self.write_to_controller(ResponseToken.GUI_HEAP_TRY_FREE, " ".join(["try_free", param]))

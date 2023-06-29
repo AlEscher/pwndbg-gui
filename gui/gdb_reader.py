@@ -1,13 +1,11 @@
 import logging
-from typing import List
 
 from PySide6.QtCore import QObject, Slot, Signal, QCoreApplication
 from pygdbmi import gdbcontroller
-from inferior_state import InferiorState
-from inferior_handler import InferiorHandler
-import tokens
 
-from gui import gdb_handler
+import tokens
+from inferior_handler import InferiorHandler
+from inferior_state import InferiorState
 
 logger = logging.getLogger(__file__)
 
@@ -16,7 +14,7 @@ logger = logging.getLogger(__file__)
 class GdbReader(QObject):
     update_gui = Signal(str, bytes)
     set_context_stack_lines = Signal(int)
-    inferior_runs = Signal()
+    send_heap_try_free_response = Signal(bytes)
 
     def __init__(self, controller: gdbcontroller.GdbController):
         super().__init__()
@@ -48,6 +46,11 @@ class GdbReader(QObject):
         self.update_gui.emit("main", "".join(self.result).encode())
         self.result = []
 
+    def send_context_update(self, signal: Signal):
+        """Emit a supplied signal with the collected output"""
+        signal.emit("".join(self.result).encode())
+        self.result = []
+
     def parse_response(self, gdbmi_response: list[dict]):
         for response in gdbmi_response:
             if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
@@ -58,9 +61,15 @@ class GdbReader(QObject):
                 self.handle_notify(response)
 
     def handle_result(self, response: dict):
-        if response["token"] is not None and response["token"] != 0:
+        if response["token"] is None:
+            self.result = []
+            return
+        token = response["token"]
+        if token == tokens.ResponseToken.GUI_HEAP_TRY_FREE:
+            self.send_context_update(self.send_heap_try_free_response)
+        elif token != 0:
             # We found a token -> send it to the corresponding context
-            self.send_update_gui(response["token"])
+            self.send_update_gui(token)
         else:
             # no token in result -> dropping all previous messages
             self.result = []
