@@ -50,7 +50,8 @@ class GdbReader(QObject):
 
     def send_context_update(self, signal: Signal):
         """Emit a supplied signal with the collected output"""
-        signal.emit("".join(self.result).encode())
+        if InferiorHandler.INFERIOR_STATE == InferiorState.STOPPED:
+            signal.emit("".join(self.result).encode())
         self.result = []
 
     def parse_response(self, gdbmi_response: list[dict]):
