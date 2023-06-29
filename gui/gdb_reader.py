@@ -57,6 +57,9 @@ class GdbReader(QObject):
                 if response["message"] == "running":
                     logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)
                     InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
+                    # When we start the inferior we should flush everything we have to main
+                    self.update_gui.emit("main", "".join(self.result).encode())
+                    self.result = []
                 if response["message"] == "stopped":
                     # Don't go from EXITED->STOPPED state
                     if InferiorHandler.INFERIOR_STATE != InferiorState.EXITED:
