@@ -4,6 +4,8 @@ from PySide6.QtWidgets import QTextEdit
 
 from constants import PwndbgGuiConstants
 
+import logging
+logger = logging.getLogger(__file__)
 
 class ContextParser:
     """Parses raw output from gdb/pwndbg containing ASCII control characters into equivalent HTML code"""
@@ -15,15 +17,21 @@ class ContextParser:
         self.parser.clear()
         self.reset_font()
 
-    def parse(self, raw_output: bytes):
+    def parse(self, raw_output: bytes, remove_headers=False):
         self.reset()
+        if remove_headers:
+            lines = raw_output.split(b"\n")
+            updated_lines = lines[2:][:-2]
+            raw_output = b"\n".join(updated_lines)
+
+
         tokens = raw_output.split(b"\x1b[")
         for token in tokens:
             self.parse_ascii_control(token)
         self.reset_font()
 
-    def to_html(self, raw_output: bytes) -> str:
-        self.parse(raw_output)
+    def to_html(self, raw_output: bytes, remove_headers=False) -> str:
+        self.parse(raw_output, remove_headers)
         return self.parser.toHtml()
 
     def reset_font(self):

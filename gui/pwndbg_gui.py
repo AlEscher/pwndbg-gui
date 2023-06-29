@@ -233,7 +233,10 @@ class PwnDbgGui(QMainWindow):
     def update_pane(self, context: str, content: bytes):
         widget: ContextTextEdit | ContextListWidget = self.seg_to_widget[context]
         logger.debug("Updating context %s", widget.objectName())
-        html = self.parser.to_html(content)
+        remove_header = True
+        if context == "main":
+            remove_header = False
+        html = self.parser.to_html(content, remove_header)
         widget.add_content(html)
 
     @Slot()
