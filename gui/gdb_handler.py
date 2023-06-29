@@ -1,105 +1,145 @@
 import logging
-from pathlib import Path
 from typing import List
 
-from PySide6.QtCore import QObject, Slot, Signal
-from pygdbmi import gdbcontroller
+# These imports are broken here, but will work via .gdbinit
+import gdb
+from PySide6.QtCore import QObject, Slot, Signal, QThread
+from pwndbg.commands.context import context_stack, context_regs, context_disasm, context_code, context_backtrace
 
-from gui import tokens
 from gui.inferior_handler import InferiorHandler
 from gui.inferior_state import InferiorState
-from tokens import ResponseToken
 
 logger = logging.getLogger(__file__)
 
 
+def is_target_running():
+    # https://sourceware.org/gdb/onlinedocs/gdb/Threads-In-Python.html#Threads-In-Python
+    return any([t.is_valid() for t in gdb.selected_inferior().threads()])
+
+
+def get_fs_base() -> str:
+    try:
+        logger.debug("Getting fs_base from GDB")
+        output: str = gdb.execute("info register fs_base", to_string=True)
+        parts = output.split()
+        if "fs_base" in output and len(parts) > 1:
+            return f"FS  {parts[1]}"
+        else:
+            return ""
+    except gdb.error:
+        return ""
+
+
 class GdbHandler(QObject):
-    """A wrapper to interact with GDB/pwndbg via the GDB Machine Interface"""
+    """A wrapper to interact with GDB/pwndbg via gdb.execute"""
     update_gui = Signal(str, bytes)
+    inferior_write = Signal(bytes)
+    inferior_run = Signal()
 
     def __init__(self):
         super().__init__()
         self.past_commands: List[str] = []
-        self.contexts = ['regs', 'stack', 'disasm', 'code', 'backtrace']
-        self.controller = gdbcontroller.GdbController()
+        self.context_to_func = dict(regs=context_regs, stack=context_stack, disasm=context_disasm, code=context_code,
+                                    backtrace=context_backtrace)
+        # setting up inferior thread
+        self.inferior_thread = QThread()
+        self.inferior_handler = InferiorHandler()
+        self.inferior_handler.moveToThread(self.inferior_thread)
+        # setting up signals to inferior
+        self.inferior_write.connect(self.inferior_handler.inferior_write)
+        self.inferior_run.connect(self.inferior_handler.inferior_runs)
+        # Allow stopping the thread from outside
+        self.inferior_thread.finished.connect(self.inferior_handler.deleteLater)
+        #self.stop_thread.connect(self.inferior_thread.quit)
 
-    def write_to_controller(self, token: ResponseToken, command: str):
-        self.controller.write(str(token) + command, read_response=False)
 
-    def init(self):
-        """With GDB MI, the .gdbinit file is ignored so we load it ourselves"""
-        gdbinit = Path(Path.home() / ".gdbinit").resolve()
-        if not gdbinit.exists():
-            logger.warning("Could not find .gdbinit file at %s", str(gdbinit))
-            return
-        lines = gdbinit.read_text().splitlines()
-        pwndbg_loaded = False
-        for line in lines:
-            if not line.strip():
-                continue
-            logger.debug("Executing .gdbinit command %s", line)
-            self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, line)
-            if "source" in line and "pwndbg" in line:
-                logger.debug("Found pwndbg command: %s", line)
-                pwndbg_loaded = True
-
-        if not pwndbg_loaded:
-            logger.error("Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
+        gdb.events.cont.connect(self.cont_handler)
+        gdb.events.exited.connect(self.exit_handler)
+        gdb.events.stop.connect(self.stop_handler)
+        gdb.events.inferior_call.connect(self.call_handler)
 
     @Slot(str)
-    def send_command(self, cmd: str):
+    def send_command(self, cmd: str, capture=True):
         """Execute the given command and then update all context panes"""
         try:
-            self.write_to_controller(ResponseToken.USER_MAIN, cmd)
-            # Update contexts
-            for context in self.contexts:
-                self.write_to_controller(tokens.Context_to_Token[context], f"context {context}")
-            # Update heap
-            self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
-            self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
-        except Exception as e:
-            logger.warning("Error while sending command '%s': '%s'", cmd, str(e))
+            response = gdb.execute(cmd, from_tty=True, to_string=capture)
+        except gdb.error as e:
+            logger.warning("Error while executing command '%s': '%s'", cmd, str(e))
+            response = str(e) + "\n"
+        if capture:
+            self.update_gui.emit("main", response.encode())
+
+        if not is_target_running():
+            logger.debug("Target not running, skipping context updates")
+            return
+        # Update contexts
+        for context, func in self.context_to_func.items():
+            context_data: List[str] = func(with_banner=False)
+            self.update_gui.emit(context, "\n".join(context_data).encode())
 
     @Slot(list)
     def execute_cmd(self, arguments: List[str]):
-        """Execute the given command in gdb"""
-        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(arguments))
+        """Execute the given command in gdb, without capturing"""
+        cmd = " ".join(arguments)
+        gdb.execute(cmd)
 
     @Slot(list)
     def set_file_target(self, arguments: List[str]):
-        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["file"] + arguments))
-        InferiorHandler.INFERIOR_STATE = InferiorState.QUEUED
+        self.execute_cmd(["file"] + arguments)
 
     @Slot(list)
     def set_pid_target(self, arguments: List[str]):
-        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["attach"] + arguments))
-        # Attaching to a running process stops it
-        InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
+        self.execute_cmd(["attach"] + arguments)
 
     @Slot(list)
     def set_source_dir(self, arguments: List[str]):
-        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["dir"] + arguments))
+        self.execute_cmd(["dir"] + arguments)
 
     @Slot(list)
     def change_setting(self, arguments: List[str]):
         """Change a setting. Calls 'set' followed by the provided arguments"""
         logging.debug("Changing gdb setting with parameters: %s", arguments)
-        self.write_to_controller(ResponseToken.DELETE, " ".join(["set"] + arguments))
+        gdb.execute("set " + " ".join(arguments))
 
     @Slot(int)
     def update_stack_lines(self, new_value: int):
         """Set pwndbg's context-stack-lines to a new value"""
         self.change_setting(["context-stack-lines", str(new_value)])
-        self.write_to_controller(ResponseToken.GUI_STACK_CONTEXT, "context stack")
+        context_data: List[str] = context_stack(with_banner=False)
+        self.update_gui.emit("stack", "\n".join(context_data).encode())
 
-    @Slot()
-    def execute_heap_cmd(self):
-        self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
+    @Slot(bytes)
+    def submit_to_inferior(self, to_inferior: bytes):
+        self.inferior_write.emit(to_inferior)
 
-    @Slot()
-    def execute_bins_cmd(self):
-        self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
+    # Event handlers for gdb
+    def cont_handler(self, event):
+        # logger.debug("event type: continue (inferior runs)")
+        InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
+        self.inferior_run.emit()
 
-    @Slot(str)
-    def execute_try_free(self, param: str):
-        self.write_to_controller(ResponseToken.GUI_HEAP_TRY_FREE, " ".join(["try_free", param]))
+    def exit_handler(self, event):
+        # logger.debug("event type: exit (inferior exited)")
+        InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
+        if hasattr(event, 'exit_code'):
+            #logger.debug("exit code: %d" % event.exit_code)
+            self.update_gui.emit("main", b"Inferior exited with code: " + str(event.exit_code).encode() + b"\n")
+        else:
+            logger.debug("exit code not available")
+
+    def stop_handler(self, event):
+        # logger.debug("event type: stop (inferior stopped)")
+        InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
+        if hasattr(event, 'breakpoints'):
+            print("Hit breakpoint(s): {} at {}".format(event.breakpoints[0].number, event.breakpoints[0].location))
+            print("hit count: {}".format(event.breakpoints[0].hit_count))
+        else:
+            # logger.debug("no breakpoint was hit")
+            pass
+
+    def call_handler(self, event):
+        # logger.debug("event type: call (inferior calls function)")
+        if hasattr(event, 'address'):
+            logger.debug("function to be called at: %s" % hex(event.address))
+        else:
+            logger.debug("function address not available")

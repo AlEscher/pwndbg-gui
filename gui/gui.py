@@ -9,28 +9,27 @@ from PySide6.QtGui import QTextOption, QAction, QKeySequence, QFont
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox, QGroupBox, QVBoxLayout, QWidget, QSplitter, QHBoxLayout, QSpinBox, QLabel
 
-from constants import PwndbgGuiConstants
-from custom_widgets.context_list_widget import ContextListWidget
-from custom_widgets.context_text_edit import ContextTextEdit
-from custom_widgets.main_context_widget import MainContextWidget
-from gdb_handler import GdbHandler
-from gui.custom_widgets.heap_context_widget import HeapContextWidget
-from gui.gdb_reader import GdbReader
-from inferior_handler import InferiorHandler
-from html_style_delegate import HTMLDelegate
-from parser import ContextParser
+from gui.constants import PwndbgGuiConstants
+from gui.custom_widgets.context_list_widget import ContextListWidget
+from gui.custom_widgets.context_text_edit import ContextTextEdit
+from gui.custom_widgets.main_context_widget import MainContextWidget
+from gui.gdb_handler import GdbHandler
+from gui.html_style_delegate import HTMLDelegate
+from gui.parser import ContextParser
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
-from ui_form import Ui_PwnDbgGui
+from gui.ui_form import Ui_PwnDbgGui
+
+from pwndbg.commands.context import stack_lines as pwndb_stack_lines
 
 logger = logging.getLogger(__file__)
 
 
 class PwnDbgGui(QMainWindow):
     change_gdb_setting = Signal(list)
-    stop_gdb_threads = Signal()
+    stop_gdb_thread = Signal()
     set_gdb_file_target_signal = Signal(list)
     set_gdb_pid_target_signal = Signal(list)
     set_gdb_source_dir_signal = Signal(list)
@@ -38,15 +37,8 @@ class PwnDbgGui(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.main_text_edit: MainContextWidget | None = None
-        # Thread that will handle all writing to GDB
-        self.gdb_handler_thread: QThread | None = None
-        # Thread that will continuously read from GDB
-        self.gdb_reader_thread: QThread | None = None
-        # Thread that will continuously read and write to inferior
-        self.inferior_thread: QThread | None = None
+        self.gdb_thread: QThread | None = None
         self.gdb_handler = GdbHandler()
-        self.gdb_reader = GdbReader(self.gdb_handler.controller)
-        self.inferior_handler = InferiorHandler()
         self.stack_lines_incrementor: QSpinBox | None = None
         self.menu_bar = None
         self.ui = Ui_PwnDbgGui()
@@ -55,13 +47,11 @@ class PwnDbgGui(QMainWindow):
         self.setCentralWidget(self.ui.top_splitter)
         self.setup_custom_widgets()
         self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm,
-                                  backtrace=self.ui.backtrace, regs=self.ui.regs,
+                                  backtrace=self.ui.backtrace, regs=self.ui.regs, ipython=self.ui.ipython,
                                   main=self.main_text_edit.output_widget)
         self.parser = ContextParser()
-        self.setup_gdb_workers()
+        self.init_gdb_handler()
         self.setup_menu()
-        self.gdb_handler.init()
-        self.setup_inferior()
 
     def setup_custom_widgets(self):
         """Ugly workaround to allow to use custom widgets.
@@ -85,9 +75,10 @@ class PwnDbgGui(QMainWindow):
         self.ui.code = ContextTextEdit(self)
         self.ui.code.setObjectName("code")
         self.setup_context_pane(self.ui.code, title="Code", splitter=self.ui.code_splitter, index=1)
-        self.ui.heap = HeapContextWidget(self)
         self.main_text_edit = MainContextWidget(parent=self)
         self.ui.splitter.replaceWidget(0, self.main_text_edit)
+        # https://stackoverflow.com/a/66067630
+        self.main_text_edit.show()
 
     def setup_context_pane(self, context_widget: QWidget, title: str, splitter: QSplitter, index: int):
         """Sets up the layout for a context pane"""
@@ -142,53 +133,27 @@ class PwnDbgGui(QMainWindow):
         about_qt_action.triggered.connect(QApplication.aboutQt)
         about_menu.addAction(about_qt_action)
 
-    def setup_gdb_workers(self):
-        self.gdb_handler_thread = QThread()
-        self.gdb_reader_thread = QThread()
-        self.gdb_handler.moveToThread(self.gdb_handler_thread)
-        self.gdb_reader.moveToThread(self.gdb_reader_thread)
+    def init_gdb_handler(self):
+        self.gdb_thread = QThread()
+        self.gdb_handler.moveToThread(self.gdb_thread)
         self.set_gdb_file_target_signal.connect(self.gdb_handler.set_file_target)
         self.set_gdb_pid_target_signal.connect(self.gdb_handler.set_pid_target)
         self.set_gdb_source_dir_signal.connect(self.gdb_handler.set_source_dir)
         self.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.update_pane)
-        self.gdb_reader.update_gui.connect(self.update_pane)
-        self.gdb_reader.set_context_stack_lines.connect(self.set_context_stack_lines)
-        # Allow the heap context to receive the results it requests
-        self.gdb_reader.send_heap_try_free_response.connect(self.ui.heap.receive_try_free_result)
-        self.gdb_reader.send_heap_heap_response.connect(self.ui.heap.receive_heap_result)
-        self.gdb_reader.send_heap_bins_response.connect(self.ui.heap.receive_bins_result)
+        self.gdb_handler.inferior_handler.update_gui.connect(self.update_pane)
         # Thread cleanup
-        self.gdb_handler_thread.finished.connect(self.gdb_handler.deleteLater)
-        self.gdb_reader_thread.finished.connect(self.gdb_reader.deleteLater)
-        self.stop_gdb_threads.connect(self.gdb_handler_thread.quit)
-        self.stop_gdb_threads.connect(self.gdb_reader_thread.quit)
+        self.gdb_thread.finished.connect(self.gdb_handler.deleteLater)
+        self.stop_gdb_thread.connect(self.gdb_thread.quit)
         logger.debug("Starting new worker threads")
-        self.gdb_reader_thread.started.connect(self.gdb_reader.read_with_timeout)
-        self.gdb_handler_thread.start()
-        self.gdb_reader_thread.start()
-        logger.info("Started worker threads")
-
-    def setup_inferior(self):
-        # Thread setup
-        self.inferior_thread = QThread()
-        self.inferior_handler.moveToThread(self.inferior_thread)
-        # Connect signals from inferior_handler
-        self.inferior_handler.update_gui.connect(self.update_pane)
-        # execute gdb command to redirect inferior to tty
-        self.gdb_handler.execute_cmd(["tty ", self.inferior_handler.tty])
-        # Thread cleanup
-        self.inferior_thread.finished.connect(self.inferior_handler.deleteLater())
-        self.stop_gdb_threads.connect(self.inferior_thread.quit)
-        # Thread start
-        self.inferior_thread.started.connect(self.inferior_handler.inferior_runs)
-        self.inferior_thread.start()
+        self.gdb_thread.start()
+        self.gdb_handler.inferior_thread.start()
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
-        """Called when window is closed. Stop our worker threads"""
-        logger.debug("Stopping GDB threads")
-        self.stop_gdb_threads.emit()
+        """Called when window is closed. Stop our worker thread"""
+        logger.debug("Stopping GDB handler update thread")
+        self.stop_gdb_thread.emit()
 
     def add_stack_header(self, layout: QVBoxLayout):
         # Add a stack count inc-/decrementor
@@ -198,7 +163,7 @@ class PwnDbgGui(QMainWindow):
         header_layout.addWidget(stack_lines_label)
         self.stack_lines_incrementor = QSpinBox()
         self.stack_lines_incrementor.setRange(1, 999)
-        self.stack_lines_incrementor.setValue(8)
+        self.stack_lines_incrementor.setValue(int(pwndb_stack_lines))
         header_layout.addWidget(self.stack_lines_incrementor)
         layout.addLayout(header_layout)
 
@@ -209,6 +174,7 @@ class PwnDbgGui(QMainWindow):
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
+            self.update_pane("main", f"Loading file {file_name}\n".encode())
             self.set_gdb_file_target_signal.emit([file_name])
             # GDB only looks for source files in the cwd, so we additionally add the directory of the executable
             self.set_gdb_source_dir_signal.emit([str(Path(file_name).parent)])
@@ -233,10 +199,7 @@ class PwnDbgGui(QMainWindow):
     def update_pane(self, context: str, content: bytes):
         widget: ContextTextEdit | ContextListWidget = self.seg_to_widget[context]
         logger.debug("Updating context %s", widget.objectName())
-        remove_header = True
-        if context == "main":
-            remove_header = False
-        html = self.parser.to_html(content, remove_header)
+        html = self.parser.to_html(content)
         widget.add_content(html)
 
     @Slot()
@@ -244,10 +207,6 @@ class PwnDbgGui(QMainWindow):
         QMessageBox.about(self, "About PwndbgGui", "The <b>Application</b> example demonstrates how to "
                                                    "write modern GUI applications using Qt, with a menu bar, "
                                                    "toolbars, and a status bar.")
-
-    @Slot(int)
-    def set_context_stack_lines(self, stack_lines: int):
-        self.stack_lines_incrementor.setValue(stack_lines)
 
 
 def run_gui():
