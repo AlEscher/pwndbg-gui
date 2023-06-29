@@ -14,6 +14,7 @@ from custom_widgets.context_list_widget import ContextListWidget
 from custom_widgets.context_text_edit import ContextTextEdit
 from custom_widgets.main_context_widget import MainContextWidget
 from gdb_handler import GdbHandler
+from gui.custom_widgets.heap_context_widget import HeapContextWidget
 from gui.gdb_reader import GdbReader
 from html_style_delegate import HTMLDelegate
 from parser import ContextParser
@@ -50,7 +51,7 @@ class PwnDbgGui(QMainWindow):
         self.setCentralWidget(self.ui.top_splitter)
         self.setup_custom_widgets()
         self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm,
-                                  backtrace=self.ui.backtrace, regs=self.ui.regs, ipython=self.ui.ipython,
+                                  backtrace=self.ui.backtrace, regs=self.ui.regs,
                                   main=self.main_text_edit.output_widget)
         self.parser = ContextParser()
         self.setup_gdb_workers()
@@ -79,10 +80,9 @@ class PwnDbgGui(QMainWindow):
         self.ui.code = ContextTextEdit(self)
         self.ui.code.setObjectName("code")
         self.setup_context_pane(self.ui.code, title="Code", splitter=self.ui.code_splitter, index=1)
+        self.ui.heap = HeapContextWidget(self)
         self.main_text_edit = MainContextWidget(parent=self)
         self.ui.splitter.replaceWidget(0, self.main_text_edit)
-        # https://stackoverflow.com/a/66067630
-        self.main_text_edit.show()
 
     def setup_context_pane(self, context_widget: QWidget, title: str, splitter: QSplitter, index: int):
         """Sets up the layout for a context pane"""

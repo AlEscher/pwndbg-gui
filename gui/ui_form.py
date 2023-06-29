@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'form.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.0
+## Created by: Qt User Interface Compiler version 6.5.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -63,9 +63,9 @@ class Ui_PwnDbgGui(object):
         self.main = QTextEdit(self.splitter)
         self.main.setObjectName(u"main")
         self.splitter.addWidget(self.main)
-        self.ipython = QTextEdit(self.splitter)
-        self.ipython.setObjectName(u"ipython")
-        self.splitter.addWidget(self.ipython)
+        self.heap = QTextEdit(self.splitter)
+        self.heap.setObjectName(u"heap")
+        self.splitter.addWidget(self.heap)
         self.top_splitter.addWidget(self.splitter)
 
         self.retranslateUi(PwnDbgGui)
