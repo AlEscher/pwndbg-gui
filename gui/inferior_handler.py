@@ -17,7 +17,7 @@ logger = logging.getLogger(__file__)
 
 class InferiorHandler(QObject):
     update_gui = Signal(str, bytes)
-    INFERIOR_STATE = InferiorState.EXITED
+    INFERIOR_STATE = InferiorState.QUEUED
 
     def __init__(self):
         super().__init__()
