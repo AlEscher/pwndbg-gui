@@ -5,6 +5,8 @@ from typing import List
 from PySide6.QtCore import QObject, Slot, Signal
 from pygdbmi import gdbcontroller
 
+from tokens import ResponseToken
+
 logger = logging.getLogger(__file__)
 
 
@@ -40,34 +42,41 @@ class GdbHandler(QObject):
         self.contexts = ['regs', 'stack', 'disasm', 'code', 'backtrace']
         self.controller = gdbcontroller.GdbController()
 
+    def write_to_controller(self, token: ResponseToken, command: str):
+        self.controller.write(str(token) + command, read_response=False)
+
     def init(self):
         """Load pwndbg into gdb. Needs to be called after the GUI has initialized its widgets"""
-        response = extract_console_payloads(self.controller.write(find_pwndbg_source_cmd()))
-        self.update_gui.emit("main", "".join(response).encode())
+        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, find_pwndbg_source_cmd())
+        #response = extract_console_payloads(self.controller.write(str()+find_pwndbg_source_cmd(), read_response=False))
+        #self.update_gui.emit("main", "".join(response).encode())
 
     @Slot(str)
     def send_command(self, cmd: str, capture=True):
         """Execute the given command and then update all context panes"""
         try:
-            responses = self.controller.write(cmd)
-            result = extract_console_payloads(responses)
-            logger.debug(responses)
+            self.write_to_controller(ResponseToken.USER_MAIN, cmd)
+            #responses = self.controller.write(cmd)
+            #result = extract_console_payloads(responses)
+            #logger.debug(responses)
         except Exception as e:
             logger.warning("Error while executing command '%s': '%s'", cmd, str(e))
             result = str(e) + "\n"
-        if capture:
-            self.update_gui.emit("main", "".join(result).encode())
+        #if capture:
+        #    self.update_gui.emit("main", "".join(result).encode())
 
         # Update contexts
         for context in self.contexts:
-            responses = self.controller.write(f"context {context}")
-            context_data = extract_console_payloads(responses)
-            self.update_gui.emit(context, "".join(context_data).encode())
+            self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, f"context {context}")
+            #responses = self.controller.write(f"context {context}")
+            #context_data = extract_console_payloads(responses)
+            #self.update_gui.emit(context, "".join(context_data).encode())
 
     @Slot(list)
     def execute_cmd(self, arguments: List[str]) -> list[dict]:
         """Execute the given command in gdb"""
-        return self.controller.write(" ".join(arguments))
+        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(arguments))
+        #return self.controller.write(" ".join(arguments))
 
     @Slot(list)
     def set_file_target(self, arguments: List[str]):
@@ -88,12 +97,14 @@ class GdbHandler(QObject):
     def change_setting(self, arguments: List[str]):
         """Change a setting. Calls 'set' followed by the provided arguments"""
         logging.debug("Changing gdb setting with parameters: %s", arguments)
-        self.controller.write(" ".join(["set"] + arguments), timeout_sec=0, raise_error_on_timeout=False,
-                              read_response=False)
+        self.write_to_controller(ResponseToken.DELETE, " ".join(["set"] + arguments))
+        #self.controller.write(" ".join(["set"] + arguments), timeout_sec=0, raise_error_on_timeout=False,
+        #                      read_response=False)
 
     @Slot(int)
     def update_stack_lines(self, new_value: int):
         """Set pwndbg's context-stack-lines to a new value"""
         self.change_setting(["context-stack-lines", str(new_value)])
-        context_data = extract_console_payloads(self.controller.write("context stack"))
-        self.update_gui.emit("stack", "".join(context_data).encode())
+        self.write_to_controller(ResponseToken.GUI_STACK_CONTEXT, "context stack")
+        #context_data = extract_console_payloads(self.controller.write("context stack"))
+        #self.update_gui.emit("stack", "".join(context_data).encode())
