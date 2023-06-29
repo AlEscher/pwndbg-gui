@@ -36,9 +36,7 @@ class InferiorHandler(QObject):
     def inferior_runs(self):
         logger.debug("Starting Inferior Interaction")
         while True:
-            # TODO sleep as timeout
-            time.sleep(0.2)
-            can_read, _, _ = select.select([self.master], [], [], 0)  # Non-blocking check for readability
+            can_read, _, _ = select.select([self.master], [], [], 0.2)  # Non-blocking check for readability
             if can_read:
                 # read data and send it to main
                 data = os.read(self.master, 4096)
