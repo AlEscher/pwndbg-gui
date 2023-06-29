@@ -1,6 +1,11 @@
 -Indicate that input goes to inferior
--Capture all gdb output (breakpoints / lines of code etc.) that currently get printed to terminal (impossible)
--Imitate breakpoint hit
 -List of breakpoints
+-Scrolling of Widgets
+-Attaching to process
+-Setup + Run scripts
+-Rightclick context menu for list widgets
+-command history
+-command not supported output
 Maybe:
     - split inferior I/O from main
+    - command autofill

@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QListWidget, QListWidgetItem
 
 # Prevent circular import error
 if TYPE_CHECKING:
-    from gui.gui import PwnDbgGui
+    from gui.pwndbg_gui import PwnDbgGui
 
 
 def delete_first_html_tag(string):
