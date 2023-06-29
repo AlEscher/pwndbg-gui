@@ -54,6 +54,9 @@ class GdbHandler(QObject):
             # Update contexts
             for context in self.contexts:
                 self.write_to_controller(tokens.Context_to_Token[context], f"context {context}")
+            # Update heap
+            self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
+            self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
         except Exception as e:
             logger.warning("Error while sending command '%s': '%s'", cmd, str(e))
 

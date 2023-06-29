@@ -15,6 +15,8 @@ class GdbReader(QObject):
     update_gui = Signal(str, bytes)
     set_context_stack_lines = Signal(int)
     send_heap_try_free_response = Signal(bytes)
+    send_heap_heap_response = Signal(bytes)
+    send_heap_bins_response = Signal(bytes)
 
     def __init__(self, controller: gdbcontroller.GdbController):
         super().__init__()
@@ -63,7 +65,6 @@ class GdbReader(QObject):
             if response["type"] == "log" and response["payload"] == "No symbol table is loaded.  Use the \"file\" command.\n":
                 self.result.append(response["payload"])
 
-
     def handle_result(self, response: dict):
         if response["token"] is None:
             self.result = []
@@ -71,6 +72,10 @@ class GdbReader(QObject):
         token = response["token"]
         if token == tokens.ResponseToken.GUI_HEAP_TRY_FREE:
             self.send_context_update(self.send_heap_try_free_response)
+        elif token == tokens.ResponseToken.GUI_HEAP_HEAP:
+            self.send_context_update(self.send_heap_heap_response)
+        elif token == tokens.ResponseToken.GUI_HEAP_BINS:
+            self.send_context_update(self.send_heap_bins_response)
         elif token != 0:
             # We found a token -> send it to the corresponding context
             self.send_update_gui(token)
@@ -92,12 +97,14 @@ class GdbReader(QObject):
             '''Stopping due to a breakpoint hit or a step does not give a "result" event, 
             so we have to parse the notify manually and check whether we want to update our current results to the main context widget'''
             if "reason" in response["payload"]:
-                if response["payload"]["reason"] == "breakpoint-hit" or response["payload"]["reason"] == "end-stepping-range" or response["payload"]["reason"] == "exited":
+                if response["payload"]["reason"] == "breakpoint-hit" or response["payload"][
+                    "reason"] == "end-stepping-range" or response["payload"]["reason"] == "exited":
                     # This must be treated as a result token, send results to main context output
                     self.send_main_update()
         if response["message"] == "thread-group-exited":
             logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
         if response["message"] == "cmd-param-changed" and response["payload"] is not None:
-            if response["payload"]["param"] == "context-stack-lines" and InferiorHandler.INFERIOR_STATE == InferiorState.QUEUED:
+            if response["payload"][
+                "param"] == "context-stack-lines" and InferiorHandler.INFERIOR_STATE == InferiorState.QUEUED:
                 self.set_context_stack_lines.emit(int(response["payload"]["value"]))

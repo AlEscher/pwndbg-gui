@@ -157,6 +157,8 @@ class PwnDbgGui(QMainWindow):
         self.gdb_reader.set_context_stack_lines.connect(self.set_context_stack_lines)
         # Allow the heap context to receive the results it requests
         self.gdb_reader.send_heap_try_free_response.connect(self.ui.heap.receive_try_free_result)
+        self.gdb_reader.send_heap_heap_response.connect(self.ui.heap.receive_heap_result)
+        self.gdb_reader.send_heap_bins_response.connect(self.ui.heap.receive_bins_result)
         # Thread cleanup
         self.gdb_handler_thread.finished.connect(self.gdb_handler.deleteLater)
         self.gdb_reader_thread.finished.connect(self.gdb_reader.deleteLater)
