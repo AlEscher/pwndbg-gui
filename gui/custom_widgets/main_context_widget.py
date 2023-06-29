@@ -87,32 +87,32 @@ class MainContextWidget(QGroupBox):
     @Slot()
     def run(self):
         logger.debug("Executing r callback")
-        self.gdb_write.emit("-exec-run")
+        self.gdb_write.emit("r")
 
     @Slot()
     def continue_execution(self):
         logger.debug("Executing c callback")
-        self.gdb_write.emit("-exec-continue")
+        self.gdb_write.emit("c")
 
     @Slot()
     def next(self):
         logger.debug("Executing n callback")
-        self.gdb_write.emit("-exec-next")
+        self.gdb_write.emit("n")
 
     @Slot()
     def step(self):
         logger.debug("Executing s callback")
-        self.gdb_write.emit("-exec-step")
+        self.gdb_write.emit("s")
 
     @Slot()
     def next_instruction(self):
         logger.debug("Executing ni callback")
-        self.gdb_write.emit("-exec-next-instruction")
+        self.gdb_write.emit("ni")
 
     @Slot()
     def step_into(self):
         logger.debug("Executing si callback")
-        self.gdb_write.emit("-exec-step-instruction")
+        self.gdb_write.emit("si")
 
     def submit_cmd(self):
         user_line = self.input_widget.text()
