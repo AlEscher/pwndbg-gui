@@ -58,8 +58,10 @@ class GdbReader(QObject):
                     logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)
                     InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
                 if response["message"] == "stopped":
-                    logger.debug("Setting inferior state to %s", InferiorState.STOPPED.name)
-                    InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
+                    # Don't go from EXITED->STOPPED state
+                    if InferiorHandler.INFERIOR_STATE != InferiorState.EXITED:
+                        logger.debug("Setting inferior state to %s", InferiorState.STOPPED.name)
+                        InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
                     '''Stopping due to a breakpoint hit or a step does not give a "result" event, 
                     so we have to parse the notify manually and check whether we want to update our current results to the main context widget'''
                     if "reason" in response["payload"]:
