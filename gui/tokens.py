@@ -11,6 +11,9 @@ class ResponseToken(Enum):
     STACK_GUI = 6
     BACKTRACE_GUI = 7
 
+    def __str__(self):
+        return str(self.value)
+
 
 Token_to_Context = {
     ResponseToken.MAIN_USER.value(): "main",
