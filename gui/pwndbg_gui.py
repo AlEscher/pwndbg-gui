@@ -111,6 +111,7 @@ class PwnDbgGui(QMainWindow):
 
         start_action = QAction("Start Program", self)
         start_action.setStatusTip("Start the program to debug")
+        start_action.setShortcut(QKeySequence.StandardKey.New)
         start_action.triggered.connect(self.select_file)
         debug_menu.addAction(start_action)
         debug_toolbar.addAction(start_action)
