@@ -13,20 +13,6 @@ from tokens import ResponseToken
 logger = logging.getLogger(__file__)
 
 
-def find_pwndbg_source_cmd() -> str:
-    """Reads the command to load pwndbg from the user's ".gdbinit" file and returns the command"""
-    gdbinit = Path(Path.home() / ".gdbinit").resolve()
-    if not gdbinit.exists():
-        logger.warning("Could not find .gdbinit file at %s", str(gdbinit))
-    lines = gdbinit.read_text().splitlines()
-    for line in lines:
-        if "source" in line and "pwndbg" in line:
-            logger.debug("Found pwndbg command: %s", line)
-            return line
-    logger.warning("Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
-    return ""
-
-
 class GdbHandler(QObject):
     """A wrapper to interact with GDB/pwndbg via the GDB Machine Interface"""
     update_gui = Signal(str, bytes)
@@ -41,17 +27,30 @@ class GdbHandler(QObject):
         self.controller.write(str(token) + command, read_response=False)
 
     def init(self):
-        """Load pwndbg into gdb. Needs to be called after the GUI has initialized its widgets"""
-        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, find_pwndbg_source_cmd())
+        """With GDB MI, the .gdbinit file is ignored so we load it ourselves"""
+        gdbinit = Path(Path.home() / ".gdbinit").resolve()
+        if not gdbinit.exists():
+            logger.warning("Could not find .gdbinit file at %s", str(gdbinit))
+            return
+        lines = gdbinit.read_text().splitlines()
+        pwndbg_loaded = False
+        for line in lines:
+            if not line.strip():
+                continue
+            logger.debug("Executing .gdbinit command %s", line)
+            self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, line)
+            if "source" in line and "pwndbg" in line:
+                logger.debug("Found pwndbg command: %s", line)
+                pwndbg_loaded = True
+
+        if not pwndbg_loaded:
+            logger.error("Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
 
     @Slot(str)
     def send_command(self, cmd: str):
         """Execute the given command and then update all context panes"""
         try:
             self.write_to_controller(ResponseToken.USER_MAIN, cmd)
-
-            if InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
-                return
             # Update contexts
             for context in self.contexts:
                 self.write_to_controller(tokens.Context_to_Token[context], f"context {context}")
