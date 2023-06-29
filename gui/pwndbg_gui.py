@@ -185,7 +185,6 @@ class PwnDbgGui(QMainWindow):
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
-            self.update_pane("main", f"Loading file {file_name}\n".encode())
             self.set_gdb_file_target_signal.emit([file_name])
             # GDB only looks for source files in the cwd, so we additionally add the directory of the executable
             self.set_gdb_source_dir_signal.emit([str(Path(file_name).parent)])
