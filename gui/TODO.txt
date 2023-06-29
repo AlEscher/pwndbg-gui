@@ -1,5 +1,7 @@
 -Indicate that input goes to inferior
 -List of breakpoints
 -Scrolling of Widgets
+-Attaching to process
+-Setup + Run scripts
 Maybe:
     - split inferior I/O from main
