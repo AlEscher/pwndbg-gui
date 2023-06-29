@@ -29,3 +29,5 @@ Token_to_Context = {
     ResponseToken.GUI_BACKTRACE_CONTEXT.value(): "backtrace",
     ResponseToken.GUI_STACK_CONTEXT.value(): "stack",
 }
+
+Context_to_Token = dict(map(reversed, Token_to_Context.items()))
