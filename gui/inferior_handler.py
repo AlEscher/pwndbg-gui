@@ -17,7 +17,6 @@ logger = logging.getLogger(__file__)
 
 class InferiorHandler(QObject):
     update_gui = Signal(str, bytes)
-    send_command = Signal(list)
     INFERIOR_STATE = InferiorState.QUEUED
 
     def __init__(self):
@@ -29,17 +28,14 @@ class InferiorHandler(QObject):
         flags = fcntl.fcntl(self.master, fcntl.F_GETFL)
         fcntl.fcntl(self.master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
         # execute gdb tty command to forward the inferior to this tty
-        tty = os.ttyname(self.slave)
-        logger.debug("Opened tty for inferior interaction: %s", tty)
-        # execute('tty ' + tty)
-        self.send_command.emit(["tty", tty])
-
+        self.tty = os.ttyname(self.slave)
+        logger.debug("Opened tty for inferior interaction: %s", self.tty)
         self.to_write = b""
 
     @Slot()
     def inferior_runs(self):
-        # logger.debug("Starting Inferior Interaction")
-        while InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
+        logger.debug("Starting Inferior Interaction")
+        while True:
             # TODO sleep as timeout
             time.sleep(0.2)
             can_read, _, _ = select.select([self.master], [], [], 0)  # Non-blocking check for readability

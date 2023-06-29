@@ -15,6 +15,7 @@ from custom_widgets.context_text_edit import ContextTextEdit
 from custom_widgets.main_context_widget import MainContextWidget
 from gdb_handler import GdbHandler
 from gui.gdb_reader import GdbReader
+from inferior_handler import InferiorHandler
 from html_style_delegate import HTMLDelegate
 from parser import ContextParser
 # Important:
@@ -40,8 +41,11 @@ class PwnDbgGui(QMainWindow):
         self.gdb_handler_thread: QThread | None = None
         # Thread that will continuously read from GDB
         self.gdb_reader_thread: QThread | None = None
+        # Thread that will continuously read and write to inferior
+        self.inferior_thread: QThread | None = None
         self.gdb_handler = GdbHandler()
         self.gdb_reader = GdbReader(self.gdb_handler.controller)
+        self.inferior_handler = InferiorHandler()
         self.stack_lines_incrementor: QSpinBox | None = None
         self.menu_bar = None
         self.ui = Ui_PwnDbgGui()
@@ -56,6 +60,7 @@ class PwnDbgGui(QMainWindow):
         self.setup_gdb_workers()
         self.setup_menu()
         self.gdb_handler.init()
+        self.setup_inferior()
 
     def setup_custom_widgets(self):
         """Ugly workaround to allow to use custom widgets.
@@ -160,6 +165,21 @@ class PwnDbgGui(QMainWindow):
         self.gdb_handler_thread.start()
         self.gdb_reader_thread.start()
         logger.info("Started worker threads")
+
+    def setup_inferior(self):
+        # Thread setup
+        self.inferior_thread = QThread()
+        self.inferior_handler.moveToThread(self.inferior_thread)
+        # Connect signals from inferior_handler
+        self.inferior_handler.update_gui.connect(self.update_pane)
+        # execute gdb command to redirect inferior to tty
+        self.gdb_handler.execute_cmd(["tty ", self.inferior_handler.tty])
+        # Thread cleanup
+        self.inferior_thread.finished.connect(self.inferior_handler.deleteLater())
+        self.stop_gdb_threads.connect(self.inferior_thread.quit)
+        # Thread start
+        self.inferior_thread.started.connect(self.inferior_handler.inferior_runs)
+        self.inferior_thread.start()
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
         """Called when window is closed. Stop our worker threads"""

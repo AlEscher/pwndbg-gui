@@ -25,14 +25,11 @@ class MainContextWidget(QGroupBox):
     gdb_start = Signal(list)
     stop_thread = Signal()
     inferior_write = Signal(bytes)
-    inferior_run = Signal()
     update_gui = Signal(str, bytes)
 
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
         self.update_gui.connect(parent.update_pane)
-        self.inferior_thread = QThread()
-        self.inferior_handler = InferiorHandler()
         self.buttons_data = {'&r': self.run, '&c': self.continue_execution, '&n': self.next,
                              '&s': self.step, 'ni': self.next_instruction, 'si': self.step_into}
         self.start_update_worker(parent)
@@ -63,17 +60,9 @@ class MainContextWidget(QGroupBox):
             self.buttons.addWidget(button)
 
     def start_update_worker(self, parent: 'PwnDbgGui'):
-        self.inferior_thread = QThread()
-        self.inferior_handler.moveToThread(self.inferior_thread)
-        self.inferior_handler.update_gui.connect(parent.update_pane)
         # Allow giving the thread work from outside
         self.gdb_write.connect(parent.gdb_handler.send_command)
-        self.inferior_write.connect(self.inferior_handler.inferior_write)
-        self.inferior_run.connect(self.inferior_handler.inferior_runs)
-        self.inferior_thread.finished.connect(self.inferior_handler.deleteLater)
-        # Allow stopping the thread from outside
-        self.stop_thread.connect(self.inferior_thread.quit)
-        self.inferior_thread.start()
+        self.inferior_write.connect(parent.inferior_handler.inferior_write)
 
     @Slot()
     def handle_submit(self):
