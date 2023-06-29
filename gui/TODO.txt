@@ -4,5 +4,8 @@
 -Attaching to process
 -Setup + Run scripts
 -Rightclick context menu for list widgets
+-command history
+-command not supported output
 Maybe:
     - split inferior I/O from main
+    - command autofill
