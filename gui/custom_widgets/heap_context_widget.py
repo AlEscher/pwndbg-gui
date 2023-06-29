@@ -40,11 +40,14 @@ class HeapContextWidget(QGroupBox):
         parent.ui.splitter.replaceWidget(1, self)
 
     def setup_widget_layout(self):
-        self.heap_output = ContextTextEdit(self)
-        self.context_splitter.addWidget(self.heap_output)
+        output_splitter = QSplitter()
+        output_splitter.setOrientation(Qt.Orientation.Horizontal)
 
+        self.heap_output = ContextTextEdit(self)
+        output_splitter.addWidget(self.heap_output)
         self.bins_output = ContextTextEdit(self)
-        self.context_splitter.addWidget(self.bins_output)
+        output_splitter.addWidget(self.bins_output)
+        self.context_splitter.addWidget(output_splitter)
 
         # The overall element of the TryFree block, containing the input mask and output box
         try_free_layout = QVBoxLayout()
