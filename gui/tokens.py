@@ -17,7 +17,7 @@ class ResponseToken(Enum):
     GUI_BACKTRACE_CONTEXT = 7
 
     def __str__(self):
-        return str(self.value)
+        return str(self.value())
 
 
 Token_to_Context = {
