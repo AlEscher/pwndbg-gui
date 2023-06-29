@@ -37,6 +37,7 @@ class GdbReader(QObject):
                 if response["token"] is not None:
                     # We found a token -> send it to the corresponding context
                     self.update_gui.emit(tokens.Token_to_Context[response["token"]], ("".join(self.result)).encode())
+                    self.result = []
                 else:
                     # no token in result -> dropping all previous messages
                     self.result = []
