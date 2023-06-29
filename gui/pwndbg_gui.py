@@ -14,6 +14,7 @@ from custom_widgets.context_list_widget import ContextListWidget
 from custom_widgets.context_text_edit import ContextTextEdit
 from custom_widgets.main_context_widget import MainContextWidget
 from gdb_handler import GdbHandler
+from gui.gdb_reader import GdbReader
 from html_style_delegate import HTMLDelegate
 from parser import ContextParser
 # Important:
@@ -27,7 +28,7 @@ logger = logging.getLogger(__file__)
 
 class PwnDbgGui(QMainWindow):
     change_gdb_setting = Signal(list)
-    stop_gdb_thread = Signal()
+    stop_gdb_threads = Signal()
     set_gdb_file_target_signal = Signal(list)
     set_gdb_pid_target_signal = Signal(list)
     set_gdb_source_dir_signal = Signal(list)
@@ -35,8 +36,12 @@ class PwnDbgGui(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.main_text_edit: MainContextWidget | None = None
-        self.gdb_thread: QThread | None = None
+        # Thread that will handle all writing to GDB
+        self.gdb_handler_thread: QThread | None = None
+        # Thread that will continuously read from GDB
+        self.gdb_reader_thread: QThread | None = None
         self.gdb_handler = GdbHandler()
+        self.gdb_reader = GdbReader(self.gdb_handler.controller)
         self.stack_lines_incrementor: QSpinBox | None = None
         self.menu_bar = None
         self.ui = Ui_PwnDbgGui()
@@ -48,7 +53,7 @@ class PwnDbgGui(QMainWindow):
                                   backtrace=self.ui.backtrace, regs=self.ui.regs, ipython=self.ui.ipython,
                                   main=self.main_text_edit.output_widget)
         self.parser = ContextParser()
-        self.init_gdb_handler()
+        self.setup_gdb_workers()
         self.setup_menu()
         self.gdb_handler.init()
 
@@ -132,25 +137,33 @@ class PwnDbgGui(QMainWindow):
         about_qt_action.triggered.connect(QApplication.aboutQt)
         about_menu.addAction(about_qt_action)
 
-    def init_gdb_handler(self):
-        self.gdb_thread = QThread()
-        self.gdb_handler.moveToThread(self.gdb_thread)
+    def setup_gdb_workers(self):
+        self.gdb_handler_thread = QThread()
+        self.gdb_reader_thread = QThread()
+        self.gdb_handler.moveToThread(self.gdb_handler_thread)
+        self.gdb_reader.moveToThread(self.gdb_reader_thread)
         self.set_gdb_file_target_signal.connect(self.gdb_handler.set_file_target)
         self.set_gdb_pid_target_signal.connect(self.gdb_handler.set_pid_target)
         self.set_gdb_source_dir_signal.connect(self.gdb_handler.set_source_dir)
         self.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.update_pane)
+        self.gdb_reader.update_gui.connect(self.update_pane)
         # Thread cleanup
-        self.gdb_thread.finished.connect(self.gdb_handler.deleteLater)
-        self.stop_gdb_thread.connect(self.gdb_thread.quit)
+        self.gdb_handler_thread.finished.connect(self.gdb_handler.deleteLater)
+        self.gdb_reader_thread.finished.connect(self.gdb_reader.deleteLater)
+        self.stop_gdb_threads.connect(self.gdb_handler_thread.quit)
+        self.stop_gdb_threads.connect(self.gdb_reader_thread.quit)
         logger.debug("Starting new worker threads")
-        self.gdb_thread.start()
+        self.gdb_reader_thread.started.connect(self.gdb_reader.read_with_timeout)
+        self.gdb_handler_thread.start()
+        self.gdb_reader_thread.start()
+        logger.info("Started worker threads")
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
-        """Called when window is closed. Stop our worker thread"""
-        logger.debug("Stopping GDB handler update thread")
-        self.stop_gdb_thread.emit()
+        """Called when window is closed. Stop our worker threads"""
+        logger.debug("Stopping GDB threads")
+        self.stop_gdb_threads.emit()
 
     def add_stack_header(self, layout: QVBoxLayout):
         # Add a stack count inc-/decrementor
