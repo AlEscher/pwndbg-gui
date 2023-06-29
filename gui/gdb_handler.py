@@ -81,7 +81,7 @@ class GdbHandler(QObject):
 
     @Slot(list)
     def set_source_dir(self, arguments: List[str]):
-        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["attach"] + arguments))
+        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["dir"] + arguments))
 
     @Slot(list)
     def change_setting(self, arguments: List[str]):
