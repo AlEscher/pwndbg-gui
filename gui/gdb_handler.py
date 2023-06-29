@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 from typing import List
 
-# These imports are broken here, but will work via .gdbinit
 from PySide6.QtCore import QObject, Slot, Signal
 from pygdbmi import gdbcontroller
 
@@ -24,7 +23,7 @@ def find_pwndbg_source_cmd() -> str:
         logger.warning("Could not find .gdbinit file at %s", str(gdbinit))
     lines = gdbinit.read_text().splitlines()
     for line in lines:
-        if "pwndbg" in line:
+        if "source" in line and "pwndbg" in line:
             logger.debug("Found pwndbg command: %s", line)
             return line
     logger.warning("Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
@@ -32,7 +31,7 @@ def find_pwndbg_source_cmd() -> str:
 
 
 class GdbHandler(QObject):
-    """A wrapper to interact with GDB/pwndbg via gdb.execute"""
+    """A wrapper to interact with GDB/pwndbg via the GDB Machine Interface"""
     update_gui = Signal(str, bytes)
 
     def __init__(self):
