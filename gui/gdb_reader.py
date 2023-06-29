@@ -33,6 +33,7 @@ class GdbReader(QObject):
                 self.parse_response(response)
 
     def send_update_gui(self, token: int):
+        """Flushes all collected outputs to the destination specified by token"""
         context = tokens.Token_to_Context[token]
         # When the program is not stopped we cannot send commands to gdb, so any context output produced that was not
         # destined to main should not be shown
@@ -40,6 +41,12 @@ class GdbReader(QObject):
             self.update_gui.emit(context, "".join(self.result).encode())
         elif InferiorHandler.INFERIOR_STATE == InferiorState.STOPPED:
             self.update_gui.emit(context, "".join(self.result).encode())
+        self.result = []
+
+    def send_main_update(self):
+        """Flushes all collected outputs to the main output window"""
+        self.update_gui.emit("main", "".join(self.result).encode())
+        self.result = []
 
     def parse_response(self, gdbmi_response: list[dict]):
         for response in gdbmi_response:
@@ -58,7 +65,6 @@ class GdbReader(QObject):
         if response["token"] is not None and response["token"] != 0:
             # We found a token -> send it to the corresponding context
             self.send_update_gui(response["token"])
-            self.result = []
         else:
             # no token in result -> dropping all previous messages
             self.result = []
@@ -68,8 +74,7 @@ class GdbReader(QObject):
             logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
             # When we start the inferior we should flush everything we have to main
-            self.update_gui.emit("main", "".join(self.result).encode())
-            self.result = []
+            self.send_main_update()
         if response["message"] == "stopped":
             # Don't go from EXITED->STOPPED state
             if InferiorHandler.INFERIOR_STATE != InferiorState.EXITED:
@@ -80,8 +85,7 @@ class GdbReader(QObject):
             if "reason" in response["payload"]:
                 if response["payload"]["reason"] == "breakpoint-hit" or response["payload"]["reason"] == "end-stepping-range" or response["payload"]["reason"] == "exited":
                     # This must be treated as a result token, send results to main context output
-                    self.update_gui.emit("main", "".join(self.result).encode())
-                    self.result = []
+                    self.send_main_update()
         if response["message"] == "thread-group-exited":
             logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
