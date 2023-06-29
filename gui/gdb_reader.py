@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from PySide6.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import QObject, Slot, Signal, QCoreApplication
 from pygdbmi import gdbcontroller
 from inferior_state import InferiorState
 from inferior_handler import InferiorHandler
@@ -25,6 +25,8 @@ class GdbReader(QObject):
     @Slot()
     def read_with_timeout(self):
         while True:
+            # first process thread kill events
+            QCoreApplication.processEvents()
             response = self.controller.get_gdb_response(raise_error_on_timeout=False)
             if response is not None:
                 self.parse_response(response)
