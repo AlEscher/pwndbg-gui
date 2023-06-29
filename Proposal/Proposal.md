@@ -36,21 +36,18 @@ This allows us to aggregate and customize output and simplify command input (e.g
 
 ## Features
 
-- [x] Multi pane setup similar to [Splitting contexts](https://github.com/pwndbg/pwndbg/blob/dev/FEATURES.md#splitting--layouting-context)
+- [ ] Multi pane setup similar to [Splitting contexts](https://github.com/pwndbg/pwndbg/blob/dev/FEATURES.md#splitting--layouting-context)
 - [x] Resizable, scrollable panes
-- [x] Allow to start a local executable
-- [ ] Allow attaching to an already running program
-  - Functionality is implemented, but requires `sudo` which is problematic for python modules
-- [x] Include banners/header for panes
-- [ ] Add `fs_base` to register section
-- [x] Convenience buttons (maybe hotkeys) / fields for `c`, `r`, `n`, `s`, `ni`, `si`
-- [ ] Add a `search` functionality
+- [x] Allow to start a local executable, or attach to an already running one (latter requires `sudo`)
+- [X] Include banners/header for panes
+- [ ] ~~Add `fs_base` to register section~~ (Crashes GDB for some reason `Recursive internal problem.`)
+- [ ] Convenience buttons (maybe hotkeys) / fields for `c`, `r`, `n`, `s`, `ni`, `si`, `search`
 - [x] +/- buttons for adding `pwndbg` context-stack lines
 - [ ] Editing of memory (e.g. registers, stack, heap) via UI (e.g. double-click on stack line)
-- [x] New context: Heap
+- [ ] New context: Heap
     - Add a new context to the ones `pwndbg` already offers (stack, backtrace, etc...) for the heap
     - Continuosly show heap related information (`heap` command, `main_arena`, fastbins, smallbins)
-    - Also allow to use `pwndbgs`'s `try_free`
+    - Also allow to use `pwndbgs`'s `try_malloc` and `try_free`
 - [ ] New context: `hexdump`
     - Allow the user to actively "Watch" a number of addresses via hexdump
     - Increase / Decrease number of lines shown via GUI buttons
