@@ -5,6 +5,7 @@ from PySide6.QtCore import QObject, Slot, Signal
 from pygdbmi import gdbcontroller
 from inferior_state import InferiorState
 from inferior_handler import InferiorHandler
+import tokens
 
 from gui import gdb_handler
 
@@ -19,6 +20,7 @@ class GdbReader(QObject):
     def __init__(self, controller: gdbcontroller.GdbController):
         super().__init__()
         self.controller = controller
+        self.result = []
 
     @Slot()
     def read_with_timeout(self):
@@ -28,17 +30,16 @@ class GdbReader(QObject):
                 self.parse_response(response)
 
     def parse_response(self, gdbmi_response: list[dict]):
-        result = []
         for response in gdbmi_response:
             if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
-                result.append(response["payload"])
+                self.result.append(response["payload"])
             if response["type"] == "result" and response["message"] == "done":
                 if response["token"] is not None:
                     # We found a token -> send it to the corresponding context
-                    self.update_gui.emit(token_to_context[response["token"]], "".join(result))
+                    self.update_gui.emit(tokens.Token_to_Context[response["token"]], "".join(self.result))
                 else:
                     # no token in result -> dropping all previous messages
-                    result = []
+                    self.result = []
             if response["type"] == "notify":
                 if response["message"] == "running":
                     InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING

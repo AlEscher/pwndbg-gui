@@ -6,7 +6,7 @@ class ResponseToken(Enum):
     MAIN_USER = 1
     MAIN_GUI = 2
     DISASM_GUI = 3
-    SOURCE_GUI = 4
+    CODE_GUI = 4
     REGS_GUI = 5
     STACK_GUI = 6
     BACKTRACE_GUI = 7
@@ -15,10 +15,9 @@ class ResponseToken(Enum):
 Token_to_Context = {
     ResponseToken.MAIN_USER.value(): "main",
     ResponseToken.MAIN_GUI.value(): "main",
-    ResponseToken.DISASM_GUI.value(): "",
-    ResponseToken.MAIN_USER.value(): "main",
-    ResponseToken.MAIN_USER.value(): "main",
-    ResponseToken.MAIN_USER.value(): "main",
-
-
+    ResponseToken.DISASM_GUI.value(): "disasm",
+    ResponseToken.CODE_GUI.value(): "code",
+    ResponseToken.REGS_GUI.value(): "regs",
+    ResponseToken.BACKTRACE_GUI.value(): "backtrace",
+    ResponseToken.STACK_GUI.value(): "stack",
 }
