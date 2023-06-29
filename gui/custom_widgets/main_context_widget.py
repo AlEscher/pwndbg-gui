@@ -21,7 +21,7 @@ logger = logging.getLogger(__file__)
 
 
 class MainContextWidget(QGroupBox):
-    gdb_write = Signal(str, bool)
+    gdb_write = Signal(str)
     gdb_start = Signal(list)
     stop_thread = Signal()
     inferior_write = Signal(bytes)
@@ -87,72 +87,41 @@ class MainContextWidget(QGroupBox):
     @Slot()
     def run(self):
         logger.debug("Executing r callback")
-        self.gdb_write.emit("r", True)
+        self.gdb_write.emit("-exec-run")
 
     @Slot()
     def continue_execution(self):
         logger.debug("Executing c callback")
-        self.gdb_write.emit("c", True)
+        self.gdb_write.emit("-exec-continue")
 
     @Slot()
     def next(self):
         logger.debug("Executing n callback")
-        self.gdb_write.emit("n", True)
+        self.gdb_write.emit("-exec-next")
 
     @Slot()
     def step(self):
         logger.debug("Executing s callback")
-        self.gdb_write.emit("s", True)
+        self.gdb_write.emit("-exec-step")
 
     @Slot()
     def next_instruction(self):
         logger.debug("Executing ni callback")
-        self.gdb_write.emit("ni", True)
+        self.gdb_write.emit("-exec-next-instruction")
 
     @Slot()
     def step_into(self):
         logger.debug("Executing si callback")
-        self.gdb_write.emit("si", True)
+        self.gdb_write.emit("-exec-step-instruction")
 
     def submit_cmd(self):
         user_line = self.input_widget.text()
         logger.debug("Sending command '%s' to gdb", user_line)
         self.update_gui.emit("main", f"> {user_line}\n".encode())
-        self.gdb_write.emit(user_line, True)
+        self.gdb_write.emit(user_line)
         self.input_widget.clear()
 
     def submit_input(self):
         user_line = self.input_widget.text()
         self.inferior_write.emit(user_line.encode() + b"\n")
         self.input_widget.clear()
-
-    def cont_handler(self, event):
-        # logger.debug("event type: continue (inferior runs)")
-        InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
-        self.inferior_run.emit()
-
-    def exit_handler(self, event):
-        # logger.debug("event type: exit (inferior exited)")
-        InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
-        if hasattr(event, 'exit_code'):
-            #logger.debug("exit code: %d" % event.exit_code)
-            self.update_gui.emit("main", b"Inferior exited with code: " + str(event.exit_code).encode() + b"\n")
-        else:
-            logger.debug("exit code not available")
-
-    def stop_handler(self, event):
-        # logger.debug("event type: stop (inferior stopped)")
-        InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
-        if hasattr(event, 'breakpoints'):
-            print("Hit breakpoint(s): {} at {}".format(event.breakpoints[0].number, event.breakpoints[0].location))
-            print("hit count: {}".format(event.breakpoints[0].hit_count))
-        else:
-            # logger.debug("no breakpoint was hit")
-            pass
-
-    def call_handler(self, event):
-        # logger.debug("event type: call (inferior calls function)")
-        if hasattr(event, 'address'):
-            logger.debug("function to be called at: %s" % hex(event.address))
-        else:
-            logger.debug("function address not available")
