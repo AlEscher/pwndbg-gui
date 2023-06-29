@@ -13,14 +13,6 @@ from tokens import ResponseToken
 logger = logging.getLogger(__file__)
 
 
-def extract_console_payloads(gdbmi_response: list[dict]) -> list[str]:
-    result = []
-    for response in gdbmi_response:
-        if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
-            result.append(response["payload"])
-    return result
-
-
 def find_pwndbg_source_cmd() -> str:
     """Reads the command to load pwndbg from the user's ".gdbinit" file and returns the command"""
     gdbinit = Path(Path.home() / ".gdbinit").resolve()
@@ -74,10 +66,13 @@ class GdbHandler(QObject):
     @Slot(list)
     def set_file_target(self, arguments: List[str]):
         self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["file"] + arguments))
+        InferiorHandler.INFERIOR_STATE = InferiorState.QUEUED
 
     @Slot(list)
     def set_pid_target(self, arguments: List[str]):
         self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["attach"] + arguments))
+        # Attaching to a running process stops it
+        InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
 
     @Slot(list)
     def set_source_dir(self, arguments: List[str]):
