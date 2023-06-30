@@ -44,6 +44,14 @@
       </property>
      </widget>
     </widget>
+    <widget class="QTextEdit" name="heap"/>
+    <widget class="QListWidget" name="stack"/>
+   </widget>
+   <widget class="QSplitter" name="splitter">
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <widget class="QTextEdit" name="main"/>
     <widget class="QSplitter" name="splitter_3">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -55,14 +63,7 @@
       </property>
      </widget>
     </widget>
-    <widget class="QListWidget" name="stack"/>
-   </widget>
-   <widget class="QSplitter" name="splitter">
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-    <widget class="QTextEdit" name="main"/>
-    <widget class="QTextEdit" name="heap"/>
+    <widget class="QTextEdit" name="watches"/>
    </widget>
   </widget>
  </widget>

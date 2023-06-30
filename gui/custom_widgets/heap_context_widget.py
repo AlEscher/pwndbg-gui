@@ -36,7 +36,7 @@ class HeapContextWidget(QGroupBox):
         # Set up the interior layout of this widget
         self.setup_widget_layout()
         # Insert this widget into the UI
-        parent.ui.splitter.replaceWidget(1, self)
+        parent.ui.splitter_4.replaceWidget(1, self)
 
     def setup_widget_layout(self):
         output_splitter = QSplitter()
