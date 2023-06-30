@@ -1,11 +1,10 @@
 -Indicate that input goes to inferior
--List of breakpoints
 -Scrolling of Widgets
 -Attaching to process
 -Setup + Run scripts
 -Rightclick context menu for list widgets
 -command history
--command not supported output
 Maybe:
     - split inferior I/O from main
     - command autofill
+    - list of breakpoints
