@@ -59,4 +59,10 @@ This allows us to aggregate and customize output and simplify command input (e.g
 ## Additional (optional) Features
 
 - Easier inputting of payloads (e.g. via files)
-- setting breakpoint in source or disassembly via GUI
+- Setting breakpoint in source or disassembly via GUI
+- Customize contexts arrangement
+  - Pop out contexts into separate windows
+  - Rearrange and move contexts around in the GUI
+- Remember layout on startup
+  - Sizes of splitters
+  - Arrangement of contexts (custom context layout not yet supported)
