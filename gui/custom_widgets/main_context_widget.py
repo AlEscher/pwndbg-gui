@@ -128,10 +128,8 @@ class MainContextWidget(QGroupBox):
             return super().eventFilter(source, event)
         if event.key() == Qt.Key.Key_Down:
             self.current_cmd_index = min(len(self.command_history) - 1, self.current_cmd_index + 1)
-            if self.current_cmd_index < len(self.command_history):
-                self.input_widget.setText(self.command_history[self.current_cmd_index])
+            self.input_widget.setText(self.command_history[self.current_cmd_index])
         elif event.key() == Qt.Key.Key_Up:
             self.current_cmd_index = max(0, self.current_cmd_index - 1)
-            if self.current_cmd_index < len(self.command_history):
-                self.input_widget.setText(self.command_history[self.current_cmd_index])
+            self.input_widget.setText(self.command_history[self.current_cmd_index])
         return super().eventFilter(source, event)
