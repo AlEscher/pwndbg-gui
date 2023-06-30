@@ -2,6 +2,12 @@
 import logging
 import sys
 from pathlib import Path
+from os import path
+directory, file = path.split(__file__)
+directory = path.expanduser(directory)
+directory = path.join(directory, "..")
+directory = path.abspath(directory)
+sys.path.append(directory)
 
 import PySide6
 from PySide6.QtCore import Slot, Qt, Signal, QThread
@@ -25,6 +31,7 @@ from parser import ContextParser
 #     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_PwnDbgGui
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s | [%(levelname)s] : %(message)s')
 logger = logging.getLogger(__file__)
 
 
@@ -288,3 +295,12 @@ def run_gui():
     window = PwnDbgGui()
     window.show()
     sys.exit(app.exec())
+
+
+def main():
+    logger.info("Starting GUI")
+    run_gui()
+
+
+if __name__ == "__main__":
+    main()

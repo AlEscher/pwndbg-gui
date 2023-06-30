@@ -5,10 +5,9 @@ from typing import List
 from PySide6.QtCore import QObject, Slot, Signal
 from pygdbmi import gdbcontroller
 
-from gui import tokens
 from gui.inferior_handler import InferiorHandler
 from gui.inferior_state import InferiorState
-from tokens import ResponseToken
+from tokens import ResponseToken, Context_to_Token
 
 logger = logging.getLogger(__file__)
 
@@ -53,7 +52,7 @@ class GdbHandler(QObject):
             self.write_to_controller(ResponseToken.USER_MAIN, cmd)
             # Update contexts
             for context in self.contexts:
-                self.write_to_controller(tokens.Context_to_Token[context], f"context {context}")
+                self.write_to_controller(Context_to_Token[context], f"context {context}")
             # Update heap
             self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
             self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
