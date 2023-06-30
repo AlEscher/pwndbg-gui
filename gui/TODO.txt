@@ -1,3 +1,2 @@
--Indicate that input goes to inferior
 -Attaching to process (inferior communication)
 -Rightclick context menu for list widgets
