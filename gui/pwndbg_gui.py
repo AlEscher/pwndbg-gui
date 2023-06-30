@@ -5,7 +5,7 @@ from pathlib import Path
 
 import PySide6
 from PySide6.QtCore import Slot, Qt, Signal, QThread
-from PySide6.QtGui import QTextOption, QAction, QKeySequence, QFont
+from PySide6.QtGui import QTextOption, QAction, QKeySequence, QFont, QPalette, QColor
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox, QGroupBox, QVBoxLayout, QWidget, QSplitter, QHBoxLayout, QSpinBox, QLabel
 
@@ -16,8 +16,8 @@ from custom_widgets.main_context_widget import MainContextWidget
 from gdb_handler import GdbHandler
 from gui.custom_widgets.heap_context_widget import HeapContextWidget
 from gui.gdb_reader import GdbReader
-from inferior_handler import InferiorHandler
 from html_style_delegate import HTMLDelegate
+from inferior_handler import InferiorHandler
 from parser import ContextParser
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -220,15 +220,13 @@ class PwnDbgGui(QMainWindow):
                                         "vuln")
         if ok and name:
             args = [f"$(pidof {name})"]
-            self.update_pane("main", f"Attaching to process {name}\n".encode())
-            self.set_gdb_file_target_signal.emit(args)
+            self.set_gdb_pid_target_signal.emit(args)
 
     def query_process_pid(self):
         pid, ok = QInputDialog.getInt(self, "Enter a running process pid", "PID:", minValue=0)
         if ok and pid > 0:
             args = [str(pid)]
-            self.update_pane("main", f"Attaching to process {pid}\n".encode())
-            self.set_gdb_file_target_signal.emit(args)
+            self.set_gdb_pid_target_signal.emit(args)
 
     @Slot(str, bytes)
     def update_pane(self, context: str, content: bytes):
@@ -261,6 +259,33 @@ def run_gui():
     font.setStyleHint(QFont.StyleHint.Monospace)
     QApplication.setFont(font)
     app = QApplication(sys.argv)
+
+    app.setStyle("Fusion")
+    # Create a dark palette: https://stackoverflow.com/a/45634644
+    dark_palette = QPalette()
+    dark_palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
+    dark_palette.setColor(QPalette.ColorRole.WindowText, Qt.white)
+    dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, QColor(127, 127, 127))
+    dark_palette.setColor(QPalette.ColorRole.Base, QColor(42, 42, 42))
+    dark_palette.setColor(QPalette.ColorRole.AlternateBase, QColor(66, 66, 66))
+    dark_palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.white)
+    dark_palette.setColor(QPalette.ColorRole.ToolTipText, Qt.white)
+    dark_palette.setColor(QPalette.ColorRole.Text, Qt.white)
+    dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor(127, 127, 127))
+    dark_palette.setColor(QPalette.ColorRole.Dark, QColor(35, 35, 35))
+    dark_palette.setColor(QPalette.ColorRole.Shadow, QColor(20, 20, 20))
+    dark_palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
+    dark_palette.setColor(QPalette.ColorRole.ButtonText, Qt.white)
+    dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, QColor(127, 127, 127))
+    dark_palette.setColor(QPalette.ColorRole.BrightText, Qt.red)
+    dark_palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
+    dark_palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
+    dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Highlight, QColor(80, 80, 80))
+    dark_palette.setColor(QPalette.ColorRole.HighlightedText, Qt.white)
+    dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.HighlightedText, QColor(127, 127, 127))
+    # Set the dark palette
+    app.setPalette(dark_palette)
+
     window = PwnDbgGui()
     window.show()
     sys.exit(app.exec())
