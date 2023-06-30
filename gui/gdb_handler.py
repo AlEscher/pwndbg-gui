@@ -22,6 +22,7 @@ class GdbHandler(QObject):
         self.past_commands: List[str] = []
         self.contexts = ['regs', 'stack', 'disasm', 'code', 'backtrace']
         self.controller = gdbcontroller.GdbController()
+        self.watches: List[str] = []
 
     def write_to_controller(self, token: ResponseToken, command: str):
         self.controller.write(str(token) + command, read_response=False)
@@ -57,6 +58,11 @@ class GdbHandler(QObject):
             # Update heap
             self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
             self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
+            # Update watches
+            logger.debug("updating following watches: ")
+            for watch in self.watches:
+                logger.debug("%s", watch)
+                self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP, "hexdump " + watch)
         except Exception as e:
             logger.warning("Error while sending command '%s': '%s'", cmd, str(e))
 
@@ -103,3 +109,13 @@ class GdbHandler(QObject):
     @Slot(str)
     def execute_try_free(self, param: str):
         self.write_to_controller(ResponseToken.GUI_HEAP_TRY_FREE, " ".join(["try_free", param]))
+
+    @Slot(str)
+    def add_watch(self, param: str):
+        logger.debug("added to watchlist: %s", param)
+        self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP, " ".join(["hexdump", param]))
+        self.watches.append(param)
+
+    @Slot(str)
+    def del_watch(self, param: str):
+        self.watches.remove(param)

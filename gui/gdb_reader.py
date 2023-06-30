@@ -17,6 +17,7 @@ class GdbReader(QObject):
     send_heap_try_free_response = Signal(bytes)
     send_heap_heap_response = Signal(bytes)
     send_heap_bins_response = Signal(bytes)
+    send_watches_hexdump_response = Signal(bytes)
 
     def __init__(self, controller: gdbcontroller.GdbController):
         super().__init__()
@@ -79,6 +80,8 @@ class GdbReader(QObject):
             self.send_context_update(self.send_heap_heap_response)
         elif token == tokens.ResponseToken.GUI_HEAP_BINS:
             self.send_context_update(self.send_heap_bins_response)
+        elif token == tokens.ResponseToken.GUI_WATCHES_HEXDUMP:
+            self.send_context_update(self.send_watches_hexdump_response)
         elif token != 0:
             # We found a token -> send it to the corresponding context
             self.send_update_gui(token)

@@ -19,6 +19,7 @@ class ResponseToken(IntEnum):
     GUI_HEAP_BINS = 9
     GUI_HEAP_TRY_MALLOC = 10
     GUI_HEAP_TRY_FREE = 11
+    GUI_WATCHES_HEXDUMP = 12
 
     def __str__(self):
         return str(self.value)

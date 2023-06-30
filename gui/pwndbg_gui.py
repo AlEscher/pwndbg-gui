@@ -15,6 +15,7 @@ from custom_widgets.context_text_edit import ContextTextEdit
 from custom_widgets.main_context_widget import MainContextWidget
 from gdb_handler import GdbHandler
 from gui.custom_widgets.heap_context_widget import HeapContextWidget
+from gui.custom_widgets.watches_context_widget import HDumpContextWidget
 from gui.gdb_reader import GdbReader
 from html_style_delegate import HTMLDelegate
 from inferior_handler import InferiorHandler
@@ -86,6 +87,7 @@ class PwnDbgGui(QMainWindow):
         self.ui.code.setObjectName("code")
         self.setup_context_pane(self.ui.code, title="Code", splitter=self.ui.code_splitter, index=1)
         self.ui.heap = HeapContextWidget(self)
+        self.ui.watches = HDumpContextWidget(self)
         self.main_text_edit = MainContextWidget(parent=self)
         self.ui.splitter.replaceWidget(0, self.main_text_edit)
 
@@ -160,6 +162,8 @@ class PwnDbgGui(QMainWindow):
         self.gdb_reader.send_heap_try_free_response.connect(self.ui.heap.receive_try_free_result)
         self.gdb_reader.send_heap_heap_response.connect(self.ui.heap.receive_heap_result)
         self.gdb_reader.send_heap_bins_response.connect(self.ui.heap.receive_bins_result)
+        # Allow the watches context to receive the hexdump results
+        self.gdb_reader.send_watches_hexdump_response.connect(self.ui.watches.receive_hexdump_result)
         # Thread cleanup
         self.gdb_handler_thread.finished.connect(self.gdb_handler.deleteLater)
         self.gdb_reader_thread.finished.connect(self.gdb_reader.deleteLater)
