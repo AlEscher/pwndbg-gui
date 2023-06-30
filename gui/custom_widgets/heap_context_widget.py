@@ -25,7 +25,6 @@ class HeapContextWidget(QGroupBox):
         self.heap_output: ContextTextEdit | None = None
         self.try_free_output: ContextTextEdit | None = None
         self.try_free_input: QLineEdit | None = None
-        self.try_malloc_input: QLineEdit | None = None
         # The "top" layout of the whole heap context widget
         self.context_layout = QVBoxLayout()
         self.context_splitter = QSplitter()
