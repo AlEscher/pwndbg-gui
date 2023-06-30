@@ -35,6 +35,7 @@ class MainContextWidget(QGroupBox):
         self.buttons_data = {'&r': self.run, '&c': self.continue_execution, '&n': self.next,
                              '&s': self.step, 'ni': self.next_instruction, 'si': self.step_into}
         self.start_update_worker(parent)
+        self.input_label = QLabel(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>")
         self.output_widget = MainContextOutput(self)
         self.input_widget = QLineEdit(self)
         self.input_widget.returnPressed.connect(self.handle_submit)
@@ -53,7 +54,7 @@ class MainContextWidget(QGroupBox):
         context_layout.addLayout(self.buttons)
         context_layout.addWidget(self.output_widget)
         input_layout = QHBoxLayout()
-        input_layout.addWidget(QLabel(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>"))
+        input_layout.addWidget(self.input_label)
         input_layout.addWidget(self.input_widget)
         context_layout.addLayout(input_layout)
         self.setLayout(context_layout)
@@ -108,6 +109,13 @@ class MainContextWidget(QGroupBox):
     def step_into(self):
         logger.debug("Executing si callback")
         self.gdb_write.emit("si")
+
+    @Slot(bool)
+    def change_input_label(self, is_pwndbg: bool):
+        if is_pwndbg:
+            self.input_label.setText(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>")
+        else:
+            self.input_label.setText(f"<span style=' color:{PwndbgGuiConstants.GREEN};'>target></span>")
 
     def submit_cmd(self):
         user_line = self.input_widget.text()

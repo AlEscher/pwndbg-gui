@@ -18,6 +18,8 @@ class GdbReader(QObject):
     send_heap_heap_response = Signal(bytes)
     send_heap_bins_response = Signal(bytes)
     send_watches_hexdump_response = Signal(bytes)
+    # Emitted when the inferior state changes. True for Stopped and False for Running
+    inferior_state_changed = Signal(bool)
 
     def __init__(self, controller: gdbcontroller.GdbController):
         super().__init__()
@@ -64,7 +66,8 @@ class GdbReader(QObject):
             if response["type"] == "notify":
                 self.handle_notify(response)
             # Ugly way of catching specific log
-            if response["type"] == "log" and response["payload"] == "No symbol table is loaded.  Use the \"file\" command.\n":
+            if response["type"] == "log" and response[
+                "payload"] == "No symbol table is loaded.  Use the \"file\" command.\n":
                 self.result.append(response["payload"])
 
     def handle_result(self, response: dict):
@@ -95,8 +98,10 @@ class GdbReader(QObject):
             InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
             # When we start the inferior we should flush everything we have to main
             self.send_main_update()
+            self.inferior_state_changed.emit(False)
         if response["message"] == "stopped":
             # Don't go from EXITED->STOPPED state
+            self.inferior_state_changed.emit(True)
             if InferiorHandler.INFERIOR_STATE != InferiorState.EXITED:
                 logger.debug("Setting inferior state to %s", InferiorState.STOPPED.name)
                 InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED

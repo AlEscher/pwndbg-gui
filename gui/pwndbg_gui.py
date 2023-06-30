@@ -45,7 +45,7 @@ class PwnDbgGui(QMainWindow):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.main_text_edit: MainContextWidget | None = None
+        self.main_context: MainContextWidget | None = None
         # Thread that will handle all writing to GDB
         self.gdb_handler_thread: QThread | None = None
         # Thread that will continuously read from GDB
@@ -64,7 +64,7 @@ class PwnDbgGui(QMainWindow):
         self.setup_custom_widgets()
         self.seg_to_widget = dict(stack=self.ui.stack, code=self.ui.code, disasm=self.ui.disasm,
                                   backtrace=self.ui.backtrace, regs=self.ui.regs,
-                                  main=self.main_text_edit.output_widget)
+                                  main=self.main_context.output_widget)
         self.parser = ContextParser()
         self.setup_gdb_workers()
         self.setup_menu()
@@ -95,8 +95,8 @@ class PwnDbgGui(QMainWindow):
         self.setup_context_pane(self.ui.code, title="Code", splitter=self.ui.code_splitter, index=1)
         self.ui.heap = HeapContextWidget(self)
         self.ui.watches = HDumpContextWidget(self)
-        self.main_text_edit = MainContextWidget(parent=self)
-        self.ui.splitter.replaceWidget(0, self.main_text_edit)
+        self.main_context = MainContextWidget(parent=self)
+        self.ui.splitter.replaceWidget(0, self.main_context)
 
     def setup_context_pane(self, context_widget: QWidget, title: str, splitter: QSplitter, index: int):
         """Sets up the layout for a context pane"""
@@ -165,6 +165,7 @@ class PwnDbgGui(QMainWindow):
         self.gdb_handler.update_gui.connect(self.update_pane)
         self.gdb_reader.update_gui.connect(self.update_pane)
         self.gdb_reader.set_context_stack_lines.connect(self.set_context_stack_lines)
+        self.gdb_reader.inferior_state_changed.connect(self.main_context.change_input_label)
         # Allow the heap context to receive the results it requests
         self.gdb_reader.send_heap_try_free_response.connect(self.ui.heap.receive_try_free_result)
         self.gdb_reader.send_heap_heap_response.connect(self.ui.heap.receive_heap_result)
