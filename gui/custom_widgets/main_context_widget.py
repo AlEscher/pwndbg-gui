@@ -1,10 +1,10 @@
 import logging
 import os
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
-from PySide6.QtCore import Qt, QThread, Signal, Slot
-from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel
+from PySide6.QtCore import Qt, QThread, Signal, Slot, QEvent
+from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel, QWidget
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
@@ -36,9 +36,13 @@ class MainContextWidget(QGroupBox):
         self.output_widget = MainContextOutput(self)
         self.input_widget = QLineEdit(self)
         self.input_widget.returnPressed.connect(self.handle_submit)
+        self.input_widget.installEventFilter(self)
+        # The currently selected command in the command history, for when the user presses ↑ and ↓
+        self.current_cmd_index = 0
         self.buttons = QHBoxLayout()
         self.setup_buttons()
         self.setup_widget_layout()
+        self.command_history: List[str] = [""]
 
     def setup_widget_layout(self):
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -105,6 +109,9 @@ class MainContextWidget(QGroupBox):
 
     def submit_cmd(self):
         user_line = self.input_widget.text()
+        if self.command_history[-1] != user_line:
+            self.command_history.insert(-1, user_line)
+            self.current_cmd_index = len(self.command_history) - 1
         logger.debug("Sending command '%s' to gdb", user_line)
         self.update_gui.emit("main", f"> {user_line}\n".encode())
         self.gdb_write.emit(user_line)
@@ -114,3 +121,15 @@ class MainContextWidget(QGroupBox):
         user_line = self.input_widget.text()
         self.inferior_write.emit(user_line.encode() + b"\n")
         self.input_widget.clear()
+
+    def eventFilter(self, source: QWidget, event: QEvent):
+        # https://stackoverflow.com/a/46506129
+        if event.type() != QEvent.Type.KeyPress or source is not self.input_widget:
+            return super().eventFilter(source, event)
+        if event.key() == Qt.Key.Key_Down:
+            self.current_cmd_index = min(len(self.command_history) - 1, self.current_cmd_index + 1)
+            self.input_widget.setText(self.command_history[self.current_cmd_index])
+        elif event.key() == Qt.Key.Key_Up:
+            self.current_cmd_index = max(0, self.current_cmd_index - 1)
+            self.input_widget.setText(self.command_history[self.current_cmd_index])
+        return super().eventFilter(source, event)
