@@ -1,6 +1,8 @@
 from PySide6.QtCore import QRectF, QSize
-from PySide6.QtGui import QTextDocument, QAbstractTextDocumentLayout
+from PySide6.QtGui import QTextDocument, QAbstractTextDocumentLayout, QFont
 from PySide6.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem, QStyle
+
+from gui.constants import PwndbgGuiConstants
 
 
 # https://stackoverflow.com/a/66091713
@@ -9,6 +11,8 @@ class HTMLDelegate(QStyledItemDelegate):
         super().__init__()
         # probably better not to create new QTextDocuments every ms
         self.doc = QTextDocument()
+        self.font = QFont(PwndbgGuiConstants.FONT)
+        self.font.setStyleHint(QFont.StyleHint.Monospace)
 
     def paint(self, painter, option, index):
         options = QStyleOptionViewItem(option)
@@ -16,7 +20,7 @@ class HTMLDelegate(QStyledItemDelegate):
         painter.save()
         self.doc.setTextWidth(options.rect.width())
         self.doc.setHtml(options.text)
-        self.doc.setDefaultFont(options.font)
+        self.doc.setDefaultFont(self.font)
         options.text = ''
         options.widget.style().drawControl(QStyle.ControlElement.CE_ItemViewItem, options, painter)
         painter.translate(options.rect.left(), options.rect.top())

@@ -1,8 +1,9 @@
 # This Python file uses the following encoding: utf-8
 import logging
 import sys
-from pathlib import Path
 from os import path
+from pathlib import Path
+
 directory, file = path.split(__file__)
 directory = path.expanduser(directory)
 directory = path.join(directory, "..")
