@@ -58,7 +58,7 @@ class GdbReader(QObject):
         for response in gdbmi_response:
             if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
                 self.result.append(response["payload"])
-            if response["type"] == "result" and response["message"] == "done":
+            if response["type"] == "result":
                 self.handle_result(response)
             if response["type"] == "notify":
                 self.handle_notify(response)
@@ -70,6 +70,8 @@ class GdbReader(QObject):
         if response["token"] is None:
             self.result = []
             return
+        if response["message"] == "error" and response["payload"] is not None:
+            self.result.append(response["payload"]["msg"])
         token = response["token"]
         if token == tokens.ResponseToken.GUI_HEAP_TRY_FREE:
             self.send_context_update(self.send_heap_try_free_response)
