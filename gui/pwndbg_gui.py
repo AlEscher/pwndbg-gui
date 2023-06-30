@@ -238,7 +238,6 @@ class PwnDbgGui(QMainWindow):
         if context == "main":
             remove_header = False
             # Main should end with newline
-            logger.debug(content)
             if content != b"" and not content.endswith(b"\n"):
                 content += b"\n"
         html = self.parser.to_html(content, remove_header)
