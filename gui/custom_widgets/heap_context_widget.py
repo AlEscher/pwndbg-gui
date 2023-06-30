@@ -53,8 +53,11 @@ class HeapContextWidget(QGroupBox):
         try_free_layout = QVBoxLayout()
         # The layout for the input mask (label and line edit) of the Try Free functionality
         try_free_input_layout = QHBoxLayout()
-        try_free_input_layout.addWidget(QLabel("Try Free:"))
+        try_free_label = QLabel("Try Free:")
+        try_free_label.setToolTip("Simulate a free() call on a heap pointer")
+        try_free_input_layout.addWidget(try_free_label)
         self.try_free_input = QLineEdit()
+        self.try_free_input.setToolTip("Simulate a free() call on a heap pointer")
         self.try_free_input.returnPressed.connect(self.try_free_submit)
         try_free_input_layout.addWidget(self.try_free_input)
         try_free_layout.addLayout(try_free_input_layout)
