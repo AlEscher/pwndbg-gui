@@ -1,9 +1,11 @@
+import ast
 import logging
 import os
+import re
 import sys
 from typing import TYPE_CHECKING, List
 
-from PySide6.QtCore import Qt, QThread, Signal, Slot, QEvent
+from PySide6.QtCore import Qt, Signal, Slot, QEvent
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel, QWidget
 
 sys.path.append(
@@ -119,7 +121,17 @@ class MainContextWidget(QGroupBox):
 
     def submit_input(self):
         user_line = self.input_widget.text()
-        self.inferior_write.emit(user_line.encode() + b"\n")
+        # Check if the user wants to input a byte string literal, i.e. the input is in the form: 'b"MyInput \x12\x34"'
+        if re.match(r'^b".*"$', user_line):
+            # Parse the str as if it were a bytes object (python expressions are also valid)
+            # literal_eval is safer than eval(), however it still poses security risks regarding DoS, which we don't care about
+            logger.debug("Trying to evaluate literal '%s'", user_line)
+            byte_string = ast.literal_eval(user_line)
+            logger.debug("Parsed input as bytes string, final input: %s", byte_string)
+            # Don't pass a newline here, the user needs to specify this himself by writing '\n' at the end of his input
+            self.inferior_write.emit(byte_string)
+        else:
+            self.inferior_write.emit(user_line.encode() + b"\n")
         self.input_widget.clear()
 
     def eventFilter(self, source: QWidget, event: QEvent):
