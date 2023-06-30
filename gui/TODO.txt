@@ -1,6 +1,5 @@
 -Indicate that input goes to inferior
 -Make inferior byte inputs possible
--Scrolling of Widgets
 -Attaching to process (inferior communication)
 -Setup + Run scripts
 -Rightclick context menu for list widgets
