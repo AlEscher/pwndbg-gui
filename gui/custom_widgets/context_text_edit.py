@@ -6,6 +6,9 @@ from PySide6.QtWidgets import QTextEdit, QWidget
 # Prevent circular import error
 if TYPE_CHECKING:
     from gui.pwndbg_gui import PwnDbgGui
+import logging
+
+logger = logging.getLogger(__file__)
 
 
 class ContextTextEdit(QTextEdit):
@@ -18,3 +21,13 @@ class ContextTextEdit(QTextEdit):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
         self.setTextCursor(cursor)
+        self.find_and_set_cursor("►")
+
+    def find_and_set_cursor(self, character: str):
+        cursor = self.textCursor()
+        content = self.toPlainText()
+        char_index = content.find(character)
+        if char_index != -1:
+            cursor.setPosition(char_index)
+            self.setTextCursor(cursor)
+            self.ensureCursorVisible()

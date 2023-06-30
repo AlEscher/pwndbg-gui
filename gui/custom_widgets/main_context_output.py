@@ -21,3 +21,5 @@ class MainContextOutput(ContextTextEdit):
         cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
         self.setTextCursor(cursor)
         self.insertHtml(content)
+        # Scroll to the bottom
+        self.ensureCursorVisible()
