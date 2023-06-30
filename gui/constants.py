@@ -1,5 +1,5 @@
 class PwndbgGuiConstants:
-    FONT = "Consolas"
+    FONT = "Noto Sans Mono"
     BLACK = "#282C34"
     RED = "#ED254E"
     GREEN = "#71F79F"
