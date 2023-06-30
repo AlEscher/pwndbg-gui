@@ -3,8 +3,3 @@
 -Attaching to process
 -Setup + Run scripts
 -Rightclick context menu for list widgets
--command history
-Maybe:
-    - split inferior I/O from main
-    - command autofill
-    - list of breakpoints
