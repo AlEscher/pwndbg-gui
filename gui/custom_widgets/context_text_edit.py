@@ -19,8 +19,10 @@ class ContextTextEdit(QTextEdit):
     def add_content(self, content: str):
         self.setHtml(content)
         cursor = self.textCursor()
+        # Move cursor to the end, so that the subsequent ensureCursorVisible will scroll UP
         cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
         self.setTextCursor(cursor)
+        # Scroll so that the current line in "code" and "disasm" contexts is in view
         self.find_and_set_cursor("►")
 
     def find_and_set_cursor(self, character: str):

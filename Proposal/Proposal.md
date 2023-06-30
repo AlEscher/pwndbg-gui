@@ -41,6 +41,7 @@ This allows us to aggregate and customize output and simplify command input (e.g
 - [x] Allow to start a local executable
 - [ ] Allow attaching to an already running program
   - Functionality is implemented, but requires `sudo` which is problematic for python modules
+  - Inferior communication may require changes
 - [x] Include banners/header for panes
 - [ ] Add `fs_base` to register section
 - [x] Convenience buttons (maybe hotkeys) / fields for `c`, `r`, `n`, `s`, `ni`, `si`
