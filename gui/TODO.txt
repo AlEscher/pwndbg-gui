@@ -1,9 +1,9 @@
 -Attaching to process (inferior communication)
 -Rightclick context menu for list widgets
--fs_base
--Watches scrollable in widget
 -Watches show hexdump output
 -Watches lines in effect
+
+-Icon for delete watch button
 
 Tooltip fix
 QT sudo fix
