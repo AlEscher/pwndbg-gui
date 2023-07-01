@@ -5,10 +5,13 @@ from PySide6.QtWidgets import QTextEdit
 from constants import PwndbgGuiConstants
 
 import logging
+
 logger = logging.getLogger(__file__)
+
 
 class ContextParser:
     """Parses raw output from gdb/pwndbg containing ASCII control characters into equivalent HTML code"""
+
     def __init__(self):
         # Misuse QTextEdit as a HTML parser
         self.parser = QTextEdit()
@@ -24,15 +27,21 @@ class ContextParser:
             updated_lines = lines[2:][:-2]
             raw_output = b"\n".join(updated_lines)
 
-
         tokens = raw_output.split(b"\x1b[")
         for token in tokens:
             self.parse_ascii_control(token)
         self.reset_font()
 
     def to_html(self, raw_output: bytes, remove_headers=False) -> str:
+        """Parses output containing ASCII control characters into equivalent HTML code"""
         self.parse(raw_output, remove_headers)
         return self.parser.toHtml()
+
+    def from_html(self, html: str):
+        """Takes HTML and returns the plain text content"""
+        self.reset()
+        self.parser.setHtml(html)
+        return self.parser.toPlainText()
 
     def reset_font(self):
         self.parser.setFontWeight(QFont.Weight.Normal)
@@ -84,7 +93,7 @@ class ContextParser:
                 b = int(args[4])
                 self.parser.setTextColor(QColor.fromRgb(r, g, b, 255))
             # Add the "m" into the start for stripping
-            start = token[:token.index(b"m")+1]
+            start = token[:token.index(b"m") + 1]
             self.parser.insertPlainText(token.replace(start, b"", 1).decode())
         elif start == b"39m":
             self.parser.setTextColor(Qt.GlobalColor.white)
