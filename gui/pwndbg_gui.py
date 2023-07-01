@@ -71,6 +71,7 @@ class PwnDbgGui(QMainWindow):
         self.setup_menu()
         self.gdb_handler.init()
         self.setup_inferior()
+        self.showMaximized()
 
     def setup_custom_widgets(self):
         """Ugly workaround to allow to use custom widgets.
