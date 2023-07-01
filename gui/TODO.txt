@@ -1,7 +1,9 @@
 -Attaching to process (inferior communication)
 -Rightclick context menu for list widgets
 -fs_base
--watches hexdump display (with tree widgets)
+-Watches only be added once (multiple times the same address fix)
+-Watches scrollable in widget
+-Watches show hexdump output
 
 Tooltip fix
 QT sudo fix
