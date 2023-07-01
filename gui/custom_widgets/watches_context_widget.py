@@ -104,13 +104,14 @@ class HDumpContextWidget(QGroupBox):
         # Currently watched addresses to ContextTextWidgets
         self.watches: Dict[str, Tuple[Spoiler, ContextTextEdit]] = {}
         # UI init
-        self.watches_output: [ContextTextEdit] | None = None
+        self.active_watches_layout = QVBoxLayout()
         self.new_watch_input: QLineEdit | None = None
         # The watch context
         self.context_layout = QVBoxLayout()
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setFlat(True)
         self.setTitle("Watches")
+        # Connect signals for gdb_handler communication
         self.add_watch.connect(parent.gdb_handler.add_watch)
         self.del_watch.connect(parent.gdb_handler.del_watch)
         # Set up the interior layout of this widget
@@ -132,20 +133,16 @@ class HDumpContextWidget(QGroupBox):
         new_watch_widget = QWidget(self)
         new_watch_widget.setLayout(new_watch_input_layout)
         self.context_layout.addWidget(new_watch_widget)
-        # Active Watches test alignment
-        #self.setup_new_watch_widget("0x4011c2")
-        #self.setup_new_watch_widget("0x4011d2")
-        '''
-        self.watches_output = []
-        for i in range(5):
-            new_watch_spoiler_layout = QHBoxLayout()
-            new_watch_label = QLabel("I am a Test")
-            new_watch_spoiler_layout.addWidget(new_watch_label)
-            new_watch_button = QPushButton("Test button")
-            new_watch_spoiler_layout.addWidget(new_watch_button)
-            self.watches_output.append(Spoiler(new_watch_spoiler_layout, parent=self, title="test"))
-            self.context_layout.addWidget(self.watches_output[i])
-        '''
+
+        # Wrapper for QScrollArea widget for added watches
+        watches_scroll_area = QScrollArea(self)
+        watches_scroll_area.setWidgetResizable(True)
+        # Widget for the QScrollArea
+        vertical_scroll_widget = QWidget(self)
+        self.active_watches_layout = QVBoxLayout(vertical_scroll_widget)
+        watches_scroll_area.setWidget(vertical_scroll_widget)
+        self.context_layout.addWidget(watches_scroll_area)
+
         self.setLayout(self.context_layout)
 
     def setup_new_watch_widget(self, address: str):
@@ -178,12 +175,15 @@ class HDumpContextWidget(QGroupBox):
         spoiler = Spoiler(inter_spoiler_layout, parent=self, title=address)
         # Add watch to outer context
         self.watches[address] = (spoiler, hexdump_output)
-        self.context_layout.addWidget(spoiler)
+        self.active_watches_layout.addWidget(spoiler)
 
     @Slot()
     def new_watch_submit(self):
         """Callback for when the user presses Enter in the new_watch input mask"""
         param = self.new_watch_input.text()
+        if param in self.watches.keys():
+            self.new_watch_input.clear()
+            return
         self.setup_new_watch_widget(param)
         self.add_watch.emit(param)
         self.new_watch_input.clear()
@@ -199,5 +199,5 @@ class HDumpContextWidget(QGroupBox):
     @Slot(bytes)
     def receive_hexdump_result(self, result: bytes):
         """Callback for receiving the result of the 'hexdump' command from the GDB reader"""
-        #self.watches_output[0].add_content(self.parser.to_html(result))
+        # self.watches_output[0].add_content(self.parser.to_html(result))
         pass
