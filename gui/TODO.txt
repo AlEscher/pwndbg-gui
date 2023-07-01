@@ -1,8 +1,9 @@
 -Attaching to process (inferior communication)
 -Rightclick context menu for list widgets
--Watches lines in effect
+
 -Watches Context text size adapt
 -Icon for delete watch button
+-Hexdump error in type log (Kill me)
 -Feedback for dying threads
 -Remember spliter config
 

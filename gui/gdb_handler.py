@@ -23,7 +23,7 @@ class GdbHandler(QObject):
         self.contexts = ['regs', 'stack', 'disasm', 'code', 'backtrace']
         self.controller = gdbcontroller.GdbController()
         # active watches in the form of {address: (idx , number of lines)}
-        self.watches: Dict[str, Tuple[int, int]] = {}
+        self.watches: Dict[str, List[int]] = {}
 
     def write_to_controller(self, token: ResponseToken, command: str):
         self.controller.write(str(token) + command, read_response=False)
@@ -114,7 +114,7 @@ class GdbHandler(QObject):
 
     @Slot(str, int)
     def add_watch(self, param: str, idx: int):
-        self.watches[param] = (idx, PwndbgGuiConstants.DEFAULT_WATCH_LINES)
+        self.watches[param] = [idx, PwndbgGuiConstants.DEFAULT_WATCH_LINES]
         logger.debug("Added to watchlist: %s with index %d", param, idx)
         self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP + idx,
                                  " ".join(["hexdump", param, str(PwndbgGuiConstants.DEFAULT_WATCH_LINES)]))
@@ -123,3 +123,10 @@ class GdbHandler(QObject):
     def del_watch(self, param: str):
         logger.debug("Deleted watch %s with index %d", param, self.watches[param][0])
         del self.watches[param]
+
+    @Slot(str, int)
+    def change_watch_lines (self, param: str, lines: int):
+        self.watches[param][1] = lines
+        logger.debug("Adapted line count for watch %s to %d", param, lines)
+        self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP + self.watches[param][0],
+                                 " ".join(["hexdump", param, str(lines)]))

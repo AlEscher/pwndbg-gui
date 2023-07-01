@@ -99,6 +99,8 @@ class HDumpContextWidget(QGroupBox):
     add_watch = Signal(str, int)
     # Delete watch in controller
     del_watch = Signal(str)
+    # Change num of watch lines in controller
+    change_lines_watch = Signal(str, int)
 
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
@@ -118,6 +120,7 @@ class HDumpContextWidget(QGroupBox):
         # Connect signals for gdb_handler communication
         self.add_watch.connect(parent.gdb_handler.add_watch)
         self.del_watch.connect(parent.gdb_handler.del_watch)
+        self.change_lines_watch.connect(parent.gdb_handler.change_watch_lines)
         # Set up the interior layout of this widget
         self.setup_widget_layout()
         # Insert this widget into the UI
@@ -156,12 +159,13 @@ class HDumpContextWidget(QGroupBox):
         watch_interact_layout = QHBoxLayout()
         watch_interact_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        # bytes Spinbox
+        # Bytes Spinbox
         watch_lines_label = QLabel("Bytes:")
         watch_interact_layout.addWidget(watch_lines_label)
         watch_lines_incrementor = QSpinBox()
         watch_lines_incrementor.setRange(1, 999)
         watch_lines_incrementor.setValue(PwndbgGuiConstants.DEFAULT_WATCH_LINES)
+        watch_lines_incrementor.valueChanged.connect(lambda value: self.change_lines_watch.emit(address, value))
         watch_interact_layout.addWidget(watch_lines_incrementor)
 
         # Delete button
@@ -203,7 +207,7 @@ class HDumpContextWidget(QGroupBox):
 
     @Slot(int, bytes)
     def receive_hexdump_result(self, token: int, result: bytes):
-        """Callback for receiving the result of the 'hexdump' command from the GDB reader"""
+        """Slot for receiving the result of the 'hexdump' command from the GDB reader"""
         index = token - ResponseToken.GUI_WATCHES_HEXDUMP
         for key, value in self.watches.items():
             if value[2] == index:
