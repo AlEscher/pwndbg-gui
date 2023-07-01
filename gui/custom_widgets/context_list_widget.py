@@ -35,14 +35,14 @@ def delete_last_html_tag(string):
 
 
 def find_hex_values(line: str):
-    # Filter out empty matches
     pattern = re.compile(r"0x[0-9a-fA-F]+", re.UNICODE)
+    # Filter out empty matches
     hex_values = [match for match in pattern.findall(line) if match]
     first_value = ""
     second_value = ""
-    if len(hex_values) > 1:
+    if len(hex_values) > 0:
         first_value = hex_values[0]
-    if len(hex_values) > 2:
+    if len(hex_values) > 1:
         second_value = hex_values[1]
     return first_value, second_value
 
@@ -64,7 +64,6 @@ class ContextListWidget(QListWidget):
             item.setData(Qt.ItemDataRole.DisplayRole, cleaned)
             plain_text = self.parser.from_html(line)
             address, value = find_hex_values(plain_text)
-            logger.debug("Found %s and %s in %s", address, value, plain_text)
             item.setData(ContextDataRole.ADDRESS, address)
             item.setData(ContextDataRole.VALUE, value)
 
