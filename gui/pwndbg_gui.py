@@ -301,7 +301,7 @@ def run_gui():
     app.setPalette(dark_palette)
 
     window = PwnDbgGui()
-    window.show()
+    window.showMaximized()
     sys.exit(app.exec())
 
 
