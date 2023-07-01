@@ -43,20 +43,20 @@ This allows us to aggregate and customize output and simplify command input (e.g
   - Functionality is implemented, but requires `sudo` which is problematic for python modules
   - Inferior communication may require changes
 - [x] Include banners/header for panes
-- [ ] Add `fs_base` to register section
+- [x] Add `fs_base` to register section
 - [x] Convenience buttons (maybe hotkeys) / fields for `c`, `r`, `n`, `s`, `ni`, `si`
 - [ ] Add a `search` functionality
+- [ ] Add a context menu to `stack`/`regs` to allow copy and display information about data (e.g. offsets)
 - [x] +/- buttons for adding `pwndbg` context-stack lines
-- [ ] Editing of memory (e.g. registers, stack, heap) via UI (e.g. double-click on stack line)
 - [x] New context: Heap
     - Add a new context to the ones `pwndbg` already offers (stack, backtrace, etc...) for the heap
     - Continuosly show heap related information (`heap` command, `main_arena`, fastbins, smallbins)
     - Also allow to use `pwndbgs`'s `try_free`
-- [ ] New context: `hexdump`
+- [x] New context: `hexdump`
     - Allow the user to actively "Watch" a number of addresses via hexdump
     - Increase / Decrease number of lines shown via GUI buttons
 
-## Additional (optional) Features
+## Additional (possibly future) Features
 
 - Easier inputting of payloads (e.g. via files)
 - Setting breakpoint in source or disassembly via GUI
@@ -66,3 +66,4 @@ This allows us to aggregate and customize output and simplify command input (e.g
 - Remember layout on startup
   - Sizes of splitters
   - Arrangement of contexts (custom context layout not yet supported)
+- - [ ] Editing of memory (e.g. registers, stack, heap) via UI (e.g. double-click on stack line)
