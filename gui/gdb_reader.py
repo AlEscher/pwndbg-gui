@@ -61,12 +61,12 @@ class GdbReader(QObject):
         for response in gdbmi_response:
             if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
                 self.result.append(response["payload"])
-            if response["type"] == "result":
+            elif response["type"] == "result":
                 self.handle_result(response)
-            if response["type"] == "notify":
+            elif response["type"] == "notify":
                 self.handle_notify(response)
             # Ugly way of catching specific log
-            if response["type"] == "log" and response[
+            elif response["type"] == "log" and response[
                 "payload"] == "No symbol table is loaded.  Use the \"file\" command.\n":
                 self.result.append(response["payload"])
 
@@ -85,7 +85,7 @@ class GdbReader(QObject):
             self.send_context_update(self.send_heap_bins_response)
         elif token == tokens.ResponseToken.GUI_WATCHES_HEXDUMP:
             self.send_context_update(self.send_watches_hexdump_response)
-        elif token != 0:
+        elif token != tokens.ResponseToken.DELETE:
             # We found a token -> send it to the corresponding context
             self.send_update_gui(token)
         else:
@@ -99,7 +99,7 @@ class GdbReader(QObject):
             # When we start the inferior we should flush everything we have to main
             self.send_main_update()
             self.inferior_state_changed.emit(False)
-        if response["message"] == "stopped":
+        elif response["message"] == "stopped":
             # Don't go from EXITED->STOPPED state
             self.inferior_state_changed.emit(True)
             if InferiorHandler.INFERIOR_STATE != InferiorState.EXITED:
@@ -112,10 +112,10 @@ class GdbReader(QObject):
                     "reason"] == "end-stepping-range" or response["payload"]["reason"] == "exited":
                     # This must be treated as a result token, send results to main context output
                     self.send_main_update()
-        if response["message"] == "thread-group-exited":
+        elif response["message"] == "thread-group-exited":
             logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
-        if response["message"] == "cmd-param-changed" and response["payload"] is not None:
+        elif response["message"] == "cmd-param-changed" and response["payload"] is not None:
             if response["payload"][
                 "param"] == "context-stack-lines" and InferiorHandler.INFERIOR_STATE == InferiorState.QUEUED:
                 self.set_context_stack_lines.emit(int(response["payload"]["value"]))
