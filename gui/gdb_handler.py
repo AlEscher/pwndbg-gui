@@ -57,6 +57,7 @@ class GdbHandler(QObject):
             # Update heap
             self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
             self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
+            self.write_to_controller(ResponseToken.GUI_REGS_FS_BASE, "fsbase")
             # Update watches
             logger.debug("updating following watches: ")
             for watch in self.watches:
