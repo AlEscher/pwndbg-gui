@@ -161,7 +161,7 @@ class HDumpContextWidget(QGroupBox):
         watch_interact_layout.addWidget(watch_lines_incrementor)
 
         # Delete button
-        delete_watch_button = QPushButton("🗑")
+        delete_watch_button = QPushButton("Delete Watch")
         delete_watch_button.clicked.connect(lambda: self.delete_watch_submit(address))
         watch_interact_layout.addWidget(delete_watch_button)
 
