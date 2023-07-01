@@ -79,8 +79,10 @@ class ContextListWidget(QListWidget):
         cleaned = self.parser.to_html(b" \x1b[1mFS \x1b[0m \x1b[35m" + content + b"\x1b[0m").splitlines()
         # Remove unneeded lines containing only HTML, as "content" will be a full HTML document returned by the parser
         body_start = cleaned.index(next(line for line in cleaned if "<body" in line))
-        cleaned_line = delete_first_html_tag(delete_last_html_tag(cleaned[body_start+1]))
-        item = QListWidgetItem(cleaned_line, self)
+        cleaned_line = delete_first_html_tag(delete_last_html_tag(cleaned[body_start + 1]))
+        item = QListWidgetItem(self)
+        item.setData(Qt.ItemDataRole.DisplayRole, cleaned_line)
+        item.setData(ContextDataRole.ADDRESS, content.decode().strip())
 
     def keyPressEvent(self, event):
         # Capture Ctrl+C
