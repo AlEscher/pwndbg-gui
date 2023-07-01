@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import re
 
 from PySide6.QtCore import Slot, Qt
-from PySide6.QtWidgets import QListWidget, QListWidgetItem, QApplication
+from PySide6.QtWidgets import QListWidget, QListWidgetItem, QApplication, QMenu
 
 from gui.context_data_role import ContextDataRole
 from gui.parser import ContextParser
@@ -47,6 +47,12 @@ def find_hex_values(line: str):
     return first_value, second_value
 
 
+def set_data_to_clipboard(item: QListWidgetItem, role: ContextDataRole):
+    data = item.data(role)
+    if data is not None:
+        QApplication.clipboard().setText(data)
+
+
 class ContextListWidget(QListWidget):
     def __init__(self, parent: 'PwnDbgGui', ):
         super().__init__(parent)
@@ -87,3 +93,18 @@ class ContextListWidget(QListWidget):
                     QApplication.clipboard().setText(data)
                 return
         super().keyPressEvent(event)
+
+    def contextMenuEvent(self, event):
+        selected_items = self.selectedItems()
+        if selected_items is None or len(selected_items) == 0:
+            super().contextMenuEvent(event)
+            return
+        menu = QMenu(self)
+        copy_addr_action = menu.addAction("Copy Address")
+        copy_val_action = menu.addAction("Copy Value")
+        action = menu.exec(event.globalPos())
+        item = selected_items[0]
+        if action == copy_addr_action:
+            set_data_to_clipboard(item, ContextDataRole.ADDRESS)
+        elif action == copy_val_action:
+            set_data_to_clipboard(item, ContextDataRole.VALUE)
