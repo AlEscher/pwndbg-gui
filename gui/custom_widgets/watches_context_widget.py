@@ -175,7 +175,7 @@ class HDumpContextWidget(QGroupBox):
         spoiler = Spoiler(inter_spoiler_layout, parent=self, title=address)
         # Add watch to outer context
         self.watches[address] = (spoiler, hexdump_output)
-        self.active_watches_layout.addWidget(spoiler)
+        self.active_watches_layout.insertWidget(0, spoiler)
 
     @Slot()
     def new_watch_submit(self):
