@@ -173,6 +173,8 @@ class PwnDbgGui(QMainWindow):
         self.gdb_reader.send_heap_bins_response.connect(self.ui.heap.receive_bins_result)
         # Allow the watches context to receive the hexdump results
         self.gdb_reader.send_watches_hexdump_response.connect(self.ui.watches.receive_hexdump_result)
+        # Allow the "regs" context to receive information about the fs register
+        self.gdb_reader.send_fs_base_response.connect(self.ui.regs.receive_fs_base)
         # Thread cleanup
         self.gdb_handler_thread.finished.connect(self.gdb_handler.deleteLater)
         self.gdb_reader_thread.finished.connect(self.gdb_reader.deleteLater)
