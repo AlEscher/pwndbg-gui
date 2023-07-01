@@ -1,4 +1,5 @@
 class PwndbgGuiConstants:
+    DEFAULT_WATCH_LINES = 64
     FONT = "Noto Sans Mono"
     BLACK = "#282C34"
     RED = "#ED254E"

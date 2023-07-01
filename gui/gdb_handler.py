@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Tuple
 
 from PySide6.QtCore import QObject, Slot, Signal
 from pygdbmi import gdbcontroller
@@ -8,6 +8,7 @@ from pygdbmi import gdbcontroller
 from gui.inferior_handler import InferiorHandler
 from gui.inferior_state import InferiorState
 from tokens import ResponseToken, Context_to_Token
+from gui.constants import PwndbgGuiConstants
 
 logger = logging.getLogger(__file__)
 
@@ -21,7 +22,8 @@ class GdbHandler(QObject):
         self.past_commands: List[str] = []
         self.contexts = ['regs', 'stack', 'disasm', 'code', 'backtrace']
         self.controller = gdbcontroller.GdbController()
-        self.watches: List[str] = []
+        # active watches in the form of {address: (idx , number of lines)}
+        self.watches: Dict[str, Tuple[int, int]] = {}
 
     def write_to_controller(self, token: ResponseToken, command: str):
         self.controller.write(str(token) + command, read_response=False)
@@ -59,10 +61,10 @@ class GdbHandler(QObject):
             self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
             self.write_to_controller(ResponseToken.GUI_REGS_FS_BASE, "fsbase")
             # Update watches
-            logger.debug("updating following watches: ")
-            for watch in self.watches:
-                logger.debug("%s", watch)
-                self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP, "hexdump " + watch)
+            logger.debug("updating watches: ")
+            for watch, params in self.watches.items():
+                logger.debug("updating watch: %s", watch)
+                self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP + params[0], " ".join(["hexdump", watch, str(params[1])]))
         except Exception as e:
             logger.warning("Error while sending command '%s': '%s'", cmd, str(e))
 
@@ -110,12 +112,14 @@ class GdbHandler(QObject):
     def execute_try_free(self, param: str):
         self.write_to_controller(ResponseToken.GUI_HEAP_TRY_FREE, " ".join(["try_free", param]))
 
-    @Slot(str)
-    def add_watch(self, param: str):
-        logger.debug("added to watchlist: %s", param)
-        self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP, " ".join(["hexdump", param]))
-        self.watches.append(param)
+    @Slot(str, int)
+    def add_watch(self, param: str, idx: int):
+        self.watches[param] = (idx, PwndbgGuiConstants.DEFAULT_WATCH_LINES)
+        logger.debug("Added to watchlist: %s with index %d", param, idx)
+        self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP + idx,
+                                 " ".join(["hexdump", param, str(PwndbgGuiConstants.DEFAULT_WATCH_LINES)]))
 
     @Slot(str)
     def del_watch(self, param: str):
-        self.watches.remove(param)
+        logger.debug("Deleted watch %s with index %d", param, self.watches[param][0])
+        del self.watches[param]

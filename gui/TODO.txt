@@ -1,9 +1,10 @@
 -Attaching to process (inferior communication)
 -Rightclick context menu for list widgets
--Watches show hexdump output
 -Watches lines in effect
-
+-Watches Context text size adapt
 -Icon for delete watch button
+-Feedback for dying threads
+-Remember spliter config
 
 Tooltip fix
 QT sudo fix

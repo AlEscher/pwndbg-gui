@@ -7,6 +7,8 @@ from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QLine
 
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.parser import ContextParser
+from gui.constants import PwndbgGuiConstants
+from gui.tokens import ResponseToken
 
 # Prevent circular import error
 if TYPE_CHECKING:
@@ -94,7 +96,7 @@ class Spoiler(QWidget):
 
 class HDumpContextWidget(QGroupBox):
     # Execute "hexdump" in pwndbg and add watch in controller
-    add_watch = Signal(str)
+    add_watch = Signal(str, int)
     # Delete watch in controller
     del_watch = Signal(str)
 
@@ -102,7 +104,9 @@ class HDumpContextWidget(QGroupBox):
         super().__init__(parent)
         self.parser = ContextParser()
         # Currently watched addresses to ContextTextWidgets
-        self.watches: Dict[str, Tuple[Spoiler, ContextTextEdit]] = {}
+        # Format {address: (Spoiler, Textfield, index, current lines)}
+        self.watches: Dict[str, Tuple[Spoiler, ContextTextEdit, int, int]] = {}
+        self.idx = 0
         # UI init
         self.active_watches_layout = QVBoxLayout()
         self.new_watch_input: QLineEdit | None = None
@@ -157,7 +161,7 @@ class HDumpContextWidget(QGroupBox):
         watch_interact_layout.addWidget(watch_lines_label)
         watch_lines_incrementor = QSpinBox()
         watch_lines_incrementor.setRange(1, 999)
-        watch_lines_incrementor.setValue(32)
+        watch_lines_incrementor.setValue(PwndbgGuiConstants.DEFAULT_WATCH_LINES)
         watch_interact_layout.addWidget(watch_lines_incrementor)
 
         # Delete button
@@ -174,7 +178,8 @@ class HDumpContextWidget(QGroupBox):
         # Setup Spoiler
         spoiler = Spoiler(inter_spoiler_layout, parent=self, title=address)
         # Add watch to outer context
-        self.watches[address] = (spoiler, hexdump_output)
+        self.watches[address] = (spoiler, hexdump_output, self.idx, PwndbgGuiConstants.DEFAULT_WATCH_LINES)
+        self.idx += 1
         self.active_watches_layout.insertWidget(0, spoiler)
 
     @Slot()
@@ -185,7 +190,7 @@ class HDumpContextWidget(QGroupBox):
             self.new_watch_input.clear()
             return
         self.setup_new_watch_widget(param)
-        self.add_watch.emit(param)
+        self.add_watch.emit(param, self.watches[param][2])
         self.new_watch_input.clear()
 
     @Slot(str)
@@ -196,8 +201,12 @@ class HDumpContextWidget(QGroupBox):
         del self.watches[address]
         self.del_watch.emit(address)
 
-    @Slot(bytes)
-    def receive_hexdump_result(self, result: bytes):
+    @Slot(int, bytes)
+    def receive_hexdump_result(self, token: int, result: bytes):
         """Callback for receiving the result of the 'hexdump' command from the GDB reader"""
-        # self.watches_output[0].add_content(self.parser.to_html(result))
-        pass
+        index = token - ResponseToken.GUI_WATCHES_HEXDUMP
+        for key, value in self.watches.items():
+            if value[2] == index:
+                value[1].add_content(self.parser.to_html(result))
+                break
+
