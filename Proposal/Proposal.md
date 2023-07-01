@@ -43,7 +43,7 @@ This allows us to aggregate and customize output and simplify command input (e.g
   - Functionality is implemented, but requires `sudo` which is problematic for python modules
   - Inferior communication may require changes
 - [x] Include banners/header for panes
-- [ ] Add `fs_base` to register section
+- [x] Add `fs_base` to register section
 - [x] Convenience buttons (maybe hotkeys) / fields for `c`, `r`, `n`, `s`, `ni`, `si`
 - [ ] Add a `search` functionality
 - [x] +/- buttons for adding `pwndbg` context-stack lines
@@ -52,7 +52,7 @@ This allows us to aggregate and customize output and simplify command input (e.g
     - Add a new context to the ones `pwndbg` already offers (stack, backtrace, etc...) for the heap
     - Continuosly show heap related information (`heap` command, `main_arena`, fastbins, smallbins)
     - Also allow to use `pwndbgs`'s `try_free`
-- [ ] New context: `hexdump`
+- [x] New context: `hexdump`
     - Allow the user to actively "Watch" a number of addresses via hexdump
     - Increase / Decrease number of lines shown via GUI buttons
 
