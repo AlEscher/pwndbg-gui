@@ -1,9 +1,9 @@
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Dict, Tuple
 
 from PySide6.QtCore import Qt, Signal, Slot, QParallelAnimationGroup, QPropertyAnimation, QAbstractAnimation
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QWidget, \
-    QPushButton, QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout
+    QPushButton, QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout, QSpinBox
 
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.parser import ContextParser
@@ -101,8 +101,8 @@ class HDumpContextWidget(QGroupBox):
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
         self.parser = ContextParser()
-        # Currently watched addresses
-        self.watches: List[str] = []
+        # Currently watched addresses to ContextTextWidgets
+        self.watches: Dict[str, Tuple[Spoiler, ContextTextEdit]] = {}
         # UI init
         self.watches_output: [ContextTextEdit] | None = None
         self.new_watch_input: QLineEdit | None = None
@@ -133,6 +133,9 @@ class HDumpContextWidget(QGroupBox):
         new_watch_widget.setLayout(new_watch_input_layout)
         self.context_layout.addWidget(new_watch_widget)
         # Active Watches test alignment
+        #self.setup_new_watch_widget("0x4011c2")
+        #self.setup_new_watch_widget("0x4011d2")
+        '''
         self.watches_output = []
         for i in range(5):
             new_watch_spoiler_layout = QHBoxLayout()
@@ -142,26 +145,56 @@ class HDumpContextWidget(QGroupBox):
             new_watch_spoiler_layout.addWidget(new_watch_button)
             self.watches_output.append(Spoiler(new_watch_spoiler_layout, parent=self, title="test"))
             self.context_layout.addWidget(self.watches_output[i])
-
+        '''
         self.setLayout(self.context_layout)
 
     def setup_new_watch_widget(self, address: str):
-        pass
+        # Setup inter Spoiler layout
+        inter_spoiler_layout = QVBoxLayout()
+        # First setup HBoxLayout for delete and lines
+        watch_interact_layout = QHBoxLayout()
+        watch_interact_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
+        # bytes Spinbox
+        watch_lines_label = QLabel("Bytes:")
+        watch_interact_layout.addWidget(watch_lines_label)
+        watch_lines_incrementor = QSpinBox()
+        watch_lines_incrementor.setRange(1, 999)
+        watch_lines_incrementor.setValue(32)
+        watch_interact_layout.addWidget(watch_lines_incrementor)
+
+        # Delete button
+        delete_watch_button = QPushButton("Delete Watch")
+        delete_watch_button.clicked.connect(lambda: self.delete_watch_submit(address))
+        watch_interact_layout.addWidget(delete_watch_button)
+
+        spoiler_interact_widget = QWidget(self)
+        spoiler_interact_widget.setLayout(watch_interact_layout)
+        inter_spoiler_layout.addWidget(spoiler_interact_widget)
+        # Second setup hexdump output
+        hexdump_output = ContextTextEdit(self)
+        inter_spoiler_layout.addWidget(hexdump_output)
+        # Setup Spoiler
+        spoiler = Spoiler(inter_spoiler_layout, parent=self, title=address)
+        # Add watch to outer context
+        self.watches[address] = (spoiler, hexdump_output)
+        self.context_layout.addWidget(spoiler)
+
+    @Slot()
     def new_watch_submit(self):
         """Callback for when the user presses Enter in the new_watch input mask"""
         param = self.new_watch_input.text()
-        self.watches.append(param)
         self.setup_new_watch_widget(param)
         self.add_watch.emit(param)
         self.new_watch_input.clear()
 
-    def delete_watch_submit(self):
-        """Callback for when the user presses Delete in the new_watch input mask"""
-        param = self.new_watch_input.text()
-        self.watches.remove(param)
-        self.del_watch.emit(param)
-        self.new_watch_input.clear()
+    @Slot(str)
+    def delete_watch_submit(self, address: str):
+        """Callback for when the user presses Delete in one of the watch spoilers"""
+        self.context_layout.removeWidget(self.watches[address][0])
+        self.watches[address][0].deleteLater()
+        del self.watches[address]
+        self.del_watch.emit(address)
 
     @Slot(bytes)
     def receive_hexdump_result(self, result: bytes):
