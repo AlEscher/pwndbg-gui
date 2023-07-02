@@ -1,12 +1,20 @@
 -Attaching to process (inferior communication)
 -Rightclick context menu for list widgets
 -Add shortcuts for context menu actions
+-Start button
 
--Update hexdump only when inferior is not exited
+-Resize via keyboard does shitty stuff fix
 -Hexdump error in type log (Kill me)
+
+-Stack and Registers may linewrap when there is no space resulting in overlapping lines
 
 -Feedback for dying threads
 -Remember spliter config
 
 Tooltip fix  https://forum.qt.io/topic/118549/changine-palette-to-dark-doesn-t-change-everything/2
 QT sudo fix
+
+
+MAYBE:
+    -Refactor Watches to use an extra class
+    -Refactor add content of watch context

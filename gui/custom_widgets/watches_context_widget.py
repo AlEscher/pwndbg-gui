@@ -241,8 +241,9 @@ class HDumpContextWidget(QGroupBox):
             if value[2] == index:
                 # First throw away the offset column which apparently requires 98329285 list comprehensions
                 lines = result.split(b'\n')
-                # Remove empty byte objects because reasons
+                # Remove empty byte objects
                 lines = [line for line in lines if line]
+                # Throwaway the first column if it is an offset column
                 trimmed_lines = [line.split(b' ', 1)[1] if line.startswith(b"+0") else line for line in lines]
                 content = b'\n'.join(trimmed_lines)
                 # Add contents
