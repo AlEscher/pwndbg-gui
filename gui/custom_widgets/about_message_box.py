@@ -1,7 +1,6 @@
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QIcon, QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QScrollArea, QWidget, QLabel, QVBoxLayout, QDialog, QPushButton, \
-    QDialogButtonBox
+from PySide6.QtWidgets import QVBoxLayout, QDialog, QPushButton, QDialogButtonBox
 
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 
