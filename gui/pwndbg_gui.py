@@ -4,7 +4,7 @@ import sys
 from os import path
 from pathlib import Path
 
-from gui.custom_widgets.about_message_box import AboutMessageBox
+from gui.custom_widgets.info_message_box import InfoMessageBox
 from gui.custom_widgets.backtrace_context_widget import BacktraceContextWidget
 from gui.custom_widgets.code_context_widget import CodeContextWidget
 from gui.custom_widgets.disasm_context_widget import DisasmContextWidget
@@ -261,14 +261,16 @@ class PwnDbgGui(QMainWindow):
     @Slot()
     def about_pwndbg(self):
         """Display the About section for pwndbg"""
-        popup = AboutMessageBox("About Pwndbg", self.pwndbg_cmds, "https://github.com/pwndbg/pwndbg#pwndbg")
+        popup = InfoMessageBox(self, "About Pwndbg", self.pwndbg_cmds, "https://github.com/pwndbg/pwndbg#pwndbg")
         popup.exec()
 
     @Slot(bytes)
     def display_xinfo_result(self, content: bytes):
         message = self.parser.to_html(content)
-        popup = AboutMessageBox("xinfo", message, "")
-        popup.exec()
+        # pwndbg doesn't seem to have documentation on commands, so we link to code ¯\_(ツ)_/¯
+        popup = InfoMessageBox(self, "xinfo", message, "https://github.com/pwndbg/pwndbg/blob/dev/pwndbg/commands"
+                                                       "/xinfo.py#L102")
+        popup.show()
 
 
 def run_gui():
