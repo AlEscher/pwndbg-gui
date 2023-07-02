@@ -34,7 +34,7 @@ class MainContextWidget(QGroupBox):
         super().__init__(parent)
         self.update_gui.connect(parent.update_pane)
         self.buttons_data = {'&r': (self.run, "media-playback-start"), '&c': (self.continue_execution, "media-skip-forward"), '&n': (self.next, "media-seek-forward"),
-                             '&s': (self.step, "go-next"), 'ni': (self.next_instruction, None), 'si': (self.step_into, None)}
+                             '&s': (self.step, "go-bottom"), 'ni': (self.next_instruction, "go-next"), 'si': (self.step_into, "go-down")}
         self.start_update_worker(parent)
         self.input_label = QLabel(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>")
         self.output_widget = MainContextOutput(self)
