@@ -31,11 +31,12 @@ class InferiorHandler(QObject):
         self.tty = os.ttyname(self.slave)
         logger.debug("Opened tty for inferior interaction: %s", self.tty)
         self.to_write = b""
+        self.run = True
 
     @Slot()
     def inferior_runs(self):
         logger.debug("Starting Inferior Interaction")
-        while True:
+        while self.run:
             can_read, _, _ = select.select([self.master], [], [], 0.2)  # Non-blocking check for readability
             if can_read:
                 # read data and send it to main
@@ -49,3 +50,7 @@ class InferiorHandler(QObject):
     @Slot(bytes)
     def inferior_write(self, inferior_input: bytes):
         self.to_write += inferior_input
+
+    @Slot()
+    def set_run(self, state: bool):
+        self.run = state

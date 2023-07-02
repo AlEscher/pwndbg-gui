@@ -178,6 +178,7 @@ class PwnDbgGui(QMainWindow):
         # Thread cleanup
         self.gdb_handler_thread.finished.connect(self.gdb_handler.deleteLater)
         self.gdb_reader_thread.finished.connect(self.gdb_reader.deleteLater)
+        self.stop_gdb_threads.connect(lambda: self.gdb_reader.set_run(False))
         self.stop_gdb_threads.connect(self.gdb_handler_thread.quit)
         self.stop_gdb_threads.connect(self.gdb_reader_thread.quit)
         logger.debug("Starting new worker threads")
@@ -196,6 +197,7 @@ class PwnDbgGui(QMainWindow):
         self.gdb_handler.execute_cmd(["tty ", self.inferior_handler.tty])
         # Thread cleanup
         self.inferior_thread.finished.connect(self.inferior_handler.deleteLater())
+        self.stop_gdb_threads.connect(lambda: self.inferior_handler.set_run(False))
         self.stop_gdb_threads.connect(self.inferior_thread.quit)
         # Thread start
         self.inferior_thread.started.connect(self.inferior_handler.inferior_runs)
@@ -205,6 +207,12 @@ class PwnDbgGui(QMainWindow):
         """Called when window is closed. Stop our worker threads"""
         logger.debug("Stopping GDB threads")
         self.stop_gdb_threads.emit()
+        logger.debug("Waiting for GDB Handler thread")
+        self.gdb_handler_thread.wait()
+        logger.debug("Waiting for GDB Reader thread")
+        self.gdb_reader_thread.wait()
+        logger.debug("Waiting for Inferior thread")
+        self.inferior_thread.wait()
 
     def add_stack_header(self, layout: QVBoxLayout):
         # Add a stack count inc-/decrementor
