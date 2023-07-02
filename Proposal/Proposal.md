@@ -36,7 +36,7 @@ This allows us to aggregate and customize output and simplify command input (e.g
 - [x] Add `fs_base` to register section
 - [x] Convenience buttons (maybe hotkeys) / fields for `c`, `r`, `n`, `s`, `ni`, `si`
 - [ ] Add a `search` functionality
-- [ ] Add a context menu to `stack`/`regs` to allow copy and display information about data (e.g. offsets)
+- [x] Add a context menu to `stack`/`regs` to allow copy and display information about data (e.g. offsets)
 - [x] +/- buttons for adding `pwndbg` context-stack lines
 - [x] New context: Heap
     - Add a new context to the ones `pwndbg` already offers (stack, backtrace, etc...) for the heap
