@@ -3,6 +3,7 @@
 -Add shortcuts for context menu actions
 
 -Update hexdump only when inferior is not exited
+-REsize via keyboard does shitty stuff fix
 -Hexdump error in type log (Kill me)
 
 -Feedback for dying threads
