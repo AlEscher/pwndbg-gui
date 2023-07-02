@@ -68,6 +68,8 @@ class MainContextWidget(QGroupBox):
             button.clicked.connect(callback)
             if icon is not None:
                 button.setIcon(QIcon.fromTheme(icon))
+            if button.shortcut() is not None:
+                button.setToolTip(button.shortcut().toString())
             self.buttons.addWidget(button)
 
     def start_update_worker(self, parent: 'PwnDbgGui'):
