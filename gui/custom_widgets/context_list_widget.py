@@ -1,9 +1,9 @@
 import logging
-from typing import TYPE_CHECKING
 import re
+from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Slot, Qt
-from PySide6.QtWidgets import QListWidget, QListWidgetItem, QApplication, QMenu
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QListWidget, QListWidgetItem, QApplication, QMenu, QSplitter, QGroupBox, QVBoxLayout
 
 from gui.context_data_role import ContextDataRole
 from gui.parser import ContextParser
@@ -15,48 +15,23 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-def delete_first_html_tag(string):
-    pattern = r"<[^>]+>"  # Regular expression pattern to match HTML tags
-    return re.sub(pattern, "", string, count=1)
-
-
-def delete_last_html_tag(string):
-    # Find the last closing HTML tag
-    pattern = r'</[^>]+>$'
-    match = re.search(pattern, string)
-
-    if match:
-        last_tag = match.group()
-        # Remove the last closing HTML tag
-        modified_string = string.replace(last_tag, '')
-        return modified_string
-    else:
-        return string  # No closing HTML tag found
-
-
-def find_hex_values(line: str):
-    pattern = re.compile(r"0x[0-9a-fA-F]+", re.UNICODE)
-    # Filter out empty matches
-    hex_values = [match for match in pattern.findall(line) if match]
-    first_value = ""
-    second_value = ""
-    if len(hex_values) > 0:
-        first_value = hex_values[0]
-    if len(hex_values) > 1:
-        second_value = hex_values[1]
-    return first_value, second_value
-
-
-def set_data_to_clipboard(item: QListWidgetItem, role: ContextDataRole):
-    data = item.data(role)
-    if data is not None:
-        QApplication.clipboard().setText(data)
-
-
 class ContextListWidget(QListWidget):
-    def __init__(self, parent: 'PwnDbgGui', ):
+    def __init__(self, parent: 'PwnDbgGui', title: str, splitter: QSplitter, index: int):
         super().__init__(parent)
         self.parser = ContextParser()
+        self.setup_widget_layout(parent, title, splitter, index)
+
+    def setup_widget_layout(self, parent: 'PwnDbgGui', title: str, splitter: QSplitter, index: int):
+        # GroupBox needs to have parent before being added to splitter (see SO below)
+        context_box = QGroupBox(title, parent)
+        context_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        context_box.setFlat(True)
+        context_layout = QVBoxLayout()
+        context_layout.addWidget(self)
+        context_box.setLayout(context_layout)
+        splitter.replaceWidget(index, context_box)
+        # https://stackoverflow.com/a/66067630
+        context_box.show()
 
     def add_content(self, content: str):
         self.clear()
@@ -65,32 +40,22 @@ class ContextListWidget(QListWidget):
         body_start = lines.index(next(line for line in lines if "<body" in line))
         for line in lines[body_start + 1:]:
             # Remove <p...></p> tag
-            cleaned = delete_first_html_tag(delete_last_html_tag(line))
+            cleaned = self.delete_first_html_tag(self.delete_last_html_tag(line))
             item = QListWidgetItem(self)
             item.setData(Qt.ItemDataRole.DisplayRole, cleaned)
             plain_text = self.parser.from_html(line)
-            address, value = find_hex_values(plain_text)
+            address, value = self.find_hex_values(plain_text)
             item.setData(ContextDataRole.ADDRESS, address)
             item.setData(ContextDataRole.VALUE, value)
 
-    @Slot(bytes)
-    def receive_fs_base(self, content: bytes):
-        """Callback to receive the hex value of the fs register"""
-        cleaned = self.parser.to_html(b" \x1b[1mFS \x1b[0m \x1b[35m" + content + b"\x1b[0m").splitlines()
-        # Remove unneeded lines containing only HTML, as "content" will be a full HTML document returned by the parser
-        body_start = cleaned.index(next(line for line in cleaned if "<body" in line))
-        cleaned_line = delete_first_html_tag(delete_last_html_tag(cleaned[body_start + 1]))
-        item = QListWidgetItem(self)
-        item.setData(Qt.ItemDataRole.DisplayRole, cleaned_line)
-        item.setData(ContextDataRole.ADDRESS, content.decode().strip())
-
     def keyPressEvent(self, event):
-        # Capture Ctrl+C
+        """Event handler for any key presses on this widget"""
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_C:
+            # When the user presses Ctrl+C, we copy the selected stack line into his clipboard
             selected_items = self.selectedItems()
             if selected_items:
                 item = selected_items[0]
-                data = item.data(ContextDataRole.ADDRESS)
+                data = self.parser.from_html(item.text())
                 if data:
                     QApplication.clipboard().setText(data)
                 return
@@ -102,11 +67,48 @@ class ContextListWidget(QListWidget):
             super().contextMenuEvent(event)
             return
         menu = QMenu(self)
+        # Copy the address data, for a stack this is the stack address, for a register this is the register's content
         copy_addr_action = menu.addAction("Copy Address")
+        # Copy the value data, for a stack this is the value that the stack address points to,
+        # for a register this is the value that the address points to if one exists
         copy_val_action = menu.addAction("Copy Value")
         action = menu.exec(event.globalPos())
         item = selected_items[0]
         if action == copy_addr_action:
-            set_data_to_clipboard(item, ContextDataRole.ADDRESS)
+            self.set_data_to_clipboard(item, ContextDataRole.ADDRESS)
         elif action == copy_val_action:
-            set_data_to_clipboard(item, ContextDataRole.VALUE)
+            self.set_data_to_clipboard(item, ContextDataRole.VALUE)
+
+    def delete_first_html_tag(self, string: str):
+        pattern = r"<[^>]+>"  # Regular expression pattern to match HTML tags
+        return re.sub(pattern, "", string, count=1)
+
+    def delete_last_html_tag(self, string: str):
+        # Find the last closing HTML tag
+        pattern = r'</[^>]+>$'
+        match = re.search(pattern, string)
+
+        if match:
+            last_tag = match.group()
+            # Remove the last closing HTML tag
+            modified_string = string.replace(last_tag, '')
+            return modified_string
+        else:
+            return string  # No closing HTML tag found
+
+    def find_hex_values(self, line: str):
+        pattern = re.compile(r"0x[0-9a-fA-F]+", re.UNICODE)
+        # Filter out empty matches
+        hex_values = [match for match in pattern.findall(line) if match]
+        first_value = ""
+        second_value = ""
+        if len(hex_values) > 0:
+            first_value = hex_values[0]
+        if len(hex_values) > 1:
+            second_value = hex_values[1]
+        return first_value, second_value
+
+    def set_data_to_clipboard(self, item: QListWidgetItem, role: ContextDataRole):
+        data = item.data(role)
+        if data is not None:
+            QApplication.clipboard().setText(data)
