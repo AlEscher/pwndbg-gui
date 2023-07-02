@@ -1,12 +1,7 @@
-from typing import TYPE_CHECKING
+import logging
 
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QTextEdit, QWidget
-
-# Prevent circular import error
-if TYPE_CHECKING:
-    from gui.pwndbg_gui import PwnDbgGui
-import logging
 
 logger = logging.getLogger(__file__)
 

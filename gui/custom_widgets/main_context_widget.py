@@ -149,6 +149,7 @@ class MainContextWidget(QGroupBox):
     def submit_input(self):
         """Submit an input to the inferior process"""
         user_line = self.input_widget.text()
+        logger.debug("Sending input '%s' to inferior", user_line)
         # Check if the user wants to input a byte string literal, i.e. the input is in the form: 'b"MyInput \x12\x34"'
         if re.match(r'^b".*"$', user_line):
             # Parse the str as if it were a bytes object

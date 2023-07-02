@@ -5,6 +5,11 @@ from os import path
 from pathlib import Path
 
 from gui.custom_widgets.about_message_box import AboutMessageBox
+from gui.custom_widgets.backtrace_context_widget import BacktraceContextWidget
+from gui.custom_widgets.code_context_widget import CodeContextWidget
+from gui.custom_widgets.disasm_context_widget import DisasmContextWidget
+from gui.custom_widgets.register_context_widget import RegisterContextWidget
+from gui.custom_widgets.stack_context_widget import StackContextWidget
 
 directory, file = path.split(__file__)
 directory = path.expanduser(directory)
@@ -16,7 +21,7 @@ import PySide6
 from PySide6.QtCore import Slot, Qt, Signal, QThread
 from PySide6.QtGui import QTextOption, QAction, QKeySequence, QFont, QPalette, QColor
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QInputDialog, \
-    QLineEdit, QMessageBox, QGroupBox, QVBoxLayout, QWidget, QSplitter, QHBoxLayout, QSpinBox, QLabel
+    QLineEdit, QMessageBox, QSpinBox
 
 from constants import PwndbgGuiConstants
 from custom_widgets.context_list_widget import ContextListWidget
@@ -26,7 +31,6 @@ from gdb_handler import GdbHandler
 from gui.custom_widgets.heap_context_widget import HeapContextWidget
 from gui.custom_widgets.watches_context_widget import HDumpContextWidget
 from gui.gdb_reader import GdbReader
-from html_style_delegate import HTMLDelegate
 from inferior_handler import InferiorHandler
 from parser import ContextParser
 # Important:
@@ -79,44 +83,17 @@ class PwnDbgGui(QMainWindow):
     def setup_custom_widgets(self):
         """Ugly workaround to allow to use custom widgets.
             Using custom widgets in Qt Designer seems to only work for C++"""
-        # Widget index depends on the order they were added in ui_form.py
         logger.debug("Replacing widgets with custom implementations")
-        self.ui.stack = ContextListWidget(self)
-        self.ui.stack.setObjectName("stack")
-        self.ui.stack.setItemDelegate(HTMLDelegate())
-        self.setup_context_pane(self.ui.stack, title="Stack", splitter=self.ui.splitter_4, index=2)
-        self.ui.regs = ContextListWidget(self)
-        self.ui.regs.setObjectName("regs")
-        self.ui.regs.setItemDelegate(HTMLDelegate())
-        self.setup_context_pane(self.ui.regs, title="Registers", splitter=self.ui.splitter_3, index=0)
-        self.ui.backtrace = ContextTextEdit(self)
-        self.ui.backtrace.setObjectName("backtrace")
-        self.setup_context_pane(self.ui.backtrace, title="Backtrace", splitter=self.ui.splitter_3, index=1)
-        self.ui.disasm = ContextTextEdit(self)
-        self.ui.disasm.setObjectName("disasm")
-        self.setup_context_pane(self.ui.disasm, title="Disassembly", splitter=self.ui.code_splitter, index=0)
-        self.ui.code = ContextTextEdit(self)
-        self.ui.code.setObjectName("code")
-        self.setup_context_pane(self.ui.code, title="Code", splitter=self.ui.code_splitter, index=1)
+        # Widget index depends on the order they were added in ui_form.py
+        self.ui.stack = StackContextWidget(self, title="Stack", splitter=self.ui.splitter_4, index=2)
+        self.ui.regs = RegisterContextWidget(self, title="Registers", splitter=self.ui.splitter_3, index=0)
+        self.ui.backtrace = BacktraceContextWidget(self, title="Backtrace", splitter=self.ui.splitter_3, index=1)
+        self.ui.disasm = DisasmContextWidget(self, title="Disassembly", splitter=self.ui.code_splitter, index=0)
+        self.ui.code = CodeContextWidget(self, title="Code", splitter=self.ui.code_splitter, index=1)
         self.ui.heap = HeapContextWidget(self)
         self.ui.watches = HDumpContextWidget(self)
         self.main_context = MainContextWidget(parent=self)
         self.ui.splitter.replaceWidget(0, self.main_context)
-
-    def setup_context_pane(self, context_widget: QWidget, title: str, splitter: QSplitter, index: int):
-        """Sets up the layout for a context pane"""
-        # GroupBox needs to have parent before being added to splitter (see SO below)
-        context_box = QGroupBox(title, self)
-        context_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        context_box.setFlat(True)
-        context_layout = QVBoxLayout()
-        if context_widget == self.ui.stack:
-            self.add_stack_header(context_layout)
-        context_layout.addWidget(context_widget)
-        context_box.setLayout(context_layout)
-        splitter.replaceWidget(index, context_box)
-        # https://stackoverflow.com/a/66067630
-        context_box.show()
 
     def setup_menu(self):
         """Create the menu and toolbar at the top of the window"""
@@ -170,11 +147,10 @@ class PwnDbgGui(QMainWindow):
         self.set_gdb_file_target_signal.connect(self.gdb_handler.set_file_target)
         self.set_gdb_pid_target_signal.connect(self.gdb_handler.set_pid_target)
         self.set_gdb_source_dir_signal.connect(self.gdb_handler.set_source_dir)
-        self.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
+        self.ui.stack.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.update_pane)
         self.gdb_reader.update_gui.connect(self.update_pane)
-        self.gdb_reader.set_context_stack_lines.connect(self.set_context_stack_lines)
         self.gdb_reader.inferior_state_changed.connect(self.main_context.change_input_label)
         self.gdb_reader.send_pwndbg_about.connect(self.receive_pwndbg_about)
         # Allow the heap context to receive the results it requests
@@ -223,18 +199,6 @@ class PwnDbgGui(QMainWindow):
         self.gdb_reader_thread.wait()
         logger.debug("Waiting for Inferior thread")
         self.inferior_thread.wait()
-
-    def add_stack_header(self, layout: QVBoxLayout):
-        # Add a stack count inc-/decrementor
-        header_layout = QHBoxLayout()
-        header_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        stack_lines_label = QLabel("Stack Lines:")
-        header_layout.addWidget(stack_lines_label)
-        self.stack_lines_incrementor = QSpinBox()
-        self.stack_lines_incrementor.setRange(1, 999)
-        self.stack_lines_incrementor.setValue(8)
-        header_layout.addWidget(self.stack_lines_incrementor)
-        layout.addLayout(header_layout)
 
     @Slot()
     def select_file(self):
@@ -296,11 +260,6 @@ class PwnDbgGui(QMainWindow):
         popup = AboutMessageBox("About Pwndbg", self.pwndbg_cmds, "https://github.com/pwndbg/pwndbg#pwndbg")
         popup.exec()
 
-    @Slot(int)
-    def set_context_stack_lines(self, stack_lines: int):
-        """Set the value of the Stack Lines spinbox"""
-        self.stack_lines_incrementor.setValue(stack_lines)
-
 
 def run_gui():
     """Start our GUI with the specified font and theme"""
@@ -318,7 +277,7 @@ def run_gui():
     dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, QColor(127, 127, 127))
     dark_palette.setColor(QPalette.ColorRole.Base, QColor(42, 42, 42))
     dark_palette.setColor(QPalette.ColorRole.AlternateBase, QColor(66, 66, 66))
-    dark_palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.darkGray)
+    dark_palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.black)
     dark_palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
     dark_palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
     dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor(127, 127, 127))

@@ -13,7 +13,6 @@ logger = logging.getLogger(__file__)
 # Reader object to continuously check for data from gdb.
 class GdbReader(QObject):
     update_gui = Signal(str, bytes)
-    set_context_stack_lines = Signal(int)
     send_heap_try_free_response = Signal(bytes)
     send_heap_heap_response = Signal(bytes)
     send_heap_bins_response = Signal(bytes)
@@ -45,6 +44,8 @@ class GdbReader(QObject):
 
     def send_update_gui(self, token: int):
         """Flushes all collected outputs to the destination specified by token"""
+        if len(self.result) == 0:
+            return
         context = tokens.Token_to_Context[token]
         # When the program is not stopped we cannot send commands to gdb, so any context output produced that was not
         # destined to main should not be shown
@@ -131,7 +132,3 @@ class GdbReader(QObject):
         elif response["message"] == "thread-group-exited":
             logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
-        elif response["message"] == "cmd-param-changed" and response["payload"] is not None:
-            if response["payload"][
-                "param"] == "context-stack-lines" and InferiorHandler.INFERIOR_STATE == InferiorState.QUEUED:
-                self.set_context_stack_lines.emit(int(response["payload"]["value"]))
