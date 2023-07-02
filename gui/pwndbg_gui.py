@@ -119,6 +119,7 @@ class PwnDbgGui(QMainWindow):
         context_box.show()
 
     def setup_menu(self):
+        """Create the menu and toolbar at the top of the window"""
         self.menu_bar = self.menuBar()
         debug_menu = self.menu_bar.addMenu("&Debug")
         debug_toolbar = self.addToolBar("Debug")
@@ -161,6 +162,7 @@ class PwnDbgGui(QMainWindow):
         about_menu.addAction(about_qt_action)
 
     def setup_gdb_workers(self):
+        """Setup our worker threads and connect all required signals with their slots"""
         self.gdb_handler_thread = QThread()
         self.gdb_reader_thread = QThread()
         self.gdb_handler.moveToThread(self.gdb_handler_thread)
@@ -236,6 +238,7 @@ class PwnDbgGui(QMainWindow):
 
     @Slot()
     def select_file(self):
+        """Query the user for the path to an executable with a file dialog in order to start it"""
         dialog = QFileDialog(self)
         dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
@@ -247,6 +250,7 @@ class PwnDbgGui(QMainWindow):
 
     @Slot()
     def query_process_name(self):
+        """Query the user for a process name in order to attach to it"""
         name, ok = QInputDialog.getText(self, "Enter a running process name", "Name:", QLineEdit.EchoMode.Normal,
                                         "vuln")
         if ok and name:
@@ -254,6 +258,7 @@ class PwnDbgGui(QMainWindow):
             self.set_gdb_pid_target_signal.emit(args)
 
     def query_process_pid(self):
+        """Query the user for process ID in order to attach to it"""
         pid, ok = QInputDialog.getInt(self, "Enter a running process pid", "PID:", minValue=0)
         if ok and pid > 0:
             args = [str(pid)]
@@ -261,6 +266,7 @@ class PwnDbgGui(QMainWindow):
 
     @Slot(str, bytes)
     def update_pane(self, context: str, content: bytes):
+        """Used by other threads to update widgets in the GUI. Updates to the GUI have to be made in the GUI's thread"""
         widget: ContextTextEdit | ContextListWidget = self.seg_to_widget[context]
         logger.debug("Updating context %s", widget.objectName())
         remove_header = True
@@ -274,25 +280,30 @@ class PwnDbgGui(QMainWindow):
 
     @Slot()
     def about(self):
+        """Display the About section for our GUI"""
         QMessageBox.about(self, "About PwndbgGui", "The <b>Application</b> example demonstrates how to "
                                                    "write modern GUI applications using Qt, with a menu bar, "
                                                    "toolbars, and a status bar.")
 
     @Slot(bytes)
     def receive_pwndbg_about(self, content: bytes):
+        """Receive the output of the command overview for pwndbg"""
         self.pwndbg_cmds = self.parser.to_html(content)
 
     @Slot()
     def about_pwndbg(self):
+        """Display the About section for pwndbg"""
         popup = AboutMessageBox("About Pwndbg", self.pwndbg_cmds, "https://github.com/pwndbg/pwndbg#pwndbg")
         popup.exec()
 
     @Slot(int)
     def set_context_stack_lines(self, stack_lines: int):
+        """Set the value of the Stack Lines spinbox"""
         self.stack_lines_incrementor.setValue(stack_lines)
 
 
 def run_gui():
+    """Start our GUI with the specified font and theme"""
     # Set font where characters are all equally wide (monospace) to help with formatting and alignment
     font = QFont(PwndbgGuiConstants.FONT)
     font.setStyleHint(QFont.StyleHint.Monospace)
