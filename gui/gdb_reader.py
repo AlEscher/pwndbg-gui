@@ -20,6 +20,7 @@ class GdbReader(QObject):
     send_watches_hexdump_response = Signal(int, bytes)
     # Send the fs base to the "regs" context
     send_fs_base_response = Signal(bytes)
+    send_pwndbg_about = Signal(bytes)
     # Emitted when the inferior state changes. True for Stopped and False for Running
     inferior_state_changed = Signal(bool)
 
@@ -58,9 +59,12 @@ class GdbReader(QObject):
         self.update_gui.emit("main", "".join(self.result).encode())
         self.result = []
 
-    def send_context_update(self, signal: Signal):
+    def send_context_update(self, signal: Signal, send_on_stop=True):
         """Emit a supplied signal with the collected output"""
-        if InferiorHandler.INFERIOR_STATE == InferiorState.STOPPED:
+        if not send_on_stop:
+            # Send this signal even if the inferior is not started yet or running
+            signal.emit("".join(self.result).encode())
+        elif InferiorHandler.INFERIOR_STATE == InferiorState.STOPPED:
             signal.emit("".join(self.result).encode())
         self.result = []
 
@@ -92,6 +96,8 @@ class GdbReader(QObject):
             self.send_context_update(self.send_heap_bins_response)
         elif token == tokens.ResponseToken.GUI_REGS_FS_BASE:
             self.send_context_update(self.send_fs_base_response)
+        elif token == tokens.ResponseToken.GUI_PWNDBG_ABOUT:
+            self.send_context_update(self.send_pwndbg_about, send_on_stop=False)
         elif token >= tokens.ResponseToken.GUI_WATCHES_HEXDUMP:
             self.send_watches_hexdump_response.emit(token, "".join(self.result).encode())
             self.result = []

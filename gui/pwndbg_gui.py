@@ -4,6 +4,8 @@ import sys
 from os import path
 from pathlib import Path
 
+from gui.custom_widgets.about_message_box import AboutMessageBox
+
 directory, file = path.split(__file__)
 directory = path.expanduser(directory)
 directory = path.join(directory, "..")
@@ -46,6 +48,8 @@ class PwnDbgGui(QMainWindow):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        # An overview of all pwndbg commands
+        self.pwndbg_cmds = ""
         self.main_context: MainContextWidget | None = None
         # Thread that will handle all writing to GDB
         self.gdb_handler_thread: QThread | None = None
@@ -149,6 +153,9 @@ class PwnDbgGui(QMainWindow):
         about_action = QAction("About", self)
         about_action.triggered.connect(self.about)
         about_menu.addAction(about_action)
+        about_pwndbg_action = QAction("About Pwndbg", self)
+        about_pwndbg_action.triggered.connect(self.about_pwndbg)
+        about_menu.addAction(about_pwndbg_action)
         about_qt_action = QAction("About Qt", self)
         about_qt_action.triggered.connect(QApplication.aboutQt)
         about_menu.addAction(about_qt_action)
@@ -167,6 +174,7 @@ class PwnDbgGui(QMainWindow):
         self.gdb_reader.update_gui.connect(self.update_pane)
         self.gdb_reader.set_context_stack_lines.connect(self.set_context_stack_lines)
         self.gdb_reader.inferior_state_changed.connect(self.main_context.change_input_label)
+        self.gdb_reader.send_pwndbg_about.connect(self.receive_pwndbg_about)
         # Allow the heap context to receive the results it requests
         self.gdb_reader.send_heap_try_free_response.connect(self.ui.heap.receive_try_free_result)
         self.gdb_reader.send_heap_heap_response.connect(self.ui.heap.receive_heap_result)
@@ -269,6 +277,15 @@ class PwnDbgGui(QMainWindow):
         QMessageBox.about(self, "About PwndbgGui", "The <b>Application</b> example demonstrates how to "
                                                    "write modern GUI applications using Qt, with a menu bar, "
                                                    "toolbars, and a status bar.")
+
+    @Slot(bytes)
+    def receive_pwndbg_about(self, content: bytes):
+        self.pwndbg_cmds = self.parser.to_html(content)
+
+    @Slot()
+    def about_pwndbg(self):
+        popup = AboutMessageBox("About Pwndbg", self.pwndbg_cmds, "https://github.com/pwndbg/pwndbg#pwndbg")
+        popup.exec()
 
     @Slot(int)
     def set_context_stack_lines(self, stack_lines: int):

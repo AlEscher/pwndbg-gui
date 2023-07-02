@@ -47,6 +47,9 @@ class GdbHandler(QObject):
 
         if not pwndbg_loaded:
             logger.error("Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
+        else:
+            # Get an overview of all available commands
+            self.write_to_controller(ResponseToken.GUI_PWNDBG_ABOUT, "pwndbg --all")
 
     @Slot(str)
     def send_command(self, cmd: str):
