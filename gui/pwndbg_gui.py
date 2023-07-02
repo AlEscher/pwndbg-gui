@@ -151,7 +151,6 @@ class PwnDbgGui(QMainWindow):
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.update_pane)
         self.gdb_reader.update_gui.connect(self.update_pane)
-        self.gdb_reader.set_context_stack_lines.connect(self.ui.stack.set_context_stack_lines)
         self.gdb_reader.inferior_state_changed.connect(self.main_context.change_input_label)
         self.gdb_reader.send_pwndbg_about.connect(self.receive_pwndbg_about)
         # Allow the heap context to receive the results it requests

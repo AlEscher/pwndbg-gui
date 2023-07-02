@@ -41,8 +41,3 @@ class StackContextWidget(ContextListWidget):
         self.stack_lines_incrementor.setValue(8)
         header_layout.addWidget(self.stack_lines_incrementor)
         layout.addLayout(header_layout)
-
-    @Slot(int)
-    def set_context_stack_lines(self, stack_lines: int):
-        """Set the value of the Stack Lines spinbox"""
-        self.stack_lines_incrementor.setValue(stack_lines)
