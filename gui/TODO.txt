@@ -8,7 +8,5 @@
 -Feedback for dying threads
 -Remember spliter config
 
--Why do we crash when we exit
-
 Tooltip fix
 QT sudo fix
