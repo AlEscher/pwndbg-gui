@@ -2,6 +2,7 @@ import logging
 from typing import TYPE_CHECKING, Dict, Tuple
 
 from PySide6.QtCore import Qt, Signal, Slot, QParallelAnimationGroup, QPropertyAnimation, QAbstractAnimation
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QWidget, \
     QPushButton, QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout, QSpinBox, QTextEdit
 
@@ -171,7 +172,8 @@ class HDumpContextWidget(QGroupBox):
         watch_interact_layout.addWidget(watch_lines_incrementor)
 
         # Delete button
-        delete_watch_button = QPushButton("Delete Watch")
+        delete_watch_button = QPushButton()
+        delete_watch_button.setIcon(QIcon.fromTheme("user-trash"))
         delete_watch_button.clicked.connect(lambda: self.delete_watch_submit(address))
         watch_interact_layout.addWidget(delete_watch_button)
 
@@ -182,7 +184,7 @@ class HDumpContextWidget(QGroupBox):
         hexdump_output = ContextTextEdit(self)
         # Setting maximum height
         hexdump_output.set_maxheight_to_lines(self.default_lines)
-        hexdump_output.setLineWrapMode(QTextEdit.NoWrap)
+        hexdump_output.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         inter_spoiler_layout.addWidget(hexdump_output)
         # Setup Spoiler
         spoiler = Spoiler(inter_spoiler_layout, parent=self, title=address)
