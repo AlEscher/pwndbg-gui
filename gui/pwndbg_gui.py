@@ -144,15 +144,19 @@ class PwnDbgGui(QMainWindow):
         self.gdb_reader_thread = QThread()
         self.gdb_handler.moveToThread(self.gdb_handler_thread)
         self.gdb_reader.moveToThread(self.gdb_reader_thread)
+        # Allow widgets to send signals that interact with GDB
         self.set_gdb_file_target_signal.connect(self.gdb_handler.set_file_target)
         self.set_gdb_pid_target_signal.connect(self.gdb_handler.set_pid_target)
         self.set_gdb_source_dir_signal.connect(self.gdb_handler.set_source_dir)
         self.ui.stack.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
+        self.ui.stack.execute_xinfo.connect(self.gdb_handler.execute_xinfo)
+        self.ui.regs.execute_xinfo.connect(self.gdb_handler.execute_xinfo)
         # Allow the worker to update contexts in the GUI thread
         self.gdb_handler.update_gui.connect(self.update_pane)
         self.gdb_reader.update_gui.connect(self.update_pane)
         self.gdb_reader.inferior_state_changed.connect(self.main_context.change_input_label)
         self.gdb_reader.send_pwndbg_about.connect(self.receive_pwndbg_about)
+        self.gdb_reader.send_xinfo.connect(self.display_xinfo_result)
         # Allow the heap context to receive the results it requests
         self.gdb_reader.send_heap_try_free_response.connect(self.ui.heap.receive_try_free_result)
         self.gdb_reader.send_heap_heap_response.connect(self.ui.heap.receive_heap_result)
@@ -258,6 +262,12 @@ class PwnDbgGui(QMainWindow):
     def about_pwndbg(self):
         """Display the About section for pwndbg"""
         popup = AboutMessageBox("About Pwndbg", self.pwndbg_cmds, "https://github.com/pwndbg/pwndbg#pwndbg")
+        popup.exec()
+
+    @Slot(bytes)
+    def display_xinfo_result(self, content: bytes):
+        message = self.parser.to_html(content)
+        popup = AboutMessageBox("xinfo", message, "")
         popup.exec()
 
 

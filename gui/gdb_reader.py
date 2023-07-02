@@ -20,6 +20,7 @@ class GdbReader(QObject):
     # Send the fs base to the "regs" context
     send_fs_base_response = Signal(bytes)
     send_pwndbg_about = Signal(bytes)
+    send_xinfo = Signal(bytes)
     # Emitted when the inferior state changes. True for Stopped and False for Running
     inferior_state_changed = Signal(bool)
 
@@ -99,6 +100,8 @@ class GdbReader(QObject):
             self.send_context_update(self.send_fs_base_response)
         elif token == tokens.ResponseToken.GUI_PWNDBG_ABOUT:
             self.send_context_update(self.send_pwndbg_about, send_on_stop=False)
+        elif token == tokens.ResponseToken.GUI_XINFO:
+            self.send_context_update(self.send_xinfo)
         elif token >= tokens.ResponseToken.GUI_WATCHES_HEXDUMP:
             self.send_watches_hexdump_response.emit(token, "".join(self.result).encode())
             self.result = []

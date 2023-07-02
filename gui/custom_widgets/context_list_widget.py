@@ -2,7 +2,7 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QListWidget, QListWidgetItem, QApplication, QMenu, QSplitter, QGroupBox, QVBoxLayout
 
 from gui.context_data_role import ContextDataRole
@@ -16,6 +16,9 @@ logger = logging.getLogger(__file__)
 
 
 class ContextListWidget(QListWidget):
+    execute_xinfo = Signal(str)
+    value_xinfo = Signal(str)
+
     def __init__(self, parent: 'PwnDbgGui', title: str, splitter: QSplitter, index: int):
         super().__init__(parent)
         self.parser = ContextParser()
@@ -72,12 +75,20 @@ class ContextListWidget(QListWidget):
         # Copy the value data, for a stack this is the value that the stack address points to,
         # for a register this is the value that the address points to if one exists
         copy_val_action = menu.addAction("Copy Value")
+        # Show a dialog with offset information about the address entry
+        offset_address_action = menu.addAction("Show Address Offsets")
+        # Show a dialog with offset information about the value entry
+        offset_value_action = menu.addAction("Show Value Offsets")
         action = menu.exec(event.globalPos())
         item = selected_items[0]
         if action == copy_addr_action:
             self.set_data_to_clipboard(item, ContextDataRole.ADDRESS)
         elif action == copy_val_action:
             self.set_data_to_clipboard(item, ContextDataRole.VALUE)
+        elif action == offset_address_action and item.data(ContextDataRole.ADDRESS) is not None:
+            self.execute_xinfo.emit(str(item.data(ContextDataRole.ADDRESS)))
+        elif action == offset_value_action and item.data(ContextDataRole.VALUE) is not None:
+            self.execute_xinfo.emit(str(item.data(ContextDataRole.VALUE)))
 
     def delete_first_html_tag(self, string: str):
         pattern = r"<[^>]+>"  # Regular expression pattern to match HTML tags

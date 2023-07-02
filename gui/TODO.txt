@@ -1,5 +1,6 @@
 -Attaching to process (inferior communication)
 -Rightclick context menu for list widgets
+-Add shortcuts for context menu actions
 
 -Update hexdump only when inferior is not exited
 -Hexdump error in type log (Kill me)

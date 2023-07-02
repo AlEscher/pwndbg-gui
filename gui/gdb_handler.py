@@ -133,3 +133,7 @@ class GdbHandler(QObject):
         logger.debug("Adapted line count for watch %s to %d", param, lines)
         self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP + self.watches[param][0],
                                  " ".join(["hexdump", param, str(lines)]))
+
+    @Slot(bytes)
+    def execute_xinfo(self, address: str):
+        self.write_to_controller(ResponseToken.GUI_XINFO, " ".join(["xinfo", address]))
