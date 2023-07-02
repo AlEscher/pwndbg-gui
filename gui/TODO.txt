@@ -2,9 +2,9 @@
 -Rightclick context menu for list widgets
 
 -Watches Context text size adapt
--Watches delete offsets + linebreak
 -Icon for delete watch button
 -Hexdump error in type log (Kill me)
+
 -Feedback for dying threads
 -Remember spliter config
 
