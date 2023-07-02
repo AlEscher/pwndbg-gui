@@ -1,8 +1,8 @@
 -Attaching to process (inferior communication)
 -Rightclick context menu for list widgets
 -Add shortcuts for context menu actions
+-Start button
 
--Update hexdump only when inferior is not exited
 -REsize via keyboard does shitty stuff fix
 -Hexdump error in type log (Kill me)
 
