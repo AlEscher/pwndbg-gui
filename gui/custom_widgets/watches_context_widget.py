@@ -1,10 +1,12 @@
 import logging
 from typing import TYPE_CHECKING, Dict, Tuple
 
-from PySide6.QtCore import Qt, Signal, Slot, QParallelAnimationGroup, QPropertyAnimation, QAbstractAnimation
+from PySide6.QtCore import Qt, Signal, Slot, QParallelAnimationGroup, QPropertyAnimation, QAbstractAnimation, QSize, \
+    QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QWidget, \
-    QPushButton, QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout, QSpinBox, QTextEdit
+    QPushButton, QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout, QSpinBox, QTextEdit, \
+    QApplication
 
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.parser import ContextParser
@@ -84,7 +86,6 @@ class Spoiler(QWidget):
         self.contentArea.setLayout(content_layout)
         self.update_content_height()
 
-
     def update_content_height(self):
         collapsed_height = self.sizeHint().height() - self.contentArea.maximumHeight()
         content_height = self.contentArea.layout().sizeHint().height()
@@ -98,6 +99,21 @@ class Spoiler(QWidget):
         content_animation.setStartValue(0)
         content_animation.setEndValue(content_height)
 
+    def instant_update(self):
+        # Lord have mercy on my soul for that I have sinned
+        for i in range(self.toggleAnimation.animationCount() - 1):
+            spoiler_animation = self.toggleAnimation.animationAt(i)
+            spoiler_animation.setDuration(0)
+        content_animation = self.toggleAnimation.animationAt(self.toggleAnimation.animationCount() - 1)
+        content_animation.setDuration(0)
+        self.toggleButton.click()
+        self.toggleButton.click()
+        for i in range(self.toggleAnimation.animationCount() - 1):
+            spoiler_animation = self.toggleAnimation.animationAt(i)
+            spoiler_animation.setDuration(self.animationDuration)
+        content_animation = self.toggleAnimation.animationAt(self.toggleAnimation.animationCount() - 1)
+        content_animation.setDuration(self.animationDuration)
+
 
 class HDumpContextWidget(QGroupBox):
     # Execute "hexdump" in pwndbg and add watch in controller
@@ -106,7 +122,7 @@ class HDumpContextWidget(QGroupBox):
     del_watch = Signal(str)
     # Change num of watch lines in controller
     change_lines_watch = Signal(str, int)
-
+    # Number of lines that the hexdump command will output for the Default number of bytes
     default_lines = (PwndbgGuiConstants.DEFAULT_WATCH_BYTES / 16 + 1)
 
     def __init__(self, parent: 'PwnDbgGui'):
@@ -178,6 +194,7 @@ class HDumpContextWidget(QGroupBox):
         # Delete button
         delete_watch_button = QPushButton()
         delete_watch_button.setIcon(QIcon.fromTheme("edit-delete"))
+        delete_watch_button.setIconSize(QSize(QApplication.font().pointSize()*2, QApplication.font().pointSize()*2))
         delete_watch_button.clicked.connect(lambda: self.delete_watch_submit(address))
         watch_interact_layout.addWidget(delete_watch_button)
 
@@ -226,11 +243,12 @@ class HDumpContextWidget(QGroupBox):
                 lines = result.split(b'\n')
                 # Remove empty byte objects because reasons
                 lines = [line for line in lines if line]
-                trimmed_lines = [line.split(b' ', 1)[1] for line in lines]
+                trimmed_lines = [line.split(b' ', 1)[1] if line.startswith(b"+0") else line for line in lines]
                 content = b'\n'.join(trimmed_lines)
                 # Add contents
                 value[1].add_content(self.parser.to_html(content))
                 value[1].verticalScrollBar().setValue(0)
+                value[1].horizontalScrollBar().setValue(0)
                 # Additionally if content < 4 lines -> adapt max height else maxheight to default
                 line_count = len(result.split(b"\n"))
                 if line_count < self.default_lines:
@@ -239,4 +257,5 @@ class HDumpContextWidget(QGroupBox):
                     value[1].set_maxheight_to_lines(self.default_lines)
                 # Last update spoiler size
                 value[0].update_content_height()
+                value[0].instant_update()
                 break
