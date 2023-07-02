@@ -24,6 +24,7 @@ logger = logging.getLogger(__file__)
 
 
 class MainContextWidget(QGroupBox):
+    """The main context widget with which the user can interact with GDB and receive data"""
     gdb_write = Signal(str)
     gdb_start = Signal(list)
     stop_thread = Signal()
@@ -35,7 +36,7 @@ class MainContextWidget(QGroupBox):
         self.update_gui.connect(parent.update_pane)
         self.buttons_data = {'&r': (self.run, "media-playback-start"), '&c': (self.continue_execution, "media-skip-forward"), '&n': (self.next, "media-seek-forward"),
                              '&s': (self.step, "go-bottom"), 'ni': (self.next_instruction, "go-next"), 'si': (self.step_into, "go-down")}
-        self.start_update_worker(parent)
+        self.setup_worker_signals(parent)
         self.input_label = QLabel(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>")
         self.output_widget = MainContextOutput(self)
         self.input_widget = QLineEdit(self)
@@ -49,6 +50,7 @@ class MainContextWidget(QGroupBox):
         self.command_history: List[str] = [""]
 
     def setup_widget_layout(self):
+        """Create the layout of this widget and its sub widgets"""
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setFlat(True)
         context_layout = QVBoxLayout()
@@ -61,6 +63,7 @@ class MainContextWidget(QGroupBox):
         self.setLayout(context_layout)
 
     def setup_buttons(self):
+        """Setup the convenience buttons (Run, Continue, Step, etc...)"""
         self.buttons.setAlignment(Qt.AlignmentFlag.AlignRight)
         for label, data in self.buttons_data.items():
             callback, icon = data
@@ -72,13 +75,15 @@ class MainContextWidget(QGroupBox):
                 button.setToolTip(button.shortcut().toString())
             self.buttons.addWidget(button)
 
-    def start_update_worker(self, parent: 'PwnDbgGui'):
+    def setup_worker_signals(self, parent: 'PwnDbgGui'):
+        """Connect signals to the GDB and Inferior writer to allow this widget to forward commands/input"""
         # Allow giving the thread work from outside
         self.gdb_write.connect(parent.gdb_handler.send_command)
         self.inferior_write.connect(parent.inferior_handler.inferior_write)
 
     @Slot()
     def handle_submit(self):
+        """Callback for when the user presses Enter in the main widget's input field"""
         if InferiorHandler.INFERIOR_STATE == InferiorState.RUNNING:
             # Inferior is running, send to inferior
             self.submit_input()
@@ -88,42 +93,50 @@ class MainContextWidget(QGroupBox):
 
     @Slot()
     def run(self):
+        """Callback of the Run button"""
         logger.debug("Executing r callback")
         self.gdb_write.emit("r")
 
     @Slot()
     def continue_execution(self):
+        """Callback of the Continue button"""
         logger.debug("Executing c callback")
         self.gdb_write.emit("c")
 
     @Slot()
     def next(self):
+        """Callback of the Next button"""
         logger.debug("Executing n callback")
         self.gdb_write.emit("n")
 
     @Slot()
     def step(self):
+        """Callback of the Step button"""
         logger.debug("Executing s callback")
         self.gdb_write.emit("s")
 
     @Slot()
     def next_instruction(self):
+        """Callback of the Next Instruction button"""
         logger.debug("Executing ni callback")
         self.gdb_write.emit("ni")
 
     @Slot()
     def step_into(self):
+        """Callback of the Step Instruction button"""
         logger.debug("Executing si callback")
         self.gdb_write.emit("si")
 
     @Slot(bool)
     def change_input_label(self, is_pwndbg: bool):
+        """Update the input label's text"""
         if is_pwndbg:
             self.input_label.setText(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>")
         else:
             self.input_label.setText(f"<span style=' color:{PwndbgGuiConstants.GREEN};'>target></span>")
 
     def submit_cmd(self):
+        """Submit a command to GDB"""
         user_line = self.input_widget.text()
         if self.command_history[-1] != user_line:
             self.command_history.insert(-1, user_line)
@@ -134,10 +147,11 @@ class MainContextWidget(QGroupBox):
         self.input_widget.clear()
 
     def submit_input(self):
+        """Submit an input to the inferior process"""
         user_line = self.input_widget.text()
         # Check if the user wants to input a byte string literal, i.e. the input is in the form: 'b"MyInput \x12\x34"'
         if re.match(r'^b".*"$', user_line):
-            # Parse the str as if it were a bytes object (python expressions are also valid)
+            # Parse the str as if it were a bytes object
             # literal_eval is safer than eval(), however it still poses security risks regarding DoS, which we don't care about
             logger.debug("Trying to evaluate literal '%s'", user_line)
             byte_string = ast.literal_eval(user_line)
@@ -149,6 +163,7 @@ class MainContextWidget(QGroupBox):
         self.input_widget.clear()
 
     def eventFilter(self, source: QWidget, event: QEvent):
+        """Callback for Qt events. Handles the navigation of the user's command history"""
         # https://stackoverflow.com/a/46506129
         if event.type() != QEvent.Type.KeyPress or source is not self.input_widget:
             return super().eventFilter(source, event)
