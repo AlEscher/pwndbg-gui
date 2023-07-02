@@ -43,8 +43,8 @@ class Spoiler(QWidget):
         toggle_button.setChecked(False)
 
         header_line = self.headerLine
-        header_line.setFrameShape(QFrame.HLine)
-        header_line.setFrameShadow(QFrame.Sunken)
+        header_line.setFrameShape(QFrame.Shape.HLine)
+        header_line.setFrameShadow(QFrame.Shadow.Sunken)
         header_line.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
 
         self.contentArea.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -82,8 +82,12 @@ class Spoiler(QWidget):
     def setContentLayout(self, content_layout):
         self.contentArea.destroy()
         self.contentArea.setLayout(content_layout)
+        self.update_content_height()
+
+
+    def update_content_height(self):
         collapsed_height = self.sizeHint().height() - self.contentArea.maximumHeight()
-        content_height = content_layout.sizeHint().height()
+        content_height = self.contentArea.layout().sizeHint().height()
         for i in range(self.toggleAnimation.animationCount() - 1):
             spoiler_animation = self.toggleAnimation.animationAt(i)
             spoiler_animation.setDuration(self.animationDuration)
@@ -173,7 +177,7 @@ class HDumpContextWidget(QGroupBox):
 
         # Delete button
         delete_watch_button = QPushButton()
-        delete_watch_button.setIcon(QIcon.fromTheme("user-trash"))
+        delete_watch_button.setIcon(QIcon.fromTheme("edit-delete"))
         delete_watch_button.clicked.connect(lambda: self.delete_watch_submit(address))
         watch_interact_layout.addWidget(delete_watch_button)
 
@@ -233,4 +237,6 @@ class HDumpContextWidget(QGroupBox):
                     value[1].set_maxheight_to_lines(line_count)
                 else:
                     value[1].set_maxheight_to_lines(self.default_lines)
+                # Last update spoiler size
+                value[0].update_content_height()
                 break
