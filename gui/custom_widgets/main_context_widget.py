@@ -6,7 +6,7 @@ import sys
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, Signal, Slot, QEvent
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QKeySequence
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel, QWidget
 
 sys.path.append(
@@ -34,7 +34,7 @@ class MainContextWidget(QGroupBox):
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
         self.update_gui.connect(parent.update_pane)
-        self.buttons_data = {'&r': (self.run, "media-playback-start"), '&c': (self.continue_execution, "media-skip-forward"), '&n': (self.next, "media-seek-forward"),
+        self.buttons_data = {'s&tart': (self.start, "media-playlist-repeat"), '&r': (self.run, "media-playback-start"), '&c': (self.continue_execution, "media-skip-forward"), '&n': (self.next, "media-seek-forward"),
                              '&s': (self.step, "go-bottom"), 'ni': (self.next_instruction, "go-next"), 'si': (self.step_into, "go-down")}
         self.setup_worker_signals(parent)
         self.input_label = QLabel(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>")
@@ -90,6 +90,11 @@ class MainContextWidget(QGroupBox):
         else:
             # Enter was pressed, send command to pwndbg
             self.submit_cmd()
+
+    @Slot()
+    def start(self):
+        logger.debug("Executing start callback")
+        self.gdb_write.emit("start")
 
     @Slot()
     def run(self):
