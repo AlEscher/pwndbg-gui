@@ -27,15 +27,20 @@ class GdbReader(QObject):
         super().__init__()
         self.controller = controller
         self.result = []
+        self.run = True
 
     @Slot()
     def read_with_timeout(self):
-        while True:
+        while self.run:
             # first process thread kill events
             QCoreApplication.processEvents()
             response = self.controller.get_gdb_response(raise_error_on_timeout=False)
             if response is not None:
                 self.parse_response(response)
+
+    @Slot()
+    def set_run(self, state: bool):
+        self.run = state
 
     def send_update_gui(self, token: int):
         """Flushes all collected outputs to the destination specified by token"""
