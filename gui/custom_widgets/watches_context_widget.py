@@ -102,6 +102,8 @@ class HDumpContextWidget(QGroupBox):
     # Change num of watch lines in controller
     change_lines_watch = Signal(str, int)
 
+    default_lines = (PwndbgGuiConstants.DEFAULT_WATCH_BYTES / 16 + 1)
+
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
         self.parser = ContextParser()
@@ -164,7 +166,7 @@ class HDumpContextWidget(QGroupBox):
         watch_interact_layout.addWidget(watch_lines_label)
         watch_lines_incrementor = QSpinBox()
         watch_lines_incrementor.setRange(1, 999)
-        watch_lines_incrementor.setValue(PwndbgGuiConstants.DEFAULT_WATCH_LINES)
+        watch_lines_incrementor.setValue(PwndbgGuiConstants.DEFAULT_WATCH_BYTES)
         watch_lines_incrementor.valueChanged.connect(lambda value: self.change_lines_watch.emit(address, value))
         watch_interact_layout.addWidget(watch_lines_incrementor)
 
@@ -178,11 +180,13 @@ class HDumpContextWidget(QGroupBox):
         inter_spoiler_layout.addWidget(spoiler_interact_widget)
         # Second setup hexdump output
         hexdump_output = ContextTextEdit(self)
+        # Setting maximum height
+        hexdump_output.set_maxheight_to_lines(self.default_lines)
         inter_spoiler_layout.addWidget(hexdump_output)
         # Setup Spoiler
         spoiler = Spoiler(inter_spoiler_layout, parent=self, title=address)
         # Add watch to outer context
-        self.watches[address] = (spoiler, hexdump_output, self.idx, PwndbgGuiConstants.DEFAULT_WATCH_LINES)
+        self.watches[address] = (spoiler, hexdump_output, self.idx, PwndbgGuiConstants.DEFAULT_WATCH_BYTES)
         self.idx += 1
         self.active_watches_layout.insertWidget(0, spoiler)
 
@@ -211,6 +215,13 @@ class HDumpContextWidget(QGroupBox):
         index = token - ResponseToken.GUI_WATCHES_HEXDUMP
         for key, value in self.watches.items():
             if value[2] == index:
+                # First throw away the offset column
                 value[1].add_content(self.parser.to_html(result))
+                value[1].verticalScrollBar().setValue(0)
+                # Additionally if content < 4 lines -> adapt max height else maxheight as default
+                lines = len(result.split(b"\n"))
+                if lines < self.default_lines:
+                    value[1].set_maxheight_to_lines(lines)
+                else:
+                    value[1].set_maxheight_to_lines(self.default_lines)
                 break
-
