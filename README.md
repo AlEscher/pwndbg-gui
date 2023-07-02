@@ -45,3 +45,7 @@ By introducing a GUI layer on top of `pwndbg` we can filter out, reorder and cus
 
 Having a GUI application would not only allow using `pwndbg`'s functionality in a simplified, more streamlined way, but also allows for advantages a typical GUI interface has like interacting with the filesystem easily or rich media support.
 A GUI is also more intuitive to use, having the user remember fewer commands and hiding unnecessary output.
+
+## External dependencies
+- [Qt PySide6](https://www.qt.io/download-open-source)
+- [Pygdbmi](https://github.com/cs01/pygdbmi)

@@ -17,16 +17,6 @@ By introducing a GUI layer ontop of `pwndbg` we can filter out, reorder and cust
 Having a GUI application would not only allow using `pwndbg`'s functionality in a simplified, more streamlined way, but also allows for advantages a typical GUI interface has like interacting with the filesystem easily or rich media support.
 A GUI is also more intuitive to use, having the user remember less commands and hiding unnecessary output.
 
-## Existing alternatives
-
-There are **a lot** of plugins, addons and programs that try to ease the use of `gdb`. 
-However most stick to the terminal approach to visualise different contexts like [splitmind](https://github.com/jerdna-regeiz/splitmind), [GDB Dashboard](https://github.com/cyrus-and/gdb-dashboard) or [Hyperpwn](https://github.com/bet4it/hyperpwn).
-
-We have not found a `pwndbg` specific GUI, but some standalone GUI programs for debugging with gdb like [gdbGUI](https://www.gdbgui.com/), [KDbg](https://www.kdbg.org/), or [Nemiver](https://wiki.gnome.org/Apps/Nemiver).
-However in our experience they were buggy, non intuitve and tailored more towards general debugging instead of reversing/pwning.
-
-Of course there are alternatives to `pwndbg` in general like [GEF](https://hugsy.github.io/gef/), however they suffer from similar issues as descibed above or are only integrated into more complex IDEs. ([CLion](https://www.jetbrains.com/clion/), [Eclipse](https://github.com/eclipse-cdt/), etc.)
-
 ## Approach
 
 The idea is to build a wrapper around `pwndbg` using the [Qt](https://doc.qt.io/qtforpython-6/) framework.
