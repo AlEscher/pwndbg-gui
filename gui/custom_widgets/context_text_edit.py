@@ -33,3 +33,9 @@ class ContextTextEdit(QTextEdit):
             cursor.setPosition(char_index)
             self.setTextCursor(cursor)
             self.ensureCursorVisible()
+
+    def set_maxheight_to_lines(self, lines: int):
+        font_metrics = self.fontMetrics()
+        line_height = font_metrics.lineSpacing()
+        extra_height = font_metrics.leading()
+        self.setMaximumHeight((line_height + extra_height) * lines)

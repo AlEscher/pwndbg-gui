@@ -117,10 +117,10 @@ class GdbHandler(QObject):
 
     @Slot(str, int)
     def add_watch(self, param: str, idx: int):
-        self.watches[param] = [idx, PwndbgGuiConstants.DEFAULT_WATCH_LINES]
+        self.watches[param] = [idx, PwndbgGuiConstants.DEFAULT_WATCH_BYTES]
         logger.debug("Added to watchlist: %s with index %d", param, idx)
         self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP + idx,
-                                 " ".join(["hexdump", param, str(PwndbgGuiConstants.DEFAULT_WATCH_LINES)]))
+                                 " ".join(["hexdump", param, str(PwndbgGuiConstants.DEFAULT_WATCH_BYTES)]))
 
     @Slot(str)
     def del_watch(self, param: str):
