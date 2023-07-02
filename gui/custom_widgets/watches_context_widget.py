@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict, Tuple
 
 from PySide6.QtCore import Qt, Signal, Slot, QParallelAnimationGroup, QPropertyAnimation, QAbstractAnimation
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QWidget, \
-    QPushButton, QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout, QSpinBox
+    QPushButton, QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout, QSpinBox, QTextEdit
 
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.parser import ContextParser
@@ -182,6 +182,7 @@ class HDumpContextWidget(QGroupBox):
         hexdump_output = ContextTextEdit(self)
         # Setting maximum height
         hexdump_output.set_maxheight_to_lines(self.default_lines)
+        hexdump_output.setLineWrapMode(QTextEdit.NoWrap)
         inter_spoiler_layout.addWidget(hexdump_output)
         # Setup Spoiler
         spoiler = Spoiler(inter_spoiler_layout, parent=self, title=address)
@@ -215,13 +216,19 @@ class HDumpContextWidget(QGroupBox):
         index = token - ResponseToken.GUI_WATCHES_HEXDUMP
         for key, value in self.watches.items():
             if value[2] == index:
-                # First throw away the offset column
-                value[1].add_content(self.parser.to_html(result))
+                # First throw away the offset column which apparently requires 98329285 list comprehensions
+                lines = result.split(b'\n')
+                # Remove empty byte objects because reasons
+                lines = [line for line in lines if line]
+                trimmed_lines = [line.split(b' ', 1)[1] for line in lines]
+                content = b'\n'.join(trimmed_lines)
+                # Add contents
+                value[1].add_content(self.parser.to_html(content))
                 value[1].verticalScrollBar().setValue(0)
-                # Additionally if content < 4 lines -> adapt max height else maxheight as default
-                lines = len(result.split(b"\n"))
-                if lines < self.default_lines:
-                    value[1].set_maxheight_to_lines(lines)
+                # Additionally if content < 4 lines -> adapt max height else maxheight to default
+                line_count = len(result.split(b"\n"))
+                if line_count < self.default_lines:
+                    value[1].set_maxheight_to_lines(line_count)
                 else:
                     value[1].set_maxheight_to_lines(self.default_lines)
                 break
