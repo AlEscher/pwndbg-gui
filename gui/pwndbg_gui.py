@@ -277,7 +277,7 @@ def run_gui():
     dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, QColor(127, 127, 127))
     dark_palette.setColor(QPalette.ColorRole.Base, QColor(42, 42, 42))
     dark_palette.setColor(QPalette.ColorRole.AlternateBase, QColor(66, 66, 66))
-    dark_palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.darkGray)
+    dark_palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.black)
     dark_palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
     dark_palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
     dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor(127, 127, 127))
