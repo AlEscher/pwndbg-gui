@@ -1,7 +1,5 @@
 -Attaching to process (inferior communication)
 
--Hexdump error in type log (Kill me)
-
 -Stack and Registers may linewrap when there is no space resulting in overlapping lines
 
 -Feedback for dying threads
