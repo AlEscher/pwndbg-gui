@@ -22,7 +22,7 @@ pwndbg, a powerful command-line tool for exploit development and binary analysis
 <li>Seamless integration with pwndbg</li>
 </ul>
 
-<p>For more information, see the <a href="https://github.com/AlEscher/pwndbg-gui">Github repo</a>.</p>
+<p>For more information, see the <a href="https://github.com/AlEscher/pwndbg-gui#pwndbg-gui">Github repo</a>.</p>
 
 <p><strong>Feedback and Contributions:</strong></p> <p>You can <a 
 href="https://github.com/AlEscher/pwndbg-gui/issues/new">report issues</a> or <a 
