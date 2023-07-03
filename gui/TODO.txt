@@ -5,7 +5,6 @@
 -Feedback for dying threads
 -Remember spliter config
 
-Tooltip fix  https://forum.qt.io/topic/118549/changine-palette-to-dark-doesn-t-change-everything/2
 QT sudo fix
 
 

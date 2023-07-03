@@ -24,6 +24,7 @@ class ContextListWidget(QListWidget):
         super().__init__(parent)
         self.parser = ContextParser()
         self.setup_widget_layout(parent, title, splitter, index)
+        self.setResizeMode(QListWidget.ResizeMode.Adjust)
         self.context_menu = QMenu(self)
         self.context_shortcuts = {"copy_address": QKeyCombination(Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier | Qt.Key.Key_C),
                                   "copy_value": QKeyCombination(Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier | Qt.Key.Key_V),
