@@ -1,7 +1,4 @@
 -Attaching to process (inferior communication)
--Rightclick context menu for list widgets
--Add shortcuts for context menu actions
--Start button
 
 -Hexdump error in type log (Kill me)
 
