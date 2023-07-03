@@ -84,7 +84,6 @@ class ContextListWidget(QListWidget):
 
     def keyPressEvent(self, event: QKeyEvent):
         """Event handler for any key presses on this widget"""
-        logger.debug(event)
         if event.matches(QKeySequence.StandardKey.Copy):
             # When the user presses Ctrl+C, we copy the selected stack line into his clipboard
             selected_items = self.selectedItems()
