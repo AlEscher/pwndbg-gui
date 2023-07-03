@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from PySide6.QtCore import QObject, Slot, Signal, QCoreApplication
 from pygdbmi import gdbcontroller
@@ -29,6 +30,10 @@ class GdbReader(QObject):
         self.controller = controller
         self.result = []
         self.run = True
+        # Some import information like error output of pwndbg commands or even GDB's own commands is only outputted
+        # as "log" elements. However, since also all inputted commands are echoed back as logs, we capture logs
+        # separately and decide on a "result" element whether we want to forward the logs or not
+        self.logs: List[str] = []
 
     @Slot()
     def read_with_timeout(self):
@@ -45,15 +50,22 @@ class GdbReader(QObject):
 
     def send_update_gui(self, token: int):
         """Flushes all collected outputs to the destination specified by token"""
-        if len(self.result) == 0:
+        if len(self.result) and len(self.logs) == 0:
             return
         context = tokens.Token_to_Context[token]
+        # If we want to send an update but have no results and only logs, it means something went wrong,
+        # and we want to forward the output to the user. If we do have results, prioritize them over the logs
+        if len(self.result) > 0:
+            content = "".join(self.result).encode()
+        else:
+            # We skip the first log as it is (always?) just the inputted command echoed back
+            content = "".join(self.logs[1:]).encode()
         # When the program is not stopped we cannot send commands to gdb, so any context output produced that was not
         # destined to main should not be shown
         if context == tokens.Token_to_Context[tokens.ResponseToken.GUI_MAIN_CONTEXT.value]:
-            self.update_gui.emit(context, "".join(self.result).encode())
+            self.update_gui.emit(context, content)
         elif InferiorHandler.INFERIOR_STATE == InferiorState.STOPPED:
-            self.update_gui.emit(context, "".join(self.result).encode())
+            self.update_gui.emit(context, content)
         self.result = []
 
     def send_main_update(self):
@@ -79,9 +91,8 @@ class GdbReader(QObject):
             elif response["type"] == "notify":
                 self.handle_notify(response)
             # Ugly way of catching specific log
-            elif response["type"] == "log" and response[
-                "payload"] == "No symbol table is loaded.  Use the \"file\" command.\n":
-                self.result.append(response["payload"])
+            elif response["type"] == "log":
+                self.logs.append(response["payload"])
 
     def handle_result(self, response: dict):
         if response["token"] is None:
@@ -112,6 +123,7 @@ class GdbReader(QObject):
         else:
             # no token in result -> dropping all previous messages
             self.result = []
+        self.logs = []
 
     def handle_notify(self, response: dict):
         if response["message"] == "running":
@@ -126,8 +138,8 @@ class GdbReader(QObject):
             if InferiorHandler.INFERIOR_STATE != InferiorState.EXITED:
                 logger.debug("Setting inferior state to %s", InferiorState.STOPPED.name)
                 InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
-            '''Stopping due to a breakpoint hit or a step does not give a "result" event, 
-            so we have to parse the notify manually and check whether we want to update our current results to the main context widget'''
+            '''Stopping due to a breakpoint hit or a step does not give a "result" event, so we have to parse the 
+            notify manually and check whether we want to update our current results to the main context widget'''
             if "reason" in response["payload"]:
                 if response["payload"]["reason"] == "breakpoint-hit" or response["payload"][
                     "reason"] == "end-stepping-range" or response["payload"]["reason"] == "exited":
