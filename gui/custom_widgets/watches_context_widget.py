@@ -31,9 +31,9 @@ class Spoiler(QWidget):
 
         self.animationDuration = animationDuration
         self.toggleAnimation = QParallelAnimationGroup()
-        self.contentArea = QScrollArea()
-        self.headerLine = QFrame()
-        self.toggleButton = QToolButton()
+        self.contentArea = QScrollArea(parent=self)
+        self.headerLine = QFrame(parent=self)
+        self.toggleButton = QToolButton(parent=self)
         self.mainLayout = QGridLayout()
 
         toggle_button = self.toggleButton
@@ -152,7 +152,7 @@ class HDumpContextWidget(QGroupBox):
     def setup_widget_layout(self):
         # The layout for the input mask (label and line edit) of the New Watch functionality
         new_watch_input_layout = QHBoxLayout()
-        new_watch_input_label = QLabel("New Watch:")
+        new_watch_input_label = QLabel("New Watch:", parent=self)
         new_watch_input_label.setToolTip("Add an address to be watched every context update via 'hexdump'")
         new_watch_input_layout.addWidget(new_watch_input_label)
         self.new_watch_input = QLineEdit()
@@ -183,7 +183,7 @@ class HDumpContextWidget(QGroupBox):
         watch_interact_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         # Bytes Spinbox
-        watch_lines_label = QLabel("Bytes:")
+        watch_lines_label = QLabel("Bytes:", parent=self)
         watch_interact_layout.addWidget(watch_lines_label)
         watch_lines_incrementor = QSpinBox()
         watch_lines_incrementor.setRange(1, 999)
