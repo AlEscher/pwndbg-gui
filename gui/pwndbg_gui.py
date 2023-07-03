@@ -306,6 +306,13 @@ def run_gui():
     dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.HighlightedText, QColor(127, 127, 127))
     # Set the dark palette
     app.setPalette(dark_palette)
+    # fix for Tooltip colors
+    app.setStyleSheet("""
+        QToolTip {
+            background-color: #303030;
+            color: white;
+        }
+    """)
 
     window = PwnDbgGui()
     window.showMaximized()
