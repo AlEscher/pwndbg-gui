@@ -32,7 +32,6 @@ class HTMLDelegate(QStyledItemDelegate):
         painter.restore()
 
     def sizeHint(self, option, index):
-        options = QStyleOptionViewItem(option)
         self.initStyleOption(option, index)
         self.doc.setHtml(option.text)
         self.doc.setTextWidth(option.rect.width())

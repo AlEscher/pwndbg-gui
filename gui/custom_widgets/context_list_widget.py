@@ -166,3 +166,7 @@ class ContextListWidget(QListWidget):
         data = item.data(role)
         if data is not None:
             QApplication.clipboard().setText(data)
+
+    def resizeEvent(self, resizeEvent):
+        self.reset()
+        super().resizeEvent(resizeEvent)
