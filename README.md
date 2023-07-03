@@ -27,12 +27,12 @@
 
 ## Preview
 
-TODO: Screenshots
+![Overview Running](./screenshots/OverviewRunning.png)
 
 ## Motivation
 
-`pwndbg` is a command line utility that enhances `gdb` by allowing the user to more easily view data, as well as by adding various new commands.
-However, with it being a command line tool it comes with various restrictions regarding usability.
+`pwndbg` is a command line utility that greatly enhances `gdb` by allowing the user to more easily view data, as well as by adding many new commands.
+However, with it being a command line tool it comes with various restrictions regarding user interaction.
 Especially the multitasking and customizability suffers in text-based terminal applications since they are by design bound to the limits of terminal representation.
 
 By default `pwndbg` prints everything to the same terminal. This makes the space for the different contexts of `pwndbg` limited.
