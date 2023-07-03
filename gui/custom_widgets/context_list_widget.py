@@ -2,7 +2,8 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, Slot, QKeyCombination
+from PySide6.QtGui import QIcon, QKeySequence, QKeyEvent
 from PySide6.QtWidgets import QListWidget, QListWidgetItem, QApplication, QMenu, QSplitter, QGroupBox, QVBoxLayout
 
 from gui.context_data_role import ContextDataRole
@@ -23,6 +24,12 @@ class ContextListWidget(QListWidget):
         super().__init__(parent)
         self.parser = ContextParser()
         self.setup_widget_layout(parent, title, splitter, index)
+        self.context_menu = QMenu(self)
+        self.context_shortcuts = {"copy_address": QKeyCombination(Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier | Qt.Key.Key_C),
+                                  "copy_value": QKeyCombination(Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier | Qt.Key.Key_V),
+                                  "xinfo_address": QKeyCombination(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_X),
+                                  "xinfo_value": QKeyCombination(Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier | Qt.Key.Key_X)}
+        self.setup_context_menu()
 
     def setup_widget_layout(self, parent: 'PwnDbgGui', title: str, splitter: QSplitter, index: int):
         # GroupBox needs to have parent before being added to splitter (see SO below)
@@ -35,6 +42,30 @@ class ContextListWidget(QListWidget):
         splitter.replaceWidget(index, context_box)
         # https://stackoverflow.com/a/66067630
         context_box.show()
+
+    def setup_context_menu(self):
+        # Copy the address data, for a stack this is the stack address, for a register this is the register's content
+        copy_addr_action = self.context_menu.addAction("Copy Address")
+        copy_addr_action.setIcon(QIcon.fromTheme("edit-copy"))
+        # Shortcuts don't work for some reason, we still set them to get the text in the context menu
+        copy_addr_action.setShortcut(self.context_shortcuts["copy_address"])
+        copy_addr_action.triggered.connect(self.copy_address)
+        # Copy the value data, for a stack this is the value that the stack address points to,
+        # for a register this is the value that the address points to if one exists
+        copy_val_action = self.context_menu.addAction("Copy Value")
+        copy_val_action.setIcon(QIcon.fromTheme("edit-copy"))
+        copy_val_action.setShortcut(self.context_shortcuts["copy_value"])
+        copy_val_action.triggered.connect(self.copy_value)
+        # Show a dialog with offset information about the address entry
+        offset_address_action = self.context_menu.addAction("Show Address Offsets")
+        offset_address_action.setIcon(QIcon.fromTheme("system-search"))
+        offset_address_action.setShortcut(self.context_shortcuts["xinfo_address"])
+        offset_address_action.triggered.connect(self.xinfo_address)
+        # Show a dialog with offset information about the value entry
+        offset_value_action = self.context_menu.addAction("Show Value Offsets")
+        offset_value_action.setIcon(QIcon.fromTheme("system-search"))
+        offset_value_action.setShortcut(self.context_shortcuts["xinfo_value"])
+        offset_value_action.triggered.connect(self.xinfo_value)
 
     def add_content(self, content: str):
         self.clear()
@@ -51,9 +82,10 @@ class ContextListWidget(QListWidget):
             item.setData(ContextDataRole.ADDRESS, address)
             item.setData(ContextDataRole.VALUE, value)
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event: QKeyEvent):
         """Event handler for any key presses on this widget"""
-        if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_C:
+        logger.debug(event)
+        if event.matches(QKeySequence.StandardKey.Copy):
             # When the user presses Ctrl+C, we copy the selected stack line into his clipboard
             selected_items = self.selectedItems()
             if selected_items:
@@ -62,33 +94,44 @@ class ContextListWidget(QListWidget):
                 if data:
                     QApplication.clipboard().setText(data)
                 return
+        # We have to do this garbage here manually because Qt Shortcuts don't work for the context menu actions
+        elif event.keyCombination().toCombined() == self.context_shortcuts["copy_address"].toCombined():
+            self.copy_address()
+            return
+        elif event.keyCombination().toCombined() == self.context_shortcuts["copy_value"].toCombined():
+            self.copy_value()
+            return
+        elif event.keyCombination().toCombined() == self.context_shortcuts["xinfo_address"].toCombined():
+            self.xinfo_address()
+            return
+        elif event.keyCombination().toCombined() == self.context_shortcuts["xinfo_value"].toCombined():
+            self.xinfo_value()
+            return
+
         super().keyPressEvent(event)
+
+    @Slot()
+    def copy_value(self):
+        self.set_data_to_clipboard(self.selectedItems()[0], ContextDataRole.VALUE)
+
+    @Slot()
+    def copy_address(self):
+        self.set_data_to_clipboard(self.selectedItems()[0], ContextDataRole.ADDRESS)
+
+    @Slot()
+    def xinfo_address(self):
+        self.execute_xinfo.emit(str(self.selectedItems()[0].data(ContextDataRole.ADDRESS)))
+
+    @Slot()
+    def xinfo_value(self):
+        self.execute_xinfo.emit(str(self.selectedItems()[0].data(ContextDataRole.VALUE)))
 
     def contextMenuEvent(self, event):
         selected_items = self.selectedItems()
         if selected_items is None or len(selected_items) == 0:
             super().contextMenuEvent(event)
             return
-        menu = QMenu(self)
-        # Copy the address data, for a stack this is the stack address, for a register this is the register's content
-        copy_addr_action = menu.addAction("Copy Address")
-        # Copy the value data, for a stack this is the value that the stack address points to,
-        # for a register this is the value that the address points to if one exists
-        copy_val_action = menu.addAction("Copy Value")
-        # Show a dialog with offset information about the address entry
-        offset_address_action = menu.addAction("Show Address Offsets")
-        # Show a dialog with offset information about the value entry
-        offset_value_action = menu.addAction("Show Value Offsets")
-        action = menu.exec(event.globalPos())
-        item = selected_items[0]
-        if action == copy_addr_action:
-            self.set_data_to_clipboard(item, ContextDataRole.ADDRESS)
-        elif action == copy_val_action:
-            self.set_data_to_clipboard(item, ContextDataRole.VALUE)
-        elif action == offset_address_action and item.data(ContextDataRole.ADDRESS) is not None:
-            self.execute_xinfo.emit(str(item.data(ContextDataRole.ADDRESS)))
-        elif action == offset_value_action and item.data(ContextDataRole.VALUE) is not None:
-            self.execute_xinfo.emit(str(item.data(ContextDataRole.VALUE)))
+        self.context_menu.exec(event.globalPos())
 
     def delete_first_html_tag(self, string: str):
         pattern = r"<[^>]+>"  # Regular expression pattern to match HTML tags
