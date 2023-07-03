@@ -9,6 +9,24 @@ class PwndbgGuiConstants:
     PURPLE = "#C74DED"
     CYAN = "#00C1E4"
     LIGHT_GRAY = "#DCDFE4"
+    # Written by ChatGPT lol
+    ABOUT_TEXT = """<h2>About pwndbg-gui</h2>
+
+<p>Welcome to pwndbg-gui, a graphical user interface (GUI) application designed to enhance your experience with 
+pwndbg, a powerful command-line tool for exploit development and binary analysis.</p>
+
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Intuitive and user-friendly interface</li>
+<li>Enhanced debugging experience</li>
+<li>Seamless integration with pwndbg</li>
+</ul>
+
+<p>For more information, see the <a href="https://github.com/AlEscher/pwndbg-gui">Github repo</a>.</p>
+
+<p><strong>Feedback and Contributions:</strong></p> <p>You can <a 
+href="https://github.com/AlEscher/pwndbg-gui/issues/new">report issues</a> or <a 
+href="https://github.com/AlEscher/pwndbg-gui/fork">contribute</a> to the project.</p>"""
     # Thank you, ChatGPT
     ANSI_COLOR_TO_RGB = {
         0: (0, 0, 0),

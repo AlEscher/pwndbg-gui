@@ -249,9 +249,7 @@ class PwnDbgGui(QMainWindow):
     @Slot()
     def about(self):
         """Display the About section for our GUI"""
-        QMessageBox.about(self, "About PwndbgGui", "The <b>Application</b> example demonstrates how to "
-                                                   "write modern GUI applications using Qt, with a menu bar, "
-                                                   "toolbars, and a status bar.")
+        QMessageBox.about(self, "About PwndbgGui", PwndbgGuiConstants.ABOUT_TEXT)
 
     @Slot(bytes)
     def receive_pwndbg_about(self, content: bytes):
