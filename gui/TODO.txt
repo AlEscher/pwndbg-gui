@@ -3,7 +3,6 @@
 -Add shortcuts for context menu actions
 -Start button
 
--Resize via keyboard does shitty stuff fix
 -Hexdump error in type log (Kill me)
 
 -Stack and Registers may linewrap when there is no space resulting in overlapping lines

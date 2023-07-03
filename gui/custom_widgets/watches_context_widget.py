@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt, Signal, Slot, QParallelAnimationGroup, QPropertyA
     QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QWidget, \
-    QPushButton, QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout, QSpinBox, QTextEdit, \
+    QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout, QSpinBox, QTextEdit, \
     QApplication
 
 from gui.custom_widgets.context_text_edit import ContextTextEdit
@@ -189,12 +189,16 @@ class HDumpContextWidget(QGroupBox):
         watch_lines_incrementor.setRange(1, 999)
         watch_lines_incrementor.setValue(PwndbgGuiConstants.DEFAULT_WATCH_BYTES)
         watch_lines_incrementor.valueChanged.connect(lambda value: self.change_lines_watch.emit(address, value))
+        watch_lines_incrementor.setFixedHeight(QApplication.font().pointSize()*2.5)
+        watch_lines_incrementor.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         watch_interact_layout.addWidget(watch_lines_incrementor)
 
         # Delete button
-        delete_watch_button = QPushButton()
+        delete_watch_button = QToolButton()
         delete_watch_button.setIcon(QIcon.fromTheme("edit-delete"))
         delete_watch_button.setIconSize(QSize(QApplication.font().pointSize()*2, QApplication.font().pointSize()*2))
+        delete_watch_button.setFixedSize(QSize(QApplication.font().pointSize()*2.5, QApplication.font().pointSize()*2.5))
+        delete_watch_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         delete_watch_button.clicked.connect(lambda: self.delete_watch_submit(address))
         watch_interact_layout.addWidget(delete_watch_button)
 
