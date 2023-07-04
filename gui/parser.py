@@ -17,10 +17,18 @@ class ContextParser:
         self.parser = QTextEdit()
 
     def reset(self):
+        """
+        Reset the internal parser
+        """
         self.parser.clear()
         self.reset_font()
 
     def parse(self, raw_output: bytes, remove_headers=False):
+        """
+        Parse program output containing ASCII control characters
+        :param raw_output: The output as received from e.g. pwndbg
+        :param remove_headers: Whether to remove the header, e.g. for "context" commands
+        """
         self.reset()
         if remove_headers:
             lines = raw_output.split(b"\n")
@@ -33,12 +41,21 @@ class ContextParser:
         self.reset_font()
 
     def to_html(self, raw_output: bytes, remove_headers=False) -> str:
-        """Parses output containing ASCII control characters into equivalent HTML code"""
+        """
+        Parses output containing ASCII control characters into equivalent HTML code
+        :param raw_output: The output as received from e.g. pwndbg
+        :param remove_headers: Whether to remove the header, e.g. for "context" commands
+        :return:
+        """
         self.parse(raw_output, remove_headers)
         return self.parser.toHtml()
 
     def from_html(self, html: str):
-        """Takes HTML and returns the plain text content"""
+        """
+        Takes HTML and returns the plain text content
+        :param html: The valid HTML representation of an output
+        :return:
+        """
         self.reset()
         self.parser.setHtml(html)
         return self.parser.toPlainText()
@@ -50,6 +67,11 @@ class ContextParser:
         self.parser.setFontItalic(False)
 
     def parse_ascii_control(self, token: bytes):
+        """
+        Parse a single token, if it is an ASCII control character emulate it (e.g. change text color) and
+        otherwise add any normal plain text to the parser's document
+        :param token: A single token
+        """
         # Remove weird bytes, e.g. in \x01\x1b[31m\x1b[1m\x02pwndbg> \x01\x1b[0m\x1b[31m\x1b[0m\x02
         token = token.replace(b"\x01", b"").replace(b"\x02", b"")
         start = token[:3]

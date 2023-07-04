@@ -80,8 +80,9 @@ class PwnDbgGui(QMainWindow):
         self.load_state()
 
     def setup_custom_widgets(self):
-        """Ugly workaround to allow to use custom widgets.
-            Using custom widgets in Qt Designer seems to only work for C++"""
+        """
+        Ugly workaround to allow to use custom widgets. Using custom widgets in Qt Designer seems to only work for C++
+        """
         logger.debug("Replacing widgets with custom implementations")
         # Widget index depends on the order they were added in ui_form.py
         self.ui.stack = StackContextWidget(self, title="Stack", splitter=self.ui.splitter_4, index=2)
@@ -197,7 +198,10 @@ class PwnDbgGui(QMainWindow):
         self.inferior_thread.start()
 
     def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
-        """Called when window is closed. Stop our worker threads"""
+        """
+        Called when window is closed. Stop our worker threads
+        :param event: The event forwarded by Qt
+        """
         logger.debug("Stopping GDB threads")
         self.stop_gdb_threads.emit()
         self.save_state()
@@ -245,7 +249,11 @@ class PwnDbgGui(QMainWindow):
 
     @Slot(str, bytes)
     def update_pane(self, context: str, content: bytes):
-        """Used by other threads to update widgets in the GUI. Updates to the GUI have to be made in the GUI's thread"""
+        """
+        Used by other threads to update widgets in the GUI. Updates to the GUI have to be made in the GUI's thread
+        :param context: The context to update
+        :param content: The collected output from GDB
+        """
         widget: ContextTextEdit | ContextListWidget = self.seg_to_widget[context]
         logger.debug("Updating context %s", widget.objectName())
         remove_header = True
@@ -264,7 +272,10 @@ class PwnDbgGui(QMainWindow):
 
     @Slot(bytes)
     def receive_pwndbg_about(self, content: bytes):
-        """Receive the output of the command overview for pwndbg"""
+        """
+        Receive the output of the command overview for pwndbg
+        :param content: The output of "pwndbg --all" command
+        """
         self.pwndbg_cmds = self.parser.to_html(content)
 
     @Slot()
@@ -275,6 +286,10 @@ class PwnDbgGui(QMainWindow):
 
     @Slot(bytes)
     def display_xinfo_result(self, content: bytes):
+        """
+        Create a PopUp that displays the offset information the user requested.
+        :param content: The output of a "xinfo" command
+        """
         message = self.parser.to_html(content)
         # pwndbg doesn't seem to have documentation on commands, so we link to code ¯\_(ツ)_/¯
         popup = InfoMessageBox(self, "xinfo", message, "https://github.com/pwndbg/pwndbg/blob/dev/pwndbg/commands"
