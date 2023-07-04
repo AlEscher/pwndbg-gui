@@ -28,3 +28,4 @@ class RegisterContextWidget(ContextListWidget):
         item = QListWidgetItem(self)
         item.setData(Qt.ItemDataRole.DisplayRole, cleaned_line)
         item.setData(ContextDataRole.ADDRESS, content.decode().strip())
+        item.setData(ContextDataRole.VALUE, content.decode().strip())
