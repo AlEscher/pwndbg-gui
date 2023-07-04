@@ -29,6 +29,7 @@ class HeapContextWidget(QGroupBox):
         self.context_layout = QVBoxLayout()
         self.context_splitter = QSplitter()
         self.context_splitter.setOrientation(Qt.Orientation.Vertical)
+        self.context_splitter.setObjectName("heap_splitter")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setFlat(True)
         self.setTitle("Heap")
@@ -41,6 +42,7 @@ class HeapContextWidget(QGroupBox):
     def setup_widget_layout(self):
         output_splitter = QSplitter()
         output_splitter.setOrientation(Qt.Orientation.Horizontal)
+        output_splitter.setObjectName("heap_output_splitter")
 
         self.heap_output = ContextTextEdit(self)
         output_splitter.addWidget(self.heap_output)
