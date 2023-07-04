@@ -1,8 +1,5 @@
 -Attaching to process (inferior communication)
 
--Stack and Registers may linewrap when there is no space resulting in overlapping lines
-
--Feedback for dying threads
 -Remember spliter config
 
 QT sudo fix
