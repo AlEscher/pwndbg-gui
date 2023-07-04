@@ -1,8 +1,10 @@
 # This Python file uses the following encoding: utf-8
+import base64
 import logging
 import sys
 from os import path
 from pathlib import Path
+from typing import List
 
 from gui.custom_widgets.info_message_box import InfoMessageBox
 from gui.custom_widgets.backtrace_context_widget import BacktraceContextWidget
@@ -18,10 +20,10 @@ directory = path.abspath(directory)
 sys.path.append(directory)
 
 import PySide6
-from PySide6.QtCore import Slot, Qt, Signal, QThread
+from PySide6.QtCore import Slot, Qt, Signal, QThread, QSettings, QByteArray
 from PySide6.QtGui import QTextOption, QAction, QKeySequence, QFont, QPalette, QColor
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QInputDialog, \
-    QLineEdit, QMessageBox, QSpinBox
+    QLineEdit, QMessageBox, QSpinBox, QSplitter
 
 from constants import PwndbgGuiConstants
 from custom_widgets.context_list_widget import ContextListWidget
@@ -79,6 +81,7 @@ class PwnDbgGui(QMainWindow):
         self.setup_menu()
         self.gdb_handler.init()
         self.setup_inferior()
+        self.load_state()
 
     def setup_custom_widgets(self):
         """Ugly workaround to allow to use custom widgets.
@@ -100,6 +103,7 @@ class PwnDbgGui(QMainWindow):
         self.menu_bar = self.menuBar()
         debug_menu = self.menu_bar.addMenu("&Debug")
         debug_toolbar = self.addToolBar("Debug")
+        debug_toolbar.setObjectName("debugToolbar")
 
         start_action = QAction("Start Program", self)
         start_action.setToolTip("Start the program to debug")
@@ -197,12 +201,14 @@ class PwnDbgGui(QMainWindow):
         """Called when window is closed. Stop our worker threads"""
         logger.debug("Stopping GDB threads")
         self.stop_gdb_threads.emit()
+        self.save_state()
         logger.debug("Waiting for GDB Handler thread")
         self.gdb_handler_thread.wait()
         logger.debug("Waiting for GDB Reader thread")
         self.gdb_reader_thread.wait()
         logger.debug("Waiting for Inferior thread")
         self.inferior_thread.wait()
+        event.accept()
 
     @Slot()
     def select_file(self):
@@ -269,6 +275,39 @@ class PwnDbgGui(QMainWindow):
         popup = InfoMessageBox(self, "xinfo", message, "https://github.com/pwndbg/pwndbg/blob/dev/pwndbg/commands"
                                                        "/xinfo.py#L102")
         popup.show()
+
+    def save_state(self):
+        """Save the state of the current session (e.g. in ~/.config folder on Linux)"""
+        settings = QSettings(PwndbgGuiConstants.SETTINGS_FOLDER, PwndbgGuiConstants.SETTINGS_FILE)
+        logger.info("Saving GUI layout state to %s", settings.fileName())
+        settings.setValue(PwndbgGuiConstants.SETTINGS_WINDOW_STATE, self.saveState())
+        settings.setValue(PwndbgGuiConstants.SETTINGS_WINDOW_GEOMETRY, self.saveGeometry())
+        settings = QSettings(PwndbgGuiConstants.SETTINGS_FOLDER, PwndbgGuiConstants.SETTINGS_FILE)
+        splitters = self.findChildren(QSplitter)
+        splitter_sizes: List[QByteArray] = [splitter.saveGeometry() for splitter in splitters]
+        splitter_states: List[QByteArray] = [splitter.saveState() for splitter in splitters]
+        settings.setValue(PwndbgGuiConstants.SPLITTER_GEOMETRIES, b','.join(map(QByteArray.toBase64, splitter_sizes)))
+        settings.setValue(PwndbgGuiConstants.SPLITTER_STATES, b','.join(map(QByteArray.toBase64, splitter_states)))
+
+    def load_state(self):
+        """Load the state of the previous session"""
+        settings = QSettings(PwndbgGuiConstants.SETTINGS_FOLDER, PwndbgGuiConstants.SETTINGS_FILE)
+        state = settings.value(PwndbgGuiConstants.SETTINGS_WINDOW_STATE)
+        if state:
+            self.restoreState(state)
+        geometry = settings.value(PwndbgGuiConstants.SETTINGS_WINDOW_GEOMETRY)
+        if geometry:
+            self.restoreGeometry(geometry)
+        splitter_sizes = settings.value(PwndbgGuiConstants.SPLITTER_GEOMETRIES)
+        splitter_states = settings.value(PwndbgGuiConstants.SPLITTER_STATES)
+        if splitter_sizes is not None and splitter_states is not None:
+            logger.info("Loading existing GUI layout state from %s", settings.fileName())
+            splitter_sizes = [QByteArray.fromBase64(size) for size in splitter_sizes.split(b',')]
+            splitter_states = [QByteArray.fromBase64(size) for size in splitter_states.split(b',')]
+            splitters = self.findChildren(QSplitter)
+            for splitter, size, state in zip(splitters, splitter_sizes, splitter_states):
+                splitter.restoreGeometry(size)
+                splitter.restoreState(state)
 
 
 def run_gui():

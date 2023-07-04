@@ -9,6 +9,14 @@ class PwndbgGuiConstants:
     PURPLE = "#C74DED"
     CYAN = "#00C1E4"
     LIGHT_GRAY = "#DCDFE4"
+    SETTINGS_FOLDER = "pwndbg-gui"
+    SETTINGS_FILE = "pwndbg-gui"
+    # The top level of the settings hierarchy
+    SETTINGS_TOP_LEVEL = "MainWindow"
+    SPLITTER_GEOMETRIES = "/".join([SETTINGS_TOP_LEVEL, "Splitters/Geometry"])
+    SPLITTER_STATES = "/".join([SETTINGS_TOP_LEVEL, "Splitters/State"])
+    SETTINGS_WINDOW_STATE = "/".join([SETTINGS_TOP_LEVEL, "State"])
+    SETTINGS_WINDOW_GEOMETRY = "/".join([SETTINGS_TOP_LEVEL, "Geometry"])
     # Written by ChatGPT lol
     ABOUT_TEXT = """<h2>About pwndbg-gui</h2>
 
