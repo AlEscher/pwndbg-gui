@@ -137,3 +137,7 @@ class GdbHandler(QObject):
     @Slot(bytes)
     def execute_xinfo(self, address: str):
         self.write_to_controller(ResponseToken.GUI_XINFO, " ".join(["xinfo", address]))
+
+    @Slot(str)
+    def set_tty(self, tty: str):
+        self.write_to_controller(ResponseToken.DELETE, " ".join(["tty", tty]))
