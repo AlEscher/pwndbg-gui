@@ -24,6 +24,7 @@
   - When inputting to the inferior process (denoted by the label next to the main pane's input field) you can supply a python `bytes` literal
   - E.g.: Writing b"Hello\x00World\n" will interpret the input as a `bytes` literal and evaluate it accordingly
 - All existing GDB / `pwndbg` commands can still be executed via the Main input widget
+- Context menus for Stack and Register contexts, that allow easy lookup via the `xinfo` command.
 
 ## Preview
 
