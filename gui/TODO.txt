@@ -2,9 +2,14 @@
 
 -Remember spliter config
 
-QT sudo fix
+-QT sudo fix
+-Hexdump error output still does not arrive in context
 
 
-MAYBE:
-    -Refactor Watches to use an extra class
-    -Refactor add content of watch context
+Test:
+    -Shell spawn / multiple threads
+    -Docker setup + attach
+    -step through more challanges
+    -payload insert test (run < payload)
+    -clean install (gdb -> pwndbg -> pwndbg-gui)
+    -final test on Laptop

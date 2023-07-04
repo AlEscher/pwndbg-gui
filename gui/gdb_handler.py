@@ -22,7 +22,7 @@ class GdbHandler(QObject):
         self.past_commands: List[str] = []
         self.contexts = ['regs', 'stack', 'disasm', 'code', 'backtrace']
         self.controller = gdbcontroller.GdbController()
-        # active watches in the form of {address: (idx , number of lines)}
+        # active watches in the form of {address: [idx , number of lines]}
         self.watches: Dict[str, List[int]] = {}
 
     def write_to_controller(self, token: ResponseToken, command: str):

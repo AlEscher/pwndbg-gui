@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Dict, Tuple
+from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, Signal, Slot, QParallelAnimationGroup, QPropertyAnimation, QAbstractAnimation, QSize, \
     QTimer
@@ -78,6 +78,7 @@ class Spoiler(QWidget):
             self.toggleAnimation.setDirection(direction)
             self.toggleAnimation.start()
 
+        # Connect button and animation and finally toggle animation to be in the expanded state
         self.toggleButton.clicked.connect(start_animation)
         self.toggleButton.click()
 
@@ -115,6 +116,16 @@ class Spoiler(QWidget):
         content_animation.setDuration(self.animationDuration)
 
 
+class ActiveWatch:
+    """Class that holds information for an active watch widget"""
+    def __init__(self, address: str, index: int, spoiler: Spoiler, output: ContextTextEdit, numbytes: int):
+        self.address = address
+        self.index = index
+        self.spoiler = spoiler
+        self.output = output
+        self.numbytes = numbytes
+
+
 class HDumpContextWidget(QGroupBox):
     # Execute "hexdump" in pwndbg and add watch in controller
     add_watch = Signal(str, int)
@@ -128,9 +139,8 @@ class HDumpContextWidget(QGroupBox):
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
         self.parser = ContextParser()
-        # Currently watched addresses to ContextTextWidgets
-        # Format {address: (Spoiler, Textfield, index, current lines)}
-        self.watches: Dict[str, Tuple[Spoiler, ContextTextEdit, int, int]] = {}
+        # Currently watched addresses as list of ActiveWatches
+        self.watches: List[ActiveWatch] = []
         self.idx = 0
         # UI init
         self.active_watches_layout = QVBoxLayout()
@@ -189,15 +199,16 @@ class HDumpContextWidget(QGroupBox):
         watch_lines_incrementor.setRange(1, 999)
         watch_lines_incrementor.setValue(PwndbgGuiConstants.DEFAULT_WATCH_BYTES)
         watch_lines_incrementor.valueChanged.connect(lambda value: self.change_lines_watch.emit(address, value))
-        watch_lines_incrementor.setFixedHeight(QApplication.font().pointSize()*2.5)
+        watch_lines_incrementor.setFixedHeight(QApplication.font().pointSize() * 2.5)
         watch_lines_incrementor.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         watch_interact_layout.addWidget(watch_lines_incrementor)
 
         # Delete button
         delete_watch_button = QToolButton()
         delete_watch_button.setIcon(QIcon.fromTheme("edit-delete"))
-        delete_watch_button.setIconSize(QSize(QApplication.font().pointSize()*2, QApplication.font().pointSize()*2))
-        delete_watch_button.setFixedSize(QSize(QApplication.font().pointSize()*2.5, QApplication.font().pointSize()*2.5))
+        delete_watch_button.setIconSize(QSize(QApplication.font().pointSize() * 2, QApplication.font().pointSize() * 2))
+        delete_watch_button.setFixedSize(
+            QSize(QApplication.font().pointSize() * 2.5, QApplication.font().pointSize() * 2.5))
         delete_watch_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         delete_watch_button.clicked.connect(lambda: self.delete_watch_submit(address))
         watch_interact_layout.addWidget(delete_watch_button)
@@ -214,53 +225,63 @@ class HDumpContextWidget(QGroupBox):
         # Setup Spoiler
         spoiler = Spoiler(inter_spoiler_layout, parent=self, title=address)
         # Add watch to outer context
-        self.watches[address] = (spoiler, hexdump_output, self.idx, PwndbgGuiConstants.DEFAULT_WATCH_BYTES)
+        self.watches.append(ActiveWatch(address, self.idx, spoiler, hexdump_output, PwndbgGuiConstants.DEFAULT_WATCH_BYTES))
         self.idx += 1
         self.active_watches_layout.insertWidget(0, spoiler)
+
+    def find_watch_by_id(self, index: id):
+        found_watch = next((watch for watch in self.watches if watch.index == index), None)
+        return found_watch
+
+    def find_watch_by_address(self, address: str):
+        found_watch = next((watch for watch in self.watches if watch.address == address), None)
+        return found_watch
 
     @Slot()
     def new_watch_submit(self):
         """Callback for when the user presses Enter in the new_watch input mask"""
         param = self.new_watch_input.text()
-        if param in self.watches.keys():
+        if self.find_watch_by_address(param) is not None:
             self.new_watch_input.clear()
             return
         self.setup_new_watch_widget(param)
-        self.add_watch.emit(param, self.watches[param][2])
+        self.add_watch.emit(param, self.find_watch_by_address(param).index)
         self.new_watch_input.clear()
 
     @Slot(str)
     def delete_watch_submit(self, address: str):
         """Callback for when the user presses Delete in one of the watch spoilers"""
-        self.context_layout.removeWidget(self.watches[address][0])
-        self.watches[address][0].deleteLater()
-        del self.watches[address]
+        watch = self.find_watch_by_address(address)
+        self.context_layout.removeWidget(watch.spoiler)
+        watch.spoiler.deleteLater()
+        self.watches.remove(watch)
         self.del_watch.emit(address)
 
     @Slot(int, bytes)
     def receive_hexdump_result(self, token: int, result: bytes):
         """Slot for receiving the result of the 'hexdump' command from the GDB reader"""
         index = token - ResponseToken.GUI_WATCHES_HEXDUMP
-        for key, value in self.watches.items():
-            if value[2] == index:
-                # First throw away the offset column which apparently requires 98329285 list comprehensions
-                lines = result.split(b'\n')
-                # Remove empty byte objects
-                lines = [line for line in lines if line]
-                # Throwaway the first column if it is an offset column
-                trimmed_lines = [line.split(b' ', 1)[1] if line.startswith(b"+0") else line for line in lines]
-                content = b'\n'.join(trimmed_lines)
-                # Add contents
-                value[1].add_content(self.parser.to_html(content))
-                value[1].verticalScrollBar().setValue(0)
-                value[1].horizontalScrollBar().setValue(0)
-                # Additionally if content < 4 lines -> adapt max height else maxheight to default
-                line_count = len(result.split(b"\n"))
-                if line_count < self.default_lines:
-                    value[1].set_maxheight_to_lines(line_count)
-                else:
-                    value[1].set_maxheight_to_lines(self.default_lines)
-                # Last update spoiler size
-                value[0].update_content_height()
-                value[0].instant_update()
-                break
+        watch = self.find_watch_by_id(index)
+        if watch is not None:
+            # First trim the first column if necessary
+            lines = result.split(b'\n')
+            non_empty_lines = [line for line in lines if line]
+            # Throwaway the first column if it is an offset column
+            trimmed_lines = [line.split(b' ', 1)[1] if line.startswith(b"+0") else line for line in non_empty_lines]
+            content = b'\n'.join(trimmed_lines)
+
+            # Second add content to the watch and reset scrollbars
+            watch.output.add_content(self.parser.to_html(content))
+            watch.output.verticalScrollBar().setValue(0)
+            watch.output.horizontalScrollBar().setValue(0)
+
+            # Adapt output size if content now is less than before
+            line_count = len(result.split(b"\n"))
+            if line_count < self.default_lines:
+                watch.output.set_maxheight_to_lines(line_count)
+            else:
+                watch.output.set_maxheight_to_lines(self.default_lines)
+
+            # Last update spoiler size
+            watch.spoiler.update_content_height()
+            watch.spoiler.instant_update()
