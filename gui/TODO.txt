@@ -1,5 +1,6 @@
 QT sudo fix on Ubuntu
 
+-Inferior input when attaching
 
 MAYBE:
     -Refactor Watches to use an extra class
