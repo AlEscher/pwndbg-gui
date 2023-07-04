@@ -26,10 +26,12 @@ class GdbHandler(QObject):
         self.watches: Dict[str, List[int]] = {}
 
     def write_to_controller(self, token: ResponseToken, command: str):
+        """Wrapper for writing a command to GDB MI with the specified token"""
         self.controller.write(str(token) + command, read_response=False)
 
     def init(self):
-        """With GDB MI, the .gdbinit file is ignored so we load it ourselves"""
+        """Load the user's .gdbinit, check that pwndbg is loaded"""
+        # With GDB MI, the .gdbinit file is ignored so we load it ourselves
         gdbinit = Path(Path.home() / ".gdbinit").resolve()
         if not gdbinit.exists():
             logger.warning("Could not find .gdbinit file at %s", str(gdbinit))
@@ -78,17 +80,20 @@ class GdbHandler(QObject):
 
     @Slot(list)
     def set_file_target(self, arguments: List[str]):
+        """Load the executable specified by a file path"""
         self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["file"] + arguments))
         InferiorHandler.INFERIOR_STATE = InferiorState.QUEUED
 
     @Slot(list)
     def set_pid_target(self, arguments: List[str]):
+        """Attach to the given PID argument"""
         self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["attach"] + arguments))
         # Attaching to a running process stops it
         InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
 
     @Slot(list)
     def set_source_dir(self, arguments: List[str]):
+        """Add a directory where GDB should look for source files"""
         self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["dir"] + arguments))
 
     @Slot(list)
@@ -105,14 +110,17 @@ class GdbHandler(QObject):
 
     @Slot()
     def execute_heap_cmd(self):
+        """Execute the "heap" command"""
         self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
 
     @Slot()
     def execute_bins_cmd(self):
+        """Execute the "bins" command"""
         self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
 
     @Slot(str)
     def execute_try_free(self, param: str):
+        """Execute the "try_free" command with the given address"""
         self.write_to_controller(ResponseToken.GUI_HEAP_TRY_FREE, " ".join(["try_free", param]))
 
     @Slot(str, int)
@@ -136,8 +144,10 @@ class GdbHandler(QObject):
 
     @Slot(bytes)
     def execute_xinfo(self, address: str):
+        """Execute the "xinfo" command with the given address"""
         self.write_to_controller(ResponseToken.GUI_XINFO, " ".join(["xinfo", address]))
 
     @Slot(str)
     def set_tty(self, tty: str):
+        """Execute the "tty" command with the given tty path. GDB will route future inferiors' I/O via this tty"""
         self.write_to_controller(ResponseToken.DELETE, " ".join(["tty", tty]))

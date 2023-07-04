@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QSplitter, QHBoxLayout, QLabel, QSpinBox
 
 from gui.custom_widgets.context_list_widget import ContextListWidget

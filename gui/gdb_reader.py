@@ -13,14 +13,21 @@ logger = logging.getLogger(__file__)
 
 # Reader object to continuously check for data from gdb.
 class GdbReader(QObject):
+    # Update a context pane in the GUI with data
     update_gui = Signal(str, bytes)
+    # Send the result of a try_free command to the Heap widget
     send_heap_try_free_response = Signal(bytes)
+    # Send the result of a heap command to the Heap widget
     send_heap_heap_response = Signal(bytes)
+    # Send the result of a bins command to the Heap widget
     send_heap_bins_response = Signal(bytes)
+    # Send the result of the hexdump output of a watch to the Watches widget
     send_watches_hexdump_response = Signal(int, bytes)
     # Send the fs base to the "regs" context
     send_fs_base_response = Signal(bytes)
+    # Send the overview of all pwndbg commands to the GUI
     send_pwndbg_about = Signal(bytes)
+    # Send the result of an xinfo command to a list widget
     send_xinfo = Signal(bytes)
     # Emitted when the inferior state changes. True for Stopped and False for Running
     inferior_state_changed = Signal(bool)
@@ -29,6 +36,7 @@ class GdbReader(QObject):
         super().__init__()
         self.controller = controller
         self.result = []
+        # Whether the thread should keep working
         self.run = True
         # Some import information like error output of pwndbg commands or even GDB's own commands is only outputted
         # as "log" elements. However, since also all inputted commands are echoed back as logs, we capture logs
@@ -37,8 +45,8 @@ class GdbReader(QObject):
 
     @Slot()
     def read_with_timeout(self):
+        """Start continuously reading output from GDB MI"""
         while self.run:
-            # first process thread kill events
             QCoreApplication.processEvents()
             response = self.controller.get_gdb_response(raise_error_on_timeout=False)
             if response is not None:
@@ -46,6 +54,7 @@ class GdbReader(QObject):
 
     @Slot()
     def set_run(self, state: bool):
+        """Sets whether the thread should keep working"""
         self.run = state
 
     def send_update_gui(self, token: int):
@@ -83,6 +92,7 @@ class GdbReader(QObject):
         self.result = []
 
     def parse_response(self, gdbmi_response: list[dict]):
+        """Parse a response received from GDB MI and decide how to handle it"""
         for response in gdbmi_response:
             if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
                 self.result.append(response["payload"])
@@ -102,6 +112,7 @@ class GdbReader(QObject):
                 self.logs.append(response["payload"])
 
     def handle_result(self, response: dict):
+        """Handle messages of the result type, which are emitted after a command/action has finished producing output"""
         if response["token"] is None:
             self.result = []
             return
@@ -133,6 +144,7 @@ class GdbReader(QObject):
         self.logs = []
 
     def handle_notify(self, response: dict):
+        """Handle the notify events, which are emitted for different occasions"""
         if response["message"] == "running":
             logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING

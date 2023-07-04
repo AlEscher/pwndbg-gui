@@ -6,7 +6,7 @@ import sys
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, Signal, Slot, QEvent
-from PySide6.QtGui import QIcon, QKeySequence
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel, QWidget
 
 sys.path.append(
@@ -93,6 +93,7 @@ class MainContextWidget(QGroupBox):
 
     @Slot()
     def start(self):
+        """Callback of the start button"""
         logger.debug("Executing start callback")
         self.gdb_write.emit("start")
 

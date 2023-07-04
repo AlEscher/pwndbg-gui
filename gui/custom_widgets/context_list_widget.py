@@ -112,29 +112,34 @@ class ContextListWidget(QListWidget):
 
     @Slot()
     def copy_value(self):
+        """Callback for the "Copy Value" action"""
         if len(self.selectedItems()) == 0:
             return
         self.set_data_to_clipboard(self.selectedItems()[0], ContextDataRole.VALUE)
 
     @Slot()
     def copy_address(self):
+        """Callback for the "Copy Address" action"""
         if len(self.selectedItems()) == 0:
             return
         self.set_data_to_clipboard(self.selectedItems()[0], ContextDataRole.ADDRESS)
 
     @Slot()
     def xinfo_address(self):
+        """Callback for the "Offset Address" action"""
         if len(self.selectedItems()) == 0:
             return
         self.execute_xinfo.emit(str(self.selectedItems()[0].data(ContextDataRole.ADDRESS)))
 
     @Slot()
     def xinfo_value(self):
+        """Callback for the "Offset Value" action"""
         if len(self.selectedItems()) == 0:
             return
         self.execute_xinfo.emit(str(self.selectedItems()[0].data(ContextDataRole.VALUE)))
 
     def contextMenuEvent(self, event):
+        """Called by Qt when the user opens the context menu (right click) on this widget"""
         selected_items = self.selectedItems()
         if selected_items is None or len(selected_items) == 0:
             super().contextMenuEvent(event)
@@ -176,5 +181,6 @@ class ContextListWidget(QListWidget):
             QApplication.clipboard().setText(data)
 
     def resizeEvent(self, resizeEvent):
+        """Called by Qt when the Widget is resized by the user"""
         self.reset()
         super().resizeEvent(resizeEvent)
