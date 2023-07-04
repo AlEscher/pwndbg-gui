@@ -1,8 +1,6 @@
 -Attaching to process (inferior communication)
 
--Remember spliter config
-
-QT sudo fix
+QT sudo fix on Ubuntu
 
 
 MAYBE:
