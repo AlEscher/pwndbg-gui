@@ -54,6 +54,10 @@ GDB is managed as a subprocess in [MI mode](https://ftp.gnu.org/old-gnu/Manuals/
 To make the GUI more fluent and prevent hangups, the application is multithreaded.
 The main thread is the GUI thread, which starts other threads that handle input to GDB (`GdbHandler`), collecting output from GDB (`GdbReader`) and interaction with the inferior process (`InferiorHandler`)
 
+## Troubleshooting
+
+- If you are experiencing issues on startup relating to QT plugins not being found or loaded try to set `QT_DEBUG_PLUGINS=1` and retry. This will show you more debug output related to QT. Most likely you will have some missing dependencies that can be installed via you favourite package manager. On Ubuntu/Debian it was the `libxcb-cursor0` library. See this [SO post](https://stackoverflow.com/questions/68036484/qt6-qt-qpa-plugin-could-not-load-the-qt-platform-plugin-xcb-in-even-thou).
+
 ## External dependencies
 - [Qt PySide6](https://www.qt.io/download-open-source)
 - [Pygdbmi](https://github.com/cs01/pygdbmi)
