@@ -10,3 +10,9 @@ Test:
     -payload insert test (run < payload)
     -clean install (gdb -> pwndbg -> pwndbg-gui)
     -final test on Laptop
+
+Future Features:
+    -Window for got command
+    -Window for elf command (one execution is enough)
+    -Window for checksec command (one execution is enough)
+    -Search command in main window
