@@ -185,6 +185,10 @@ class HDumpContextWidget(QGroupBox):
         self.setLayout(self.context_layout)
 
     def setup_new_watch_widget(self, address: str):
+        """
+        Adds a new Spoiler widget to the active watches.
+        :param address: address or expression to watch
+        """
         # Setup inter Spoiler layout
         inter_spoiler_layout = QVBoxLayout()
         # First setup HBoxLayout for delete and lines
@@ -228,11 +232,21 @@ class HDumpContextWidget(QGroupBox):
         self.idx += 1
         self.active_watches_layout.insertWidget(0, spoiler)
 
-    def find_watch_by_id(self, index: id):
+    def find_watch_by_id(self, index: id) -> ActiveWatch:
+        """
+        Finds active ActiveWatch object by index.
+        :param index: Index to search for.
+        :return: ActiveWatch object with specified index.
+        """
         found_watch = next((watch for watch in self.watches if watch.index == index), None)
         return found_watch
 
-    def find_watch_by_address(self, address: str):
+    def find_watch_by_address(self, address: str) -> ActiveWatch:
+        """
+            Finds active ActiveWatch object by address.
+            :param address: Address to search for.
+            :return: ActiveWatch object with specified address.
+        """
         found_watch = next((watch for watch in self.watches if watch.address == address), None)
         return found_watch
 
@@ -249,7 +263,9 @@ class HDumpContextWidget(QGroupBox):
 
     @Slot(str)
     def delete_watch_submit(self, address: str):
-        """Callback for when the user presses Delete in one of the watch spoilers"""
+        """Callback for when the user presses Delete in one of the watch spoilers
+        :param address: Address to delete
+        """
         watch = self.find_watch_by_address(address)
         self.context_layout.removeWidget(watch.spoiler)
         watch.spoiler.deleteLater()
@@ -258,7 +274,10 @@ class HDumpContextWidget(QGroupBox):
 
     @Slot(int, bytes)
     def receive_hexdump_result(self, token: int, result: bytes):
-        """Slot for receiving the result of the 'hexdump' command from the GDB reader"""
+        """Slot for receiving the result of the 'hexdump' command from the GDB reader
+        :param token: Token that identifies the answer from pygdbmi.
+        :param result: Content to update the watch with.
+        """
         index = token - ResponseToken.GUI_WATCHES_HEXDUMP
         watch = self.find_watch_by_id(index)
         if watch is not None:

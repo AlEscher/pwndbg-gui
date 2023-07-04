@@ -30,6 +30,7 @@ class InferiorHandler(QObject):
 
     @Slot()
     def inferior_runs(self):
+        """Main entry for inferior thread. Read and Write to tty."""
         logger.debug("Starting Inferior Interaction")
         while self.run:
             can_read, _, _ = select.select([self.master], [], [], 0.2)  # Non-blocking check for readability
@@ -44,8 +45,12 @@ class InferiorHandler(QObject):
 
     @Slot(bytes)
     def inferior_write(self, inferior_input: bytes):
+        """Inferior write slot. Will be emitted from gdb_handler.
+        :param inferior_input: Bytes to write to the inferior
+        """
         self.to_write += inferior_input
 
     @Slot()
-    def set_run(self, state: bool):
+    def set_run(self, state: bool) -> object:
+        """Sets whether the thread should keep working"""
         self.run = state

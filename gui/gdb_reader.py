@@ -112,7 +112,9 @@ class GdbReader(QObject):
                 self.logs.append(response["payload"])
 
     def handle_result(self, response: dict):
-        """Handle messages of the result type, which are emitted after a command/action has finished producing output"""
+        """Handle messages of the result type, which are emitted after a command/action has finished producing output
+        :param response: GDB-MI response (Dict) of with ["type"] == result
+        """
         if response["token"] is None:
             self.result = []
             return
@@ -144,7 +146,9 @@ class GdbReader(QObject):
         self.logs = []
 
     def handle_notify(self, response: dict):
-        """Handle the notify events, which are emitted for different occasions"""
+        """Handle the notify events, which are emitted for different occasions
+         :param response: GDB-MI response (Dict) of with ["type"] == notify
+         """
         if response["message"] == "running":
             logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING

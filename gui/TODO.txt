@@ -1,4 +1,3 @@
-QT sudo fix on Ubuntu
 
 -Inferior input when attaching
 
@@ -15,3 +14,4 @@ Future Features:
     -Window for elf command (one execution is enough)
     -Window for checksec command (one execution is enough)
     -Search command in main window
+    -Stack lines update on startup
