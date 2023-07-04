@@ -1,23 +1,16 @@
-# This Python file uses the following encoding: utf-8
-import base64
 import logging
 import sys
-from os import path
 from pathlib import Path
 from typing import List
+from os import path
 
-from gui.custom_widgets.info_message_box import InfoMessageBox
+sys.path.extend([path.join(path.dirname(__file__), path.pardir)])
 from gui.custom_widgets.backtrace_context_widget import BacktraceContextWidget
 from gui.custom_widgets.code_context_widget import CodeContextWidget
 from gui.custom_widgets.disasm_context_widget import DisasmContextWidget
+from gui.custom_widgets.info_message_box import InfoMessageBox
 from gui.custom_widgets.register_context_widget import RegisterContextWidget
 from gui.custom_widgets.stack_context_widget import StackContextWidget
-
-directory, file = path.split(__file__)
-directory = path.expanduser(directory)
-directory = path.join(directory, "..")
-directory = path.abspath(directory)
-sys.path.append(directory)
 
 import PySide6
 from PySide6.QtCore import Slot, Qt, Signal, QThread, QSettings, QByteArray
@@ -25,21 +18,21 @@ from PySide6.QtGui import QTextOption, QAction, QKeySequence, QFont, QPalette, Q
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QInputDialog, \
     QLineEdit, QMessageBox, QSpinBox, QSplitter
 
-from constants import PwndbgGuiConstants
-from custom_widgets.context_list_widget import ContextListWidget
-from custom_widgets.context_text_edit import ContextTextEdit
-from custom_widgets.main_context_widget import MainContextWidget
-from gdb_handler import GdbHandler
+from gui.constants import PwndbgGuiConstants
+from gui.custom_widgets.context_list_widget import ContextListWidget
+from gui.custom_widgets.context_text_edit import ContextTextEdit
+from gui.custom_widgets.main_context_widget import MainContextWidget
+from gui.gdb_handler import GdbHandler
 from gui.custom_widgets.heap_context_widget import HeapContextWidget
 from gui.custom_widgets.watches_context_widget import HDumpContextWidget
 from gui.gdb_reader import GdbReader
-from inferior_handler import InferiorHandler
-from parser import ContextParser
+from gui.inferior_handler import InferiorHandler
+from gui.parser import ContextParser
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
-from ui_form import Ui_PwnDbgGui
+from gui.ui_form import Ui_PwnDbgGui
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s | [%(levelname)s] : %(message)s')
 logger = logging.getLogger(__file__)

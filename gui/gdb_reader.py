@@ -4,9 +4,9 @@ from typing import List
 from PySide6.QtCore import QObject, Slot, Signal, QCoreApplication
 from pygdbmi import gdbcontroller
 
-import tokens
-from inferior_handler import InferiorHandler
-from inferior_state import InferiorState
+import gui.tokens as tokens
+from gui.inferior_handler import InferiorHandler
+from gui.inferior_state import InferiorState
 
 logger = logging.getLogger(__file__)
 

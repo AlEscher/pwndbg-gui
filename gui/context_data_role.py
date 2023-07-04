@@ -1,4 +1,4 @@
-from enum import Enum, auto, IntEnum
+from enum import auto, IntEnum
 
 from PySide6.QtCore import Qt
 

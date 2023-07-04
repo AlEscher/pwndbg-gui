@@ -1,20 +1,15 @@
 import ast
 import logging
-import os
 import re
-import sys
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, Signal, Slot, QEvent
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel, QWidget
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-from constants import PwndbgGuiConstants
-from custom_widgets.main_context_output import MainContextOutput
-from inferior_handler import InferiorHandler
-from inferior_state import InferiorState
+from gui.constants import PwndbgGuiConstants
+from gui.custom_widgets.main_context_output import MainContextOutput
+from gui.inferior_handler import InferiorHandler
+from gui.inferior_state import InferiorState
 
 # Prevent circular import error
 if TYPE_CHECKING:

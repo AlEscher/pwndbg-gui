@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QColor
 from PySide6.QtWidgets import QTextEdit
 
-from constants import PwndbgGuiConstants
+from gui.constants import PwndbgGuiConstants
 
 import logging
 

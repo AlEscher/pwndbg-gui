@@ -1,16 +1,11 @@
-import logging
-from typing import List
-
-import time
-
-# These imports are broken here, but will work via .gdbinit
-from PySide6.QtCore import QObject, Slot, Signal, QCoreApplication
-
-import os
 import fcntl
+import logging
+import os
 import select
 
-from inferior_state import InferiorState
+from PySide6.QtCore import QObject, Slot, Signal, QCoreApplication
+
+from gui.inferior_state import InferiorState
 
 logger = logging.getLogger(__file__)
 

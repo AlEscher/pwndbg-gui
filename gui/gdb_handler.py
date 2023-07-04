@@ -1,14 +1,14 @@
 import logging
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 from PySide6.QtCore import QObject, Slot, Signal
 from pygdbmi import gdbcontroller
 
+from gui.constants import PwndbgGuiConstants
 from gui.inferior_handler import InferiorHandler
 from gui.inferior_state import InferiorState
-from tokens import ResponseToken, Context_to_Token
-from gui.constants import PwndbgGuiConstants
+from gui.tokens import ResponseToken, Context_to_Token
 
 logger = logging.getLogger(__file__)
 

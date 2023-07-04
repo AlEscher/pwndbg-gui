@@ -1,16 +1,15 @@
 import logging
 from typing import TYPE_CHECKING, List
 
-from PySide6.QtCore import Qt, Signal, Slot, QParallelAnimationGroup, QPropertyAnimation, QAbstractAnimation, QSize, \
-    QTimer
+from PySide6.QtCore import Qt, Signal, Slot, QParallelAnimationGroup, QPropertyAnimation, QAbstractAnimation, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QWidget, \
     QFrame, QScrollArea, QToolButton, QGridLayout, QSizePolicy, QBoxLayout, QSpinBox, QTextEdit, \
     QApplication
 
+from gui.constants import PwndbgGuiConstants
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.parser import ContextParser
-from gui.constants import PwndbgGuiConstants
 from gui.tokens import ResponseToken
 
 # Prevent circular import error
