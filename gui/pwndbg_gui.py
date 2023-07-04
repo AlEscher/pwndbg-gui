@@ -51,6 +51,7 @@ class PwnDbgGui(QMainWindow):
     set_gdb_file_target_signal = Signal(list)
     set_gdb_pid_target_signal = Signal(list)
     set_gdb_source_dir_signal = Signal(list)
+    set_gdb_tty = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -152,6 +153,7 @@ class PwnDbgGui(QMainWindow):
         self.set_gdb_file_target_signal.connect(self.gdb_handler.set_file_target)
         self.set_gdb_pid_target_signal.connect(self.gdb_handler.set_pid_target)
         self.set_gdb_source_dir_signal.connect(self.gdb_handler.set_source_dir)
+        self.set_gdb_tty.connect(self.gdb_handler.set_tty)
         self.ui.stack.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
         self.ui.stack.execute_xinfo.connect(self.gdb_handler.execute_xinfo)
         self.ui.regs.execute_xinfo.connect(self.gdb_handler.execute_xinfo)
@@ -188,7 +190,7 @@ class PwnDbgGui(QMainWindow):
         # Connect signals from inferior_handler
         self.inferior_handler.update_gui.connect(self.update_pane)
         # execute gdb command to redirect inferior to tty
-        self.gdb_handler.execute_cmd(["tty ", self.inferior_handler.tty])
+        self.set_gdb_tty.emit(self.inferior_handler.tty)
         # Thread cleanup
         self.inferior_thread.finished.connect(self.inferior_handler.deleteLater())
         self.stop_gdb_threads.connect(lambda: self.inferior_handler.set_run(False))

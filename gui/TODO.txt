@@ -1,10 +1,7 @@
--Attaching to process (inferior communication)
+QT sudo fix on Ubuntu
 
--Remember spliter config
-
--QT sudo fix
+-Inferior input when attaching
 -Hexdump error output still does not arrive in context
-
 
 Test:
     -Shell spawn / multiple threads

@@ -86,6 +86,13 @@ class GdbReader(QObject):
         for response in gdbmi_response:
             if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
                 self.result.append(response["payload"])
+            elif response["type"] == "output":
+                # We always append "output": If the process is started by GDB, our inferior handler will capture all
+                # inferior output in his tty, so this code will never be triggered. If the user attaches to a
+                # process, the TTY approach does not work, so we will collect the output here instead. The output is
+                # sometimes broken, i.e. it contains data that was printed by pwndbg/gdb, however this is a
+                # limitation with GDB/Pygdbmi which we cannot fix
+                self.result.append(response["payload"])
             elif response["type"] == "result":
                 self.handle_result(response)
             elif response["type"] == "notify":
