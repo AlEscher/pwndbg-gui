@@ -46,6 +46,13 @@ By introducing a GUI layer on top of `pwndbg` we can filter out, reorder and cus
 Having a GUI application would not only allow using `pwndbg`'s functionality in a simplified, more streamlined way, but also allows for advantages a typical GUI interface has like interacting with the filesystem easily or rich media support.
 A GUI is also more intuitive to use, having the user remember fewer commands and hiding unnecessary output.
 
+## Approach
+
+The GUI is written using the [Qt](https://doc.qt.io/qtforpython-6/) framework for python.
+GDB is managed as a subprocess in [MI mode](https://ftp.gnu.org/old-gnu/Manuals/gdb/html_chapter/gdb_22.html) and interaction is handled by [pygdbmi](https://pypi.org/project/pygdbmi/).
+To make the GUI more fluent and prevent hangups, the application is multithreaded.
+The main thread is the GUI thread, which starts other threads that handle input to GDB (`GdbHandler`), collecting output from GDB (`GdbReader`) and interaction with the inferior process (`InferiorHandler`)
+
 ## External dependencies
 - [Qt PySide6](https://www.qt.io/download-open-source)
 - [Pygdbmi](https://github.com/cs01/pygdbmi)
