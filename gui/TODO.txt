@@ -15,3 +15,9 @@ Future Features:
     -Window for checksec command (one execution is enough)
     -Search command in main window
     -Stack lines update on startup
+
+
+Fix:
+If you are experiencing issues on startup relating to QT plugins not being found or loaded try to set QT_DEBUG_PLUGINS=1
+and retry. This will show you more debug output related to QT. Most likely you will have some missing dependencies that
+can be installed via you favourite package manager. On Ubuntu/Debian it was the `libxcb-cursor0` library.
