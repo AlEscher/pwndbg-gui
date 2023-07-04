@@ -2,7 +2,7 @@
 
 ## Setup
 
-- Install and setup [pwndbg](https://github.com/pwndbg/pwndbg/tree/44d75e3bd6d9741daf87c933275369fcfeaeebe7#how)
+- Install and setup [pwndbg](https://github.com/pwndbg/pwndbg#how)
 - Optionally add any settings you want in `~/.gdbinit`
 - Run `python start.py`
   - This will create a virtual environment and install the needed dependencies
