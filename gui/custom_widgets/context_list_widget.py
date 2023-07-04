@@ -112,18 +112,26 @@ class ContextListWidget(QListWidget):
 
     @Slot()
     def copy_value(self):
+        if len(self.selectedItems()) == 0:
+            return
         self.set_data_to_clipboard(self.selectedItems()[0], ContextDataRole.VALUE)
 
     @Slot()
     def copy_address(self):
+        if len(self.selectedItems()) == 0:
+            return
         self.set_data_to_clipboard(self.selectedItems()[0], ContextDataRole.ADDRESS)
 
     @Slot()
     def xinfo_address(self):
+        if len(self.selectedItems()) == 0:
+            return
         self.execute_xinfo.emit(str(self.selectedItems()[0].data(ContextDataRole.ADDRESS)))
 
     @Slot()
     def xinfo_value(self):
+        if len(self.selectedItems()) == 0:
+            return
         self.execute_xinfo.emit(str(self.selectedItems()[0].data(ContextDataRole.VALUE)))
 
     def contextMenuEvent(self, event):
