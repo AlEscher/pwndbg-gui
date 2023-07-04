@@ -58,20 +58,25 @@ class GdbHandler(QObject):
         """Execute the given command and then update all context panes"""
         try:
             self.write_to_controller(ResponseToken.USER_MAIN, cmd)
-            # Update contexts
-            for context in self.contexts:
-                self.write_to_controller(Context_to_Token[context], f"context {context}")
-            # Update heap
-            self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
-            self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
-            self.write_to_controller(ResponseToken.GUI_REGS_FS_BASE, "fsbase")
-            # Update watches
-            logger.debug("updating watches: ")
-            for watch, params in self.watches.items():
-                logger.debug("updating watch: %s", watch)
-                self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP + params[0], " ".join(["hexdump", watch, str(params[1])]))
+            self.update_contexts()
         except Exception as e:
             logger.warning("Error while sending command '%s': '%s'", cmd, str(e))
+
+    @Slot()
+    def update_contexts(self):
+        """Send commands to query updates for all context information"""
+        for context in self.contexts:
+            self.write_to_controller(Context_to_Token[context], f"context {context}")
+        # Update heap
+        self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
+        self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
+        self.write_to_controller(ResponseToken.GUI_REGS_FS_BASE, "fsbase")
+        # Update watches
+        logger.debug("updating watches: ")
+        for watch, params in self.watches.items():
+            logger.debug("updating watch: %s", watch)
+            self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP + params[0],
+                                     " ".join(["hexdump", watch, str(params[1])]))
 
     @Slot(list)
     def execute_cmd(self, arguments: List[str]):
@@ -151,3 +156,8 @@ class GdbHandler(QObject):
     def set_tty(self, tty: str):
         """Execute the "tty" command with the given tty path. GDB will route future inferiors' I/O via this tty"""
         self.write_to_controller(ResponseToken.DELETE, " ".join(["tty", tty]))
+
+    @Slot(bytes)
+    def send_inferior_input(self, user_input: bytes):
+        """Send input for the inferior via GDB (e.g. if we attached to the inferior) without any tokens"""
+        self.controller.write(user_input.decode(), read_response=False)

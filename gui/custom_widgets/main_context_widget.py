@@ -20,10 +20,13 @@ logger = logging.getLogger(__file__)
 
 class MainContextWidget(QGroupBox):
     """The main context widget with which the user can interact with GDB and receive data"""
+    # Signal to send a command to GDB MI
     gdb_write = Signal(str)
-    gdb_start = Signal(list)
-    stop_thread = Signal()
+    # Signal to send inferior input via GDB
+    gdb_write_input = Signal(bytes)
+    # Signal to send inferior input via InferiorHandler's TTY
     inferior_write = Signal(bytes)
+    # Signal to update data in the GUI
     update_gui = Signal(str, bytes)
 
     def __init__(self, parent: 'PwnDbgGui'):
@@ -31,6 +34,9 @@ class MainContextWidget(QGroupBox):
         self.update_gui.connect(parent.update_pane)
         self.buttons_data = {'s&tart': (self.start, "media-record"), '&r': (self.run, "media-playback-start"), '&c': (self.continue_execution, "media-skip-forward"), '&n': (self.next, "media-seek-forward"),
                              '&s': (self.step, "go-bottom"), 'ni': (self.next_instruction, "go-next"), 'si': (self.step_into, "go-down")}
+        # Whether the inferior was attached or started by GDB. If attached, we cannot divert I/O of the inferior via
+        # GDB to the tty, so we need to send input via the GdbHandler.
+        self.inferior_attached = False
         self.setup_worker_signals(parent)
         self.input_label = QLabel(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>")
         self.output_widget = MainContextOutput(self)
@@ -151,6 +157,7 @@ class MainContextWidget(QGroupBox):
         """Submit an input to the inferior process"""
         user_line = self.input_widget.text()
         logger.debug("Sending input '%s' to inferior", user_line)
+        user_input = b""
         # Check if the user wants to input a byte string literal, i.e. the input is in the form: 'b"MyInput \x12\x34"'
         if re.match(r'^b".*"$', user_line):
             # Parse the str as if it were a bytes object
@@ -159,9 +166,13 @@ class MainContextWidget(QGroupBox):
             byte_string = ast.literal_eval(user_line)
             logger.debug("Parsed input as bytes string, final input: %s", byte_string)
             # Don't pass a newline here, the user needs to specify this himself by writing '\n' at the end of his input
-            self.inferior_write.emit(byte_string)
+            user_input = byte_string
         else:
-            self.inferior_write.emit(user_line.encode() + b"\n")
+            user_input = user_line.encode() + b"\n"
+        if self.inferior_attached:
+            self.gdb_write_input.emit(user_input)
+        else:
+            self.inferior_write.emit(user_input)
         self.input_widget.clear()
 
     def eventFilter(self, source: QWidget, event: QEvent):

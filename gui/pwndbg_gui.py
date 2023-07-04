@@ -45,6 +45,8 @@ class PwnDbgGui(QMainWindow):
     set_gdb_pid_target_signal = Signal(list)
     set_gdb_source_dir_signal = Signal(list)
     set_gdb_tty = Signal(str)
+    # Signal to request a context update for all contexts from the GdbHandler
+    update_contexts = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -147,6 +149,8 @@ class PwnDbgGui(QMainWindow):
         self.set_gdb_pid_target_signal.connect(self.gdb_handler.set_pid_target)
         self.set_gdb_source_dir_signal.connect(self.gdb_handler.set_source_dir)
         self.set_gdb_tty.connect(self.gdb_handler.set_tty)
+        self.update_contexts.connect(self.gdb_handler.update_contexts)
+        self.main_context.gdb_write_input.connect(self.gdb_handler.send_inferior_input)
         self.ui.stack.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
         self.ui.stack.execute_xinfo.connect(self.gdb_handler.execute_xinfo)
         self.ui.regs.execute_xinfo.connect(self.gdb_handler.execute_xinfo)
@@ -216,6 +220,7 @@ class PwnDbgGui(QMainWindow):
             self.set_gdb_file_target_signal.emit([file_name])
             # GDB only looks for source files in the cwd, so we additionally add the directory of the executable
             self.set_gdb_source_dir_signal.emit([str(Path(file_name).parent)])
+            self.main_context.inferior_attached = False
 
     @Slot()
     def query_process_name(self):
@@ -225,6 +230,8 @@ class PwnDbgGui(QMainWindow):
         if ok and name:
             args = [f"$(pidof {name})"]
             self.set_gdb_pid_target_signal.emit(args)
+            self.update_contexts.emit()
+            self.main_context.inferior_attached = True
 
     def query_process_pid(self):
         """Query the user for process ID in order to attach to it"""
@@ -232,6 +239,9 @@ class PwnDbgGui(QMainWindow):
         if ok and pid > 0:
             args = [str(pid)]
             self.set_gdb_pid_target_signal.emit(args)
+            # When attaching to a process, GDB will immediately stop it for us allowing us to execute commands
+            self.update_contexts.emit()
+            self.main_context.inferior_attached = True
 
     @Slot(str, bytes)
     def update_pane(self, context: str, content: bytes):
