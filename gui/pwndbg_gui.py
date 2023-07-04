@@ -46,7 +46,7 @@ class PwnDbgGui(QMainWindow):
     set_gdb_source_dir_signal = Signal(list)
     set_gdb_tty = Signal(str)
     # Signal to request a context update for all contexts from the GdbHandler
-    update_contexts = Signal()
+    update_contexts = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -230,7 +230,7 @@ class PwnDbgGui(QMainWindow):
         if ok and name:
             args = [f"$(pidof {name})"]
             self.set_gdb_pid_target_signal.emit(args)
-            self.update_contexts.emit()
+            self.update_contexts.emit(True)
             self.main_context.inferior_attached = True
 
     def query_process_pid(self):
@@ -240,7 +240,7 @@ class PwnDbgGui(QMainWindow):
             args = [str(pid)]
             self.set_gdb_pid_target_signal.emit(args)
             # When attaching to a process, GDB will immediately stop it for us allowing us to execute commands
-            self.update_contexts.emit()
+            self.update_contexts.emit(True)
             self.main_context.inferior_attached = True
 
     @Slot(str, bytes)

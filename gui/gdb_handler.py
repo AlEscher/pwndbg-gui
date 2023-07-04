@@ -62,9 +62,13 @@ class GdbHandler(QObject):
         except Exception as e:
             logger.warning("Error while sending command '%s': '%s'", cmd, str(e))
 
-    @Slot()
-    def update_contexts(self):
-        """Send commands to query updates for all context information"""
+    @Slot(bool)
+    def update_contexts(self, flush_to_main=False):
+        """Send commands to query updates for all context information.
+        :param flush_to_main: If True, flush all currently buffered GDB output to the main context widget
+        """
+        if flush_to_main:
+            self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, "")
         for context in self.contexts:
             self.write_to_controller(Context_to_Token[context], f"context {context}")
         # Update heap
