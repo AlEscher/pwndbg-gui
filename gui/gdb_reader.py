@@ -133,7 +133,7 @@ class GdbReader(QObject):
             self.send_context_update(self.send_xinfo)
         elif token >= tokens.ResponseToken.GUI_WATCHES_HEXDUMP:
             if InferiorHandler.INFERIOR_STATE == InferiorState.STOPPED:
-                self.send_watches_hexdump_response.emit(token, "".join(self.result).encode())
+                self.send_watches_hexdump_response.emit(token, "".join(self.result + self.logs[2:]).encode())
             self.result = []
         elif token != tokens.ResponseToken.DELETE:
             # We found a context token -> send it to the corresponding context

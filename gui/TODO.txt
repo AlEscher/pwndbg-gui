@@ -1,7 +1,6 @@
 QT sudo fix on Ubuntu
 
 -Inferior input when attaching
--Hexdump error output still does not arrive in context
 
 Test:
     -Shell spawn / multiple threads
