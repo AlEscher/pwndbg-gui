@@ -19,7 +19,6 @@ class GdbHandler(QObject):
 
     def __init__(self):
         super().__init__()
-        self.past_commands: List[str] = []
         self.contexts = ['regs', 'stack', 'disasm', 'code', 'backtrace']
         self.controller = gdbcontroller.GdbController()
         # active watches in the form of {address: [idx , number of lines]}
@@ -143,16 +142,6 @@ class GdbHandler(QObject):
         """
         self.change_setting(["context-stack-lines", str(new_value)])
         self.write_to_controller(ResponseToken.GUI_STACK_CONTEXT, "context stack")
-
-    @Slot()
-    def execute_heap_cmd(self):
-        """Execute the "heap" command"""
-        self.write_to_controller(ResponseToken.GUI_HEAP_HEAP, "heap")
-
-    @Slot()
-    def execute_bins_cmd(self):
-        """Execute the "bins" command"""
-        self.write_to_controller(ResponseToken.GUI_HEAP_BINS, "bins")
 
     @Slot(str)
     def execute_try_free(self, param: str):
