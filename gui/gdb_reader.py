@@ -11,8 +11,8 @@ from gui.inferior_state import InferiorState
 logger = logging.getLogger(__file__)
 
 
-# Reader object to continuously check for data from gdb.
 class GdbReader(QObject):
+    """Reader object to continuously check for data from gdb and handle the parsed responses"""
     # Update a context pane in the GUI with data
     update_gui = Signal(str, bytes)
     # Send the result of a try_free command to the Heap widget
@@ -54,11 +54,17 @@ class GdbReader(QObject):
 
     @Slot()
     def set_run(self, state: bool):
-        """Sets whether the thread should keep working"""
+        """
+        Sets whether the thread should keep working
+        :param state: True if the thread should keep working
+        """
         self.run = state
 
     def send_update_gui(self, token: int):
-        """Flushes all collected outputs to the destination specified by token"""
+        """
+        Flushes all collected outputs to the destination specified by token
+        :param token: Token of the context pane
+        """
         if len(self.result) and len(self.logs) == 0:
             return
         context = tokens.Token_to_Context[token]
@@ -83,7 +89,11 @@ class GdbReader(QObject):
         self.result = []
 
     def send_context_update(self, signal: Signal, send_on_stop=True):
-        """Emit a supplied signal with the collected output"""
+        """
+        Emit a supplied signal with the collected output
+        :param signal: The signal that will handle the data
+        :param send_on_stop: Whether to send data only when the inferior is stopped
+        """
         if not send_on_stop:
             # Send this signal even if the inferior is not started yet or running
             signal.emit("".join(self.result).encode())
@@ -92,7 +102,10 @@ class GdbReader(QObject):
         self.result = []
 
     def parse_response(self, gdbmi_response: list[dict]):
-        """Parse a response received from GDB MI and decide how to handle it"""
+        """
+        Parse a response received from GDB MI and decide how to handle it
+        :param gdbmi_response: The parsed response from pygdbmi
+        """
         for response in gdbmi_response:
             if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
                 self.result.append(response["payload"])
@@ -112,8 +125,9 @@ class GdbReader(QObject):
                 self.logs.append(response["payload"])
 
     def handle_result(self, response: dict):
-        """Handle messages of the result type, which are emitted after a command/action has finished producing output
-        :param response: GDB-MI response (Dict) of with ["type"] == result
+        """
+        Handle messages of the result type, which are emitted after a command/action has finished producing output
+        :param response: GDB-MI response with ["type"] == result
         """
         if response["token"] is None:
             self.result = []
@@ -146,8 +160,9 @@ class GdbReader(QObject):
         self.logs = []
 
     def handle_notify(self, response: dict):
-        """Handle the notify events, which are emitted for different occasions
-         :param response: GDB-MI response (Dict) of with ["type"] == notify
+        """
+        Handle the notify events, which are emitted for different occasions
+        :param response: GDB-MI response with ["type"] == notify
          """
         if response["message"] == "running":
             logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)

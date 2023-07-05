@@ -62,7 +62,6 @@ class PwnDbgGui(QMainWindow):
         self.gdb_handler = GdbHandler()
         self.gdb_reader = GdbReader(self.gdb_handler.controller)
         self.inferior_handler = InferiorHandler()
-        self.stack_lines_incrementor: QSpinBox | None = None
         self.menu_bar = None
         self.ui = Ui_PwnDbgGui()
         self.ui.setupUi(self)
