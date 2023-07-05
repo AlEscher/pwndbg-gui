@@ -61,5 +61,6 @@ The main thread is the GUI thread, which starts other threads that handle input 
 - If you are experiencing issues on startup relating to QT plugins not being found or loaded try to set `QT_DEBUG_PLUGINS=1` and retry. This will show you more debug output related to QT. Most likely you will have some missing dependencies that can be installed via your favourite package manager. On Ubuntu/Debian it was the `libxcb-cursor0` library. See this [SO post](https://stackoverflow.com/questions/68036484/qt6-qt-qpa-plugin-could-not-load-the-qt-platform-plugin-xcb-in-even-thou).
 
 ## External dependencies
-- [Qt PySide6](https://www.qt.io/download-open-source)
-- [Pygdbmi](https://github.com/cs01/pygdbmi)
+- [Qt PySide6](https://www.qt.io/download-open-source) as the GUI framework
+- [Pygdbmi](https://github.com/cs01/pygdbmi) for interaction with GDB in MI mode
+- [psutil](https://pypi.org/project/psutil/) for cross-platform access to process information
