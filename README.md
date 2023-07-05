@@ -2,12 +2,12 @@
 
 ## Setup
 
-- Install and setup [pwndbg](https://github.com/pwndbg/pwndbg#how)
-- Optionally add any settings you want in `~/.gdbinit`
-- Run `python start.py`
-  - This will create a virtual environment and install the needed dependencies
-  - On Debian/Ubuntu systems, you may need to previously install `python3-venv`
-  - If you want to attach to running programs, GDB needs to be started with sudo. To do this, run `python start.py --sudo` and enter your sudo password when prompted
+1. Install and setup [pwndbg](https://github.com/pwndbg/pwndbg#how)
+2. Optionally add any settings you want in `~/.gdbinit`
+3. Run `python start.py`
+   - This will create a virtual environment and install the needed dependencies
+   - On Debian/Ubuntu systems, you may need to previously install `python3-venv`
+   - If you want to attach to running programs, GDB needs to be started with sudo. To do this, run `python start.py --sudo` and enter your sudo password when prompted
 
 ## Features
 
@@ -17,6 +17,7 @@
   - Give easy access to `pwndbg`'s `try_free` command
 - Watch context
   - Add multiple addresses to a watch context to continuously monitor the data in a hexdump format
+- Context menus for Stack and Register contexts, that allow easy lookup via the `xinfo` command.
 - Keyboard shortcuts
   - Shortcuts for GDB commands as well as GUI features
   - Shortcuts are either displayed next to the action in a menu (e.g. `Ctrl + N`) or shown by an underlined letter (pressing `Alt + <LETTER>` will activate the button / menu)
@@ -24,7 +25,6 @@
   - When inputting to the inferior process (denoted by the label next to the main pane's input field) you can supply a python `bytes` literal
   - E.g.: Writing b"Hello\x00World\n" will interpret the input as a `bytes` literal and evaluate it accordingly
 - All existing GDB / `pwndbg` commands can still be executed via the Main input widget
-- Context menus for Stack and Register contexts, that allow easy lookup via the `xinfo` command.
 
 ## Preview
 
