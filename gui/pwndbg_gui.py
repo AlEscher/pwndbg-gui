@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import List
 from os import path
 
+import psutil
+
 sys.path.extend([path.join(path.dirname(__file__), path.pardir)])
 from gui.custom_widgets.backtrace_context_widget import BacktraceContextWidget
 from gui.custom_widgets.code_context_widget import CodeContextWidget
@@ -231,7 +233,14 @@ class PwnDbgGui(QMainWindow):
         name, ok = QInputDialog.getText(self, "Enter a running process name", "Name:", QLineEdit.EchoMode.Normal,
                                         "vuln")
         if ok and name:
-            args = [f"$(pidof {name})"]
+            pid = None
+            for process in psutil.process_iter(['pid', 'name']):
+                if process.name() == name:
+                    pid = process.pid
+            if pid is None:
+                logger.error("Could not find PID for process %s", name)
+                return
+            args = [str(pid)]
             self.set_gdb_pid_target_signal.emit(args)
             self.update_contexts.emit(True)
             self.main_context.inferior_attached = True

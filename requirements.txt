@@ -1,2 +1,3 @@
 PySide6~=6.5.1.1
 pygdbmi~=0.11.0.0
+psutil~=5.9.5
