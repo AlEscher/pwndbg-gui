@@ -1,5 +1,7 @@
 # pwndbg-gui
 
+An unofficial GUI wrapper around [pwndbg](https://github.com/pwndbg/pwndbg) intended to leverage the UI benefits of a graphical user interface.
+
 ## Setup
 
 1. Install and setup [pwndbg](https://github.com/pwndbg/pwndbg#how)
