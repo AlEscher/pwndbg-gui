@@ -241,20 +241,14 @@ class PwnDbgGui(QMainWindow):
                 logger.error("Could not find PID for process %s", name)
                 self.update_pane("main", f"Could not find PID for process {name}".encode())
                 return
-            args = [str(pid)]
-            self.set_gdb_pid_target_signal.emit(args)
-            self.update_contexts.emit(True)
-            self.main_context.inferior_attached = True
+            self.attach_to_pid(pid)
 
+    @Slot()
     def query_process_pid(self):
         """Query the user for process ID in order to attach to it"""
         pid, ok = QInputDialog.getInt(self, "Enter a running process pid", "PID:", minValue=0)
         if ok and pid > 0:
-            args = [str(pid)]
-            self.set_gdb_pid_target_signal.emit(args)
-            # When attaching to a process, GDB will immediately stop it for us allowing us to execute commands
-            self.update_contexts.emit(True)
-            self.main_context.inferior_attached = True
+            self.attach_to_pid(pid)
 
     @Slot(str, bytes)
     def update_pane(self, context: str, content: bytes):
@@ -337,6 +331,15 @@ class PwnDbgGui(QMainWindow):
             for splitter, size, state in zip(splitters, splitter_sizes, splitter_states):
                 splitter.restoreGeometry(size)
                 splitter.restoreState(state)
+
+    def attach_to_pid(self, pid: int):
+        # Add the directory of the executable as a search directory for source files for GDB
+        process_path = Path(psutil.Process(pid).exe()).parent.resolve()
+        self.set_gdb_source_dir_signal.emit([str(process_path)])
+        self.set_gdb_pid_target_signal.emit([str(pid)])
+        # When attaching to a process, GDB will immediately stop it for us allowing us to execute commands
+        self.update_contexts.emit(True)
+        self.main_context.inferior_attached = True
 
 
 def run_gui():
