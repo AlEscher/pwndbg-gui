@@ -333,6 +333,10 @@ class PwnDbgGui(QMainWindow):
                 splitter.restoreState(state)
 
     def attach_to_pid(self, pid: int):
+        """
+        Attach to the given (valid) PID. Also sets the search directories and updates the contexts after attaching
+        :param pid: The PID of a running program
+        """
         # Add the directory of the executable as a search directory for source files for GDB
         process_path = Path(psutil.Process(pid).exe()).parent.resolve()
         self.set_gdb_source_dir_signal.emit([str(process_path)])
