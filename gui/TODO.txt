@@ -1,5 +1,7 @@
 
 -Inferior input when attaching
+-Error message to user when unsuccessful attach
+-Continuing into an segfault only gives "stopped" message and no result -> segfault error is not send to main
 
 Test:
     -Shell spawn / multiple threads
@@ -15,3 +17,8 @@ Future Features:
     -Window for checksec command (one execution is enough)
     -Search command in main window
     -Stack lines update on startup
+    
+Known Limitations:
+    -User can not start/attach process via the main command window -> only GUI buttons
+    -.gdbinit can not include any "python....end" blocks. This will break the gui when trying to load it.
+     
