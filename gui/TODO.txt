@@ -1,8 +1,7 @@
 
 -Inferior input when attaching
--Error message to user when unsuccessful attach
--Continuing into an segfault only gives "stopped" message and no result -> segfault error is not send to main
--Attaching after a already died process results in non updating context for initial attach -> probably inferior state wrong
+-Continuing into a segfault only gives "stopped" message and no result -> segfault error is not send to main
+-Attaching after an already died process results in non updating context for initial attach -> probably inferior state wrong
 
 Test:
     -Shell spawn / multiple threads

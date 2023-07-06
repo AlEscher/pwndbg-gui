@@ -239,6 +239,7 @@ class PwnDbgGui(QMainWindow):
                     pid = process.pid
             if pid is None:
                 logger.error("Could not find PID for process %s", name)
+                self.update_pane("main", f"Could not find PID for process {name}".encode())
                 return
             args = [str(pid)]
             self.set_gdb_pid_target_signal.emit(args)
