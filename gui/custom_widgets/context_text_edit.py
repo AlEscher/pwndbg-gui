@@ -19,8 +19,7 @@ class ContextTextEdit(QTextEdit):
         self.setTextCursor(cursor)
         # Scroll so that the current line in "code" and "disasm" contexts is in view
         self.find_and_set_cursor("►")
-        # Otherwise scroll to the top
-        self.verticalScrollBar().setValue(0)
+
 
     def find_and_set_cursor(self, character: str):
         cursor = self.textCursor()
@@ -30,6 +29,9 @@ class ContextTextEdit(QTextEdit):
             cursor.setPosition(char_index)
             self.setTextCursor(cursor)
             self.ensureCursorVisible()
+        else:
+            # Otherwise scroll to the top
+            self.verticalScrollBar().setValue(0)
 
     def set_maxheight_to_lines(self, lines: int):
         font_metrics = self.fontMetrics()
