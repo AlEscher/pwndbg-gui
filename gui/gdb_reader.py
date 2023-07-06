@@ -149,6 +149,10 @@ class GdbReader(QObject):
             self.send_context_update(self.send_xinfo)
         elif token >= tokens.ResponseToken.GUI_WATCHES_HEXDUMP:
             if InferiorHandler.INFERIOR_STATE == InferiorState.STOPPED:
+                ''' Here we send the result of the hexdump, the signal differs from the rest here since we need to send 
+                the token as well so that the watch-widget knows to which watch the result belongs. If we have logs then 
+                something was wrong with the hexdump command. In this case the logs that describe the error will always 
+                be from the third log line onwards.'''
                 self.send_watches_hexdump_response.emit(token, "".join(self.result + self.logs[2:]).encode())
             self.result = []
         elif token != tokens.ResponseToken.DELETE:
@@ -176,13 +180,8 @@ class GdbReader(QObject):
             if InferiorHandler.INFERIOR_STATE != InferiorState.EXITED:
                 logger.debug("Setting inferior state to %s", InferiorState.STOPPED.name)
                 InferiorHandler.INFERIOR_STATE = InferiorState.STOPPED
-            '''Stopping due to a breakpoint hit or a step does not give a "result" event, so we have to parse the 
-            notify manually and check whether we want to update our current results to the main context widget'''
-            if "reason" in response["payload"]:
-                if response["payload"]["reason"] == "breakpoint-hit" or response["payload"][
-                    "reason"] == "end-stepping-range" or response["payload"]["reason"] == "exited":
-                    # This must be treated as a result token, send results to main context output
-                    self.send_main_update()
+            # If we get a stop we don't get a result type done, which is why we trigger a main context update manually
+            self.send_main_update()
         elif response["message"] == "thread-group-exited":
             logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
