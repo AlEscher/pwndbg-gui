@@ -1,4 +1,4 @@
-# pwndbg-gui
+# pwndbg-gui [![CodeQL](https://github.com/AlEscher/pwndbg-gui/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/AlEscher/pwndbg-gui/actions/workflows/github-code-scanning/codeql)
 
 An unofficial GUI wrapper around [pwndbg](https://github.com/pwndbg/pwndbg) intended to leverage the UI benefits of a graphical user interface.
 
