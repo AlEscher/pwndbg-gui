@@ -28,7 +28,7 @@ def run_script_in_environment(env_dir: Path, script_path: Path, args: argparse.N
     """Run the Python script within the virtual environment."""
     python_path = f"{env_dir}/Scripts/python" if sys.platform == "win32" else f"{env_dir}/bin/python"
     logger.info("Starting GUI using venv %s", str(env_dir))
-    cmd = [python_path, script_path, args.log]
+    cmd = [python_path, script_path, args.logging_level]
     if args.sudo:
         cmd = ["sudo", "-S"] + cmd
         password = getpass.getpass("Enter your sudo password: ")
@@ -43,7 +43,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--sudo", action="store_true", help="Run the script with sudo. This is required if you want "
                                                             "GDB to attach to a running process")
-    parser.add_argument("-log", help="Set the log level of the GUI", default="INFO")
+    parser.add_argument("-l", "--logging-level", help="Set the log level of the GUI", default="INFO")
     args = parser.parse_args()
     root_dir = Path(__file__).parent.resolve()
     env_dir = root_dir / "pwndbg-gui-venv"
