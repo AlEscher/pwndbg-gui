@@ -27,7 +27,7 @@ def install_dependencies(env_dir: Path, requirements_file: Path):
 def run_script_in_environment(env_dir: Path, script_path: Path, args: argparse.Namespace):
     """Run the Python script within the virtual environment."""
     python_path = f"{env_dir}/Scripts/python" if sys.platform == "win32" else f"{env_dir}/bin/python"
-    logger.info("Starting GUI using venv %s", str(env_dir))
+    logger.info("Starting GUI using %s", python_path)
     cmd = [python_path, script_path, args.logging_level]
     if args.sudo:
         cmd = ["sudo", "-S"] + cmd
