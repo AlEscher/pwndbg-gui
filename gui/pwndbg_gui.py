@@ -227,6 +227,9 @@ class PwnDbgGui(QMainWindow):
             # Before loading the file we want to set the correct tty for the inferior
             self.set_gdb_tty.emit(self.inferior_handler.tty)
             self.set_gdb_file_target_signal.emit([file_name])
+            # Reset dir so that GDB doesn't get confused when we load multiple programs with the same name / source
+            # file name
+            self.set_gdb_source_dir_signal.emit([""])
             # GDB only looks for source files in the cwd, so we additionally add the directory of the executable
             self.set_gdb_source_dir_signal.emit([str(Path(file_name).parent)])
             self.main_context.inferior_attached = False
@@ -341,6 +344,9 @@ class PwnDbgGui(QMainWindow):
         Attach to the given (valid) PID. Also sets the search directories and updates the contexts after attaching
         :param pid: The PID of a running program
         """
+        # Reset dir so that GDB doesn't get confused when we load multiple programs with the same name / source
+        # file name
+        self.set_gdb_source_dir_signal.emit([""])
         # Add the directory of the executable as a search directory for source files for GDB
         process_path = Path(psutil.Process(pid).exe()).parent.resolve()
         self.set_gdb_source_dir_signal.emit([str(process_path)])

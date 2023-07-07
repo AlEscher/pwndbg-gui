@@ -1,5 +1,3 @@
--Wipe source code dirs when attaching/loading file (otherwise unpredictable vuln.c)
-
 Test:
     -Shell spawn / multiple threads
     -Docker setup + attach
