@@ -36,7 +36,9 @@ from gui.parser import ContextParser
 #     pyside2-uic form.ui -o ui_form.py
 from gui.ui_form import Ui_PwnDbgGui
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s | [%(levelname)s] : %(message)s')
+
+logging.basicConfig(level=sys.argv[1] if len(sys.argv) > 1 else logging.INFO, format='%(asctime)s - %(name)s | [%('
+                                                                                     'levelname)s] : %(message)s')
 logger = logging.getLogger(__file__)
 
 

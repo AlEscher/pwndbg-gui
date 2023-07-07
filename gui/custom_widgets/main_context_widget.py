@@ -4,10 +4,10 @@ import re
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, Signal, Slot, QEvent
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QTextCursor
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel, QWidget
 from gui.constants import PwndbgGuiConstants
-from gui.custom_widgets.main_context_output import MainContextOutput
+from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.inferior_handler import InferiorHandler
 from gui.inferior_state import InferiorState
 
@@ -16,6 +16,22 @@ if TYPE_CHECKING:
     from gui.pwndbg_gui import PwnDbgGui
 
 logger = logging.getLogger(__file__)
+
+
+class MainContextOutput(ContextTextEdit):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        self.setObjectName("main")
+
+    def add_content(self, content: str):
+        """Appends content instead of replacing it like other normal ContextTextEdit widgets"""
+        # Prevent selected text from being overwritten
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
+        self.setTextCursor(cursor)
+        self.insertHtml(content)
+        # Scroll to the bottom
+        self.ensureCursorVisible()
 
 
 class MainContextWidget(QGroupBox):
