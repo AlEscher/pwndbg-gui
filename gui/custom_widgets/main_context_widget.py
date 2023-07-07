@@ -65,6 +65,7 @@ class MainContextWidget(QGroupBox):
         self.search_drop_down = QComboBox(self)
         self.search_drop_down.addItems(["byte", "word", "dword", "qword", "pointer", "string", "bytes"])
         self.search_drop_down.setCurrentText("bytes")
+        self.search_drop_down.setToolTip("Select the type of data you want to search for")
         self.input_widget.returnPressed.connect(self.handle_submit)
         self.input_widget.installEventFilter(self)
         # The currently selected command in the command history, for when the user presses ↑ and ↓
