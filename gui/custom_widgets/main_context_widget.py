@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, Signal, Slot, QEvent
 from PySide6.QtGui import QIcon, QTextCursor
-from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel, QWidget
+from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QLabel, QWidget, QComboBox, \
+    QFrame
 from gui.constants import PwndbgGuiConstants
 from gui.custom_widgets.context_text_edit import ContextTextEdit
 from gui.inferior_handler import InferiorHandler
@@ -44,6 +45,8 @@ class MainContextWidget(QGroupBox):
     inferior_write = Signal(bytes)
     # Signal to update data in the GUI
     update_gui = Signal(str, bytes)
+    # Send a search request to GDB
+    gdb_search = Signal(list)
 
     def __init__(self, parent: 'PwnDbgGui'):
         super().__init__(parent)
@@ -57,6 +60,10 @@ class MainContextWidget(QGroupBox):
         self.input_label = QLabel(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>")
         self.output_widget = MainContextOutput(self)
         self.input_widget = QLineEdit(self)
+        self.search_input_widget = QLineEdit(self)
+        self.search_input_widget.returnPressed.connect(self.handle_search_submit)
+        self.search_drop_down = QComboBox(self)
+        self.search_drop_down.addItems(["byte", "word", "dword", "qword", "pointer", "string", "bytes"])
         self.input_widget.returnPressed.connect(self.handle_submit)
         self.input_widget.installEventFilter(self)
         # The currently selected command in the command history, for when the user presses ↑ and ↓
@@ -71,7 +78,17 @@ class MainContextWidget(QGroupBox):
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setFlat(True)
         context_layout = QVBoxLayout()
-        context_layout.addLayout(self.buttons)
+        # The layout containing the search field and buttons
+        top_line_layout = QHBoxLayout()
+        top_line_layout.addWidget(QLabel("Search:"))
+        top_line_layout.addWidget(self.search_input_widget)
+        top_line_layout.addWidget(self.search_drop_down)
+        separator_line = QFrame(self)
+        separator_line.setFrameShape(QFrame.Shape.VLine)
+        separator_line.setFrameShadow(QFrame.Shadow.Sunken)
+        top_line_layout.addWidget(separator_line)
+        top_line_layout.addLayout(self.buttons)
+        context_layout.addLayout(top_line_layout)
         context_layout.addWidget(self.output_widget)
         input_layout = QHBoxLayout()
         input_layout.addWidget(self.input_label)
@@ -157,6 +174,15 @@ class MainContextWidget(QGroupBox):
             self.input_label.setText(f"<span style=' color:{PwndbgGuiConstants.RED};'>pwndbg></span>")
         else:
             self.input_label.setText(f"<span style=' color:{PwndbgGuiConstants.GREEN};'>target></span>")
+
+    @Slot()
+    def handle_search_submit(self):
+        search_value = self.search_input_widget.text()
+        value_type = self.search_drop_down.currentText()
+        params = ["-t", value_type, search_value]
+        logger.debug("Executing search with %s", params)
+        self.gdb_search.emit(params)
+        self.search_input_widget.clear()
 
     def submit_cmd(self):
         """Submit a command to GDB"""

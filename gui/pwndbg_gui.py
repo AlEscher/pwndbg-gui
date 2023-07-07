@@ -155,6 +155,7 @@ class PwnDbgGui(QMainWindow):
         self.set_gdb_tty.connect(self.gdb_handler.set_tty)
         self.update_contexts.connect(self.gdb_handler.update_contexts)
         self.main_context.gdb_write_input.connect(self.gdb_handler.send_inferior_input)
+        self.main_context.gdb_search.connect(self.gdb_handler.execute_search)
         self.ui.stack.stack_lines_incrementor.valueChanged.connect(self.gdb_handler.update_stack_lines)
         self.ui.stack.execute_xinfo.connect(self.gdb_handler.execute_xinfo)
         self.ui.regs.execute_xinfo.connect(self.gdb_handler.execute_xinfo)

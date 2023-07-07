@@ -52,7 +52,8 @@ class GdbHandler(QObject):
 
         if not pwndbg_loaded:
             logger.error("Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
-            self.update_gui.emit("main", b"Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
+            self.update_gui.emit("main",
+                                 b"Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
         else:
             # Get an overview of all available commands
             self.write_to_controller(ResponseToken.GUI_PWNDBG_ABOUT, "pwndbg --all")
@@ -162,7 +163,7 @@ class GdbHandler(QObject):
         del self.watches[param]
 
     @Slot(str, int)
-    def change_watch_lines (self, param: str, lines: int):
+    def change_watch_lines(self, param: str, lines: int):
         self.watches[param][1] = lines
         logger.debug("Adapted line count for watch %s to %d", param, lines)
         self.write_to_controller(ResponseToken.GUI_WATCHES_HEXDUMP + self.watches[param][0],
@@ -191,3 +192,11 @@ class GdbHandler(QObject):
         :param user_input: The user input
         """
         self.controller.write(user_input.decode(), read_response=False)
+
+    @Slot(list)
+    def execute_search(self, search_params: List[str]):
+        """
+        Execute the "search" command for a given parameter
+        :param search_params: A list of the search parameters
+        """
+        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, " ".join(["search"] + search_params))
