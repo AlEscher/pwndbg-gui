@@ -1,5 +1,4 @@
-
--Inferior input when attaching
+-Wipe source code dirs when attaching/loading file (otherwise unpredictable vuln.c)
 
 Test:
     -Shell spawn / multiple threads
@@ -22,5 +21,5 @@ Known Limitations (and facts):
     -.gdbinit can not include any "python....end" blocks. This will break the gui when trying to load it.
     -Stack lines update on startup
     -pwndbg next instructions (e.g. nextret, nextcall, ...) will output the entire pwndbg context WITHOUT RESULT DONE! which will send it to our regs context  ¯\_(ツ)_/¯
-    -when attaching the source code dir must be specified BEFORE attaching via gui 
+    -when attaching the source code dir must be specified manually when not in docker
      

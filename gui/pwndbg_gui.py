@@ -224,6 +224,8 @@ class PwnDbgGui(QMainWindow):
         dialog.setViewMode(QFileDialog.ViewMode.Detail)
         if dialog.exec() and len(dialog.selectedFiles()) > 0:
             file_name = dialog.selectedFiles()[0]
+            # Before loading the file we want to set the correct tty for the inferior
+            self.set_gdb_tty.emit(self.inferior_handler.tty)
             self.set_gdb_file_target_signal.emit([file_name])
             # GDB only looks for source files in the cwd, so we additionally add the directory of the executable
             self.set_gdb_source_dir_signal.emit([str(Path(file_name).parent)])
@@ -342,6 +344,8 @@ class PwnDbgGui(QMainWindow):
         # Add the directory of the executable as a search directory for source files for GDB
         process_path = Path(psutil.Process(pid).exe()).parent.resolve()
         self.set_gdb_source_dir_signal.emit([str(process_path)])
+        # If we attach we don't want gdb to have any weired tty configs that would interfere with the inferior
+        self.set_gdb_tty.emit("")
         self.set_gdb_pid_target_signal.emit([str(pid)])
         # When attaching to a process, GDB will immediately stop it for us allowing us to execute commands
         self.update_contexts.emit(True)
