@@ -186,9 +186,9 @@ class GdbReader(QObject):
             logger.debug("Setting inferior state to %s", InferiorState.EXITED.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.EXITED
         # If we attach while having a process open we will get a thread-group-exited to indicate the exit of the current
-        # process. However, we don't get a running message when attaching for the first time, but only a stopped message
-        # Since we don't switch from exited -> stopped our contexts will not update although they got new information
-        # Solution: interpret thread-group-started notify as running state change.
+        # process. However, we don't get a running message when attaching for the second time, but only a stopped
+        # message. Since we don't switch from exited -> stopped our contexts will not update although they got new
+        # information. Solution: interpret thread-group-started notify as running state change.
         elif response["message"] == "thread-group-started":
             logger.debug("Setting inferior state to %s", InferiorState.RUNNING.name)
             InferiorHandler.INFERIOR_STATE = InferiorState.RUNNING
