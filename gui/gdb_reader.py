@@ -110,7 +110,7 @@ class GdbReader(QObject):
             if response["type"] == "console" and response["payload"] is not None and response["stream"] == "stdout":
                 self.result.append(response["payload"])
                 # When a subprocess is spawned, we get no proper notify/result event from GDB, so we check manually
-                if response["payload"].startswith("Detaching"):
+                if response["payload"].startswith("[Detaching"):
                     self.send_main_update()
             elif response["type"] == "output":
                 # We always append "output": If the process is started by GDB, our inferior handler will capture all
