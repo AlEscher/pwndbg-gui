@@ -39,24 +39,9 @@ class GdbHandler(QObject):
         if not gdbinit.exists():
             logger.warning("Could not find .gdbinit file at %s", str(gdbinit))
             return
-        lines = gdbinit.read_text().splitlines()
-        pwndbg_loaded = False
-        for line in lines:
-            if not line.strip():
-                continue
-            logger.debug("Executing .gdbinit command %s", line)
-            self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, line)
-            if "source" in line and "pwndbg" in line:
-                logger.debug("Found pwndbg command: %s", line)
-                pwndbg_loaded = True
-
-        if not pwndbg_loaded:
-            logger.error("Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
-            self.update_gui.emit("main",
-                                 b"Could not find command to load pwndbg in .gdbinit, please check your pwndbg installation")
-        else:
-            # Get an overview of all available commands
-            self.write_to_controller(ResponseToken.GUI_PWNDBG_ABOUT, "pwndbg --all")
+        logger.debug("Loading .gdbinit from %s", str(gdbinit))
+        self.write_to_controller(ResponseToken.GUI_MAIN_CONTEXT, f"source {str(gdbinit)}")
+        self.write_to_controller(ResponseToken.GUI_PWNDBG_ABOUT, "pwndbg --all")
 
     @Slot(str)
     def send_command(self, cmd: str):

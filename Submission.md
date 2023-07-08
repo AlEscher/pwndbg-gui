@@ -76,10 +76,8 @@ Some Nice-to-Know:
 
 ## Known Limitations
 There are some limitations in the current state of the application that the user must be aware of. 
-- User can not start/attach process via the `GDB` terminal commands (`file` and `attach`), but only via the GUI buttons. 
-- The .gdbinit is not loaded when gdb is launched as a subprocess. To fix this we load it ourself. Currently we can not load any custom
-"python....end" blocks. We tested a relativly blank .gdbint that only loads `pwndbg`.
+- User can not start/attach process via the `GDB` terminal commands (`file` and `attach`), but only via the GUI buttons.
 - The stack lines box does not update on startup
-- `Pwndbg's` next instructions (e.g. nextret, nextcall, ...) output the entire pwndbg context twice without indication of the source command which will send it to our regs context  ¯\\\_(ツ)\_/¯
+- Some specific `Pwndbg's` next instructions (e.g. nextret, nextcall, ...) output the entire pwndbg context twice without indication of the source command which will send it to our regs context  ¯\\\_(ツ)\_/¯
 - When attaching the source code dir must be specified manually when the executable runs in a docker
 

@@ -21,7 +21,6 @@ Future Features:
     
 Known Limitations (and facts):
     -User can not start/attach process via the main command window -> only GUI buttons
-    -.gdbinit can not include any "python....end" blocks. This will break the gui when trying to load it.
     -Stack lines update on startup
     -pwndbg next instructions (e.g. nextret, nextcall, ...) will output the entire pwndbg context WITHOUT RESULT DONE! which will send it to our regs context  ¯\_(ツ)_/¯
     -when attaching the source code dir must be specified manually when not in docker
