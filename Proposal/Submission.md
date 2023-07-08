@@ -97,4 +97,6 @@ There are some limitations in the current state of the application that the user
   - Nothing we can do here ¯\\\_(ツ)\_/¯
 - When attaching the source code dir must be specified manually when the executable runs in a docker
   - We could add a button for this in the future
+- Loading .gdbinit was only tested with loading `pwndbg` and setting some basic variables. No guarantee for any compatibility with other gdb plugins or custom scripts.
+  - We could detect when `pwndbg` is successfully loaded and if not load our own basic .gdbinit 
 
