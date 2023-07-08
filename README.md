@@ -66,4 +66,4 @@ The main thread is the GUI thread, which starts other threads that handle input 
 - [psutil](https://pypi.org/project/psutil/) for cross-platform access to process information
 
 ## Disclaimer 
-This tool was developed as project for the Binary Exploitation practical course at TUM. All features are targeted to complete the pwning challanges during the course. If you like it, but have a usecase that is currently not supported feel free to contribute or report an issue.  
+This tool was developed as project for the Binary Exploitation practical course at TUM. All features are targeted to complete the pwning challenges during the course. If you like it, but have a use case that is currently not supported feel free to open a PR or an issue.  

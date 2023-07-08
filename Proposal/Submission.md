@@ -42,27 +42,40 @@ The main thread is the GUI thread, which starts other threads that handle input 
 
 ## Preview
 
-![Overview Running](./screenshots/OverviewRunning.png)
+![Overview Running](../screenshots/OverviewRunning.png)
 
 
 ## How to use
 The GUI is a wrapper for `GDB`. All functionality is based on its commands or custom commands `pwndbg` adds.
 
-Since `GDB` is a terminal-based application with tons of use cases we didn't want to limit the user to a subset. Therefore we kept the basic prompt-style interaction as one of the widgets in our application. The bottom left widget is the so-called "Main" widget which lets the user interact with `GDB` the same way as with the terminal application. All `GDB` and `pwndbg` commands can be entered here in the bottom left input line. The corresponding output is shown in the box above. The same widget also allows for interaction with the debugged process. The "Main" widget also includes buttons for controlling the debugged process. These are just convenience for the usual gdb commands. Most of them additionally provide keyboard shortcuts via pressing `Alt + <LETTER>`. A search bar wraps the `pwndbg` search command that lets the user find data in memory.
+Since `GDB` is a terminal-based application with tons of use cases we didn't want to limit the user to a subset. Therefore we kept the basic prompt-style interaction as one of the widgets in our application.
+The bottom left widget is the so-called "Main" widget which lets the user interact with `GDB` the same way as with the terminal application.
+All `GDB` and `pwndbg` commands can be entered here in the bottom left input line.
+The corresponding output is shown in the box above.
+The "Main" widget also includes buttons for controlling the debugged process, which are essentially wrappers around the usual `n`, `ni`, etc... commands.
+Most of them additionally provide keyboard shortcuts via pressing `Alt + <LETTER>` where `<LETTER>` is the underlined letter in the button.
+A search bar wraps the `pwndbg` `search` command that lets the user find data in memory.
 
-The Disassembly, Code, Registers, Stack, and Backtrace widgets display the corresponding `pwndbg` contexts in scrollable panes. The lines of the Stack context can be adjusted via the spinbox in its header. The contexts all update automatically on every stop of the debugged process or user input command.
+The Disassembly, Code, Registers, Stack, and Backtrace widgets display the corresponding `pwndbg` contexts in scrollable panes.
+The lines of the Stack context can be adjusted via the spinbox in its header.
+The contexts all update automatically on every stop of the debugged process or user input command.
 
-The Heap context is a custom-made context that is based on the `heap`, `bins`, and `try_free` commands of `pwndbg`. It shows the current chunk layout in the main arena and the bins. In the "Try Free" input the user can give an address to check if a free call on it would succeed.
+The Heap context is a custom-made context that is based on the `heap`, `bins`, and `try_free` commands of `pwndbg`.
+It shows the current chunk layout in the main arena and the bins.
+In the "Try Free" input the user can give an address to check if a free call on it would succeed or see what checks would fail.
 
-The Watches context is a custom-made context that is based on the `hexdump` command of `pwndbg`. It can track addresses and expressions in memory on every context update. The individual watches can be adjusted in size and collapsed if necessary. Watch expressions can include some symbols and operations (e.g. `$fs_base+0x30`)
+The Watches context is a custom-made context that is based on the `hexdump` command of `pwndbg`.
+It can track addresses and expressions in memory on every context update.
+The individual watches can be adjusted in size and collapsed if necessary.
+Watch expressions can include some symbols and operations (e.g. `$fs_base+0x30`)
 
-For the two list-based contexts Stack and Registers there is a context menu on right-click that allows for copying of the address or the dereferenced value. As well as a lookup of offset information of both of them via the `xinfo` command.
+For the contexts Stack and Registers there is a context menu on right-click that allows for copying of the address or the dereferenced value, as well as a lookup of offset information of both of them via the `xinfo` command.
 
-Some Nice-to-Know:
+Some Nice-to-Knows:
 - Most buttons and input fields have a tooltip. 
-- Keyboard hotkeys are indicated in brackets or via a underlined letter. 
-- The About -> pwndbg option in the Navbar gives a overview of all pwndbg commands. 
-- Popup windows are non blocking and can be moved to a second monitor.
+- Keyboard hotkeys are indicated in tooltips or via an underlined letter on the action/button. 
+- The About -> pwndbg option in the Navbar gives an overview of all pwndbg commands. 
+- Popup windows are non-blocking and can be moved to a second monitor.
 
 ## Future (planned) Features
 - Easier inputting of payloads (e.g. via gui filesystem)
@@ -77,7 +90,11 @@ Some Nice-to-Know:
 ## Known Limitations
 There are some limitations in the current state of the application that the user must be aware of. 
 - User can not start/attach process via the `GDB` terminal commands (`file` and `attach`), but only via the GUI buttons.
+  - This is because GDB MI does not inform us properly of such events, so we need to keep track of this information ourselves
 - The stack lines box does not update on startup
-- Some specific `Pwndbg's` next instructions (e.g. nextret, nextcall, ...) output the entire pwndbg context twice without indication of the source command which will send it to our regs context  ¯\\\_(ツ)\_/¯
+  - This was initially implemented, however resulted in some edge cases where Qt signals would enter an infinite recursive loop :|
+- Some specific `Pwndbg's` next instructions (e.g. nextret, nextcall, ...) output the entire pwndbg context twice without indication of the source command which will send it to our regs context
+  - Nothing we can do here ¯\\\_(ツ)\_/¯
 - When attaching the source code dir must be specified manually when the executable runs in a docker
+  - We could add a button for this in the future
 
