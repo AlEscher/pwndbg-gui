@@ -12,7 +12,12 @@ Future Features:
     -Window for elf command (one execution is enough)
     -Window for checksec command (one execution is enough)
     -Search command in main window
-    -
+    - Easier inputting of payloads (e.g. via files)
+    - Setting breakpoint in source or disassembly via GUI
+    - Customize contexts arrangement
+      - Pop out contexts into separate windows
+      - Rearrange and move contexts around in the GUI
+    - Editing of memory (e.g. registers, stack, heap) via UI (e.g. double-click on stack line)
     
 Known Limitations (and facts):
     -User can not start/attach process via the main command window -> only GUI buttons

@@ -29,18 +29,18 @@ This allows us to aggregate and customize output and simplify command input (e.g
 - [x] Multi pane setup similar to [Splitting contexts](https://github.com/pwndbg/pwndbg/blob/dev/FEATURES.md#splitting--layouting-context)
 - [x] Resizable, scrollable panes
 - [x] Allow to start a local executable
-- [ ] Allow attaching to an already running program
+- [x] Allow attaching to an already running program
   - Functionality is implemented, but requires `sudo` which is problematic for python modules
   - Inferior communication may require changes
 - [x] Include banners/header for panes
 - [x] Add `fs_base` to register section
 - [x] Convenience buttons (maybe hotkeys) / fields for `c`, `r`, `n`, `s`, `ni`, `si`
-- [ ] Add a `search` functionality
+- [x] Add a `search` functionality
 - [x] Add a context menu to `stack`/`regs` to allow copy and display information about data (e.g. offsets)
 - [x] +/- buttons for adding `pwndbg` context-stack lines
 - [x] New context: Heap
     - Add a new context to the ones `pwndbg` already offers (stack, backtrace, etc...) for the heap
-    - Continuosly show heap related information (`heap` command, `main_arena`, fastbins, smallbins)
+    - Continuously show heap related information (`heap` command, `main_arena`, fastbins, smallbins)
     - Also allow to use `pwndbgs`'s `try_free`
 - [x] New context: `hexdump`
     - Allow the user to actively "Watch" a number of addresses via hexdump
@@ -56,4 +56,4 @@ This allows us to aggregate and customize output and simplify command input (e.g
 - Remember layout on startup
   - Sizes of splitters
   - Arrangement of contexts (custom context layout not yet supported)
-- - [ ] Editing of memory (e.g. registers, stack, heap) via UI (e.g. double-click on stack line)
+- Editing of memory (e.g. registers, stack, heap) via UI (e.g. double-click on stack line)
