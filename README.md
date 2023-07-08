@@ -64,3 +64,6 @@ The main thread is the GUI thread, which starts other threads that handle input 
 - [Qt PySide6](https://www.qt.io/download-open-source) as the GUI framework
 - [Pygdbmi](https://github.com/cs01/pygdbmi) for interaction with GDB in MI mode
 - [psutil](https://pypi.org/project/psutil/) for cross-platform access to process information
+
+## Disclaimer 
+This tool was developed as project for the Binary Exploitation practical course at TUM. All features are targeted to complete the pwning challanges during the course. If you like it, but have a usecase that is currently not supported feel free to contribute or report an issue.  
