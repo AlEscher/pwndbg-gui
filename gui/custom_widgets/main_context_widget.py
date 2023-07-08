@@ -203,7 +203,7 @@ class MainContextWidget(QGroupBox):
         logger.debug("Sending input '%s' to inferior", user_line)
         user_input = b""
         # Check if the user wants to input a byte string literal, i.e. the input is in the form: 'b"MyInput \x12\x34"'
-        if re.match(r'^b".*"$', user_line):
+        if re.match(r'^b["\'].*["\']$', user_line):
             # Parse the str as if it were a bytes object
             # literal_eval is safer than eval(), however it still poses security risks regarding DoS, which we don't care about
             logger.debug("Trying to evaluate literal '%s'", user_line)
