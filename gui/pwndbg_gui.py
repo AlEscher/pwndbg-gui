@@ -379,6 +379,7 @@ def run_gui():
     dark_palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
     dark_palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
     dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor(127, 127, 127))
+    dark_palette.setColor(QPalette.ColorRole.PlaceholderText, Qt.GlobalColor.white)
     dark_palette.setColor(QPalette.ColorRole.Dark, QColor(35, 35, 35))
     dark_palette.setColor(QPalette.ColorRole.Shadow, QColor(20, 20, 20))
     dark_palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))

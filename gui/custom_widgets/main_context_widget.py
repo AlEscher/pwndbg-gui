@@ -62,6 +62,7 @@ class MainContextWidget(QGroupBox):
         self.input_widget = QLineEdit(self)
         self.search_input_widget = QLineEdit(self)
         self.search_input_widget.returnPressed.connect(self.handle_search_submit)
+        self.search_input_widget.setPlaceholderText("Search data...")
         self.search_drop_down = QComboBox(self)
         self.search_drop_down.addItems(["byte", "word", "dword", "qword", "pointer", "string", "bytes"])
         self.search_drop_down.setCurrentText("bytes")
@@ -82,7 +83,6 @@ class MainContextWidget(QGroupBox):
         context_layout = QVBoxLayout()
         # The layout containing the search field and buttons
         top_line_layout = QHBoxLayout()
-        top_line_layout.addWidget(QLabel("Search:"))
         top_line_layout.addWidget(self.search_input_widget)
         top_line_layout.addWidget(self.search_drop_down)
         separator_line = QFrame(self)
