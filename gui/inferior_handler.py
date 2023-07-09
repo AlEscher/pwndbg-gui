@@ -2,6 +2,7 @@ import fcntl
 import logging
 import os
 import select
+import tty
 
 from PySide6.QtCore import QObject, Slot, Signal, QCoreApplication
 
@@ -22,6 +23,9 @@ class InferiorHandler(QObject):
         # Set the master file descriptor to non-blocking mode
         flags = fcntl.fcntl(self.master, fcntl.F_GETFL)
         fcntl.fcntl(self.master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+        # Disable ASCII control character interpretation, so that any byte input by the user doesn't get swallowed
+        tty.setraw(self.slave)
+        tty.setraw(self.master)
         # execute gdb tty command to forward the inferior to this tty
         self.tty = os.ttyname(self.slave)
         logger.debug("Opened tty for inferior interaction: %s", self.tty)
