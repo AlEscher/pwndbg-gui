@@ -230,7 +230,8 @@ class PwnDbgGui(QMainWindow):
             self.set_gdb_file_target_signal.emit([file_name])
             # Reset dir so that GDB doesn't get confused when we load multiple programs with the same name / source
             # file name
-            self.set_gdb_source_dir_signal.emit([""])
+            # TODO: Allow user to supply dir via GUI, differentiate between user supplied dirs and automatically added by us
+            #self.set_gdb_source_dir_signal.emit([""])
             # GDB only looks for source files in the cwd, so we additionally add the directory of the executable
             self.set_gdb_source_dir_signal.emit([str(Path(file_name).parent)])
             self.main_context.inferior_attached = False
@@ -347,7 +348,8 @@ class PwnDbgGui(QMainWindow):
         """
         # Reset dir so that GDB doesn't get confused when we load multiple programs with the same name / source
         # file name
-        self.set_gdb_source_dir_signal.emit([""])
+        # TODO: Allow user to supply dir via GUI, differentiate between user supplied dirs and automatically added by us
+        #self.set_gdb_source_dir_signal.emit([""])
         # Add the directory of the executable as a search directory for source files for GDB
         process_path = Path(psutil.Process(pid).exe()).parent.resolve()
         self.set_gdb_source_dir_signal.emit([str(process_path)])
