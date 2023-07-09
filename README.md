@@ -9,7 +9,7 @@ An unofficial GUI wrapper around [pwndbg](https://github.com/pwndbg/pwndbg) inte
 3. Run `python start.py`
    - This will create a virtual environment and install the needed dependencies
    - On Debian/Ubuntu systems, you may need to previously install `python3-venv`
-   - If you want to attach to running programs, GDB needs to be started with sudo. To do this, run `python start.py --sudo` and enter your sudo password when prompted
+   - If you want to attach to running programs, GDB needs to be started with sudo. To do this, copy `~/.gdbinit` into `/root` and run `python start.py --sudo` and enter your sudo password when prompted
 
 ## Features
 
@@ -49,7 +49,7 @@ The main thread is the GUI thread, which starts other threads that handle input 
 
 ## Troubleshooting
 
-- If you are experiencing issues on startup relating to QT plugins not being found or loaded try to set `QT_DEBUG_PLUGINS=1` and retry. This will show you more debug output related to QT. Most likely you will have some missing dependencies that can be installed via your favourite package manager. On Ubuntu/Debian it was the `libxcb-cursor0` library. See this [SO post](https://stackoverflow.com/questions/68036484/qt6-qt-qpa-plugin-could-not-load-the-qt-platform-plugin-xcb-in-even-thou).
+- If you are experiencing issues on startup relating to QT plugins not being found or loaded try to set `QT_DEBUG_PLUGINS=1` for the user where the failure is occurring and retry. This will show you more debug output related to QT. Most likely you will have some missing dependencies that can be installed via your favourite package manager. On Ubuntu/Debian it was the `libxcb-cursor0` library. See this [SO post](https://stackoverflow.com/questions/68036484/qt6-qt-qpa-plugin-could-not-load-the-qt-platform-plugin-xcb-in-even-thou).
 
 ## External dependencies
 - [Qt PySide6](https://www.qt.io/download-open-source) as the GUI framework
