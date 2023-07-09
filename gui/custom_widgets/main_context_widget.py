@@ -181,6 +181,9 @@ class MainContextWidget(QGroupBox):
     def handle_search_submit(self):
         search_value = self.search_input_widget.text()
         value_type = self.search_drop_down.currentText()
+        if value_type == "bytes":
+            # Wrap the user input with "", otherwise characters like "'" and " " cause problems
+            search_value = f'"{search_value}"'
         params = ["-t", value_type, search_value]
         logger.debug("Executing search with %s", params)
         self.gdb_search.emit(params)
