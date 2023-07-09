@@ -79,28 +79,28 @@ class ContextParser:
         # Colors
         if start == b"30m":
             self.parser.setTextColor(Qt.GlobalColor.black)
-            self.parser.insertPlainText(token.replace(start, b"", 1).decode())
+            self.insert_token(token.replace(start, b"", 1))
         elif start == b"31m":
             self.parser.setTextColor(PwndbgGuiConstants.RED)
-            self.parser.insertPlainText(token.replace(start, b"", 1).decode())
+            self.insert_token(token.replace(start, b"", 1))
         elif start == b"32m":
             self.parser.setTextColor(PwndbgGuiConstants.GREEN)
-            self.parser.insertPlainText(token.replace(start, b"", 1).decode())
+            self.insert_token(token.replace(start, b"", 1))
         elif start == b"33m":
             self.parser.setTextColor(PwndbgGuiConstants.YELLOW)
-            self.parser.insertPlainText(token.replace(start, b"", 1).decode())
+            self.insert_token(token.replace(start, b"", 1))
         elif start == b"34m":
             self.parser.setTextColor(PwndbgGuiConstants.LIGHT_BLUE)
-            self.parser.insertPlainText(token.replace(start, b"", 1).decode())
+            self.insert_token(token.replace(start, b"", 1))
         elif start == b"35m":
             self.parser.setTextColor(PwndbgGuiConstants.PURPLE)
-            self.parser.insertPlainText(token.replace(start, b"", 1).decode())
+            self.insert_token(token.replace(start, b"", 1))
         elif start == b"36m":
             self.parser.setTextColor(PwndbgGuiConstants.CYAN)
-            self.parser.insertPlainText(token.replace(start, b"", 1).decode())
+            self.insert_token(token.replace(start, b"", 1))
         elif start == b"37m":
             self.parser.setTextColor(Qt.GlobalColor.white)
-            self.parser.insertPlainText(token.replace(start, b"", 1).decode())
+            self.insert_token(token.replace(start, b"", 1))
         elif start.startswith(b"38"):
             # 256-bit color format: 38;5;<FG COLOR>m
             # RGB format: 38;2;<r>;<g>;<b>m
@@ -116,26 +116,32 @@ class ContextParser:
                 self.parser.setTextColor(QColor.fromRgb(r, g, b, 255))
             # Add the "m" into the start for stripping
             start = token[:token.index(b"m") + 1]
-            self.parser.insertPlainText(token.replace(start, b"", 1).decode())
+            self.insert_token(token.replace(start, b"", 1))
         elif start == b"39m":
             self.parser.setTextColor(Qt.GlobalColor.white)
-            self.parser.insertPlainText(token.replace(start, b"").decode())
+            self.insert_token(token.replace(start, b""))
         elif start == b"91m":
             # Bright red
             self.parser.setTextColor(Qt.GlobalColor.red)
-            self.parser.insertPlainText(token.replace(start, b"").decode())
+            self.insert_token(token.replace(start, b""))
         # Font
         elif start.startswith(b"0m"):
             self.reset_font()
-            self.parser.insertPlainText(token[2:].decode())
+            self.insert_token(token[2:])
         elif start.startswith(b"1m"):
             self.parser.setFontWeight(QFont.Weight.Bold)
-            self.parser.insertPlainText(token[2:].decode())
+            self.insert_token(token[2:])
         elif start.startswith(b"3m"):
             self.parser.setFontItalic(not self.parser.fontItalic())
-            self.parser.insertPlainText(token[2:].decode())
+            self.insert_token(token[2:])
         elif start.startswith(b"4m"):
             self.parser.setFontUnderline(not self.parser.fontUnderline())
-            self.parser.insertPlainText(token[2:].decode())
+            self.insert_token(token[2:])
         else:
+           self.insert_token(token)
+
+    def insert_token(self, token: bytes):
+        try:
             self.parser.insertPlainText(token.decode())
+        except UnicodeDecodeError:
+            self.parser.insertPlainText(repr(token))

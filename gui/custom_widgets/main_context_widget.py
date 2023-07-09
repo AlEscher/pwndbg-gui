@@ -205,6 +205,7 @@ class MainContextWidget(QGroupBox):
         user_line = self.input_widget.text()
         logger.debug("Sending input '%s' to inferior", user_line)
         user_input = b""
+        user_echo = b""
         # Check if the user wants to input a byte string literal, i.e. the input is in the form: 'b"MyInput \x12\x34"'
         if re.match(r'^b["\'].*["\']$', user_line):
             # Parse the str as if it were a bytes object
@@ -214,11 +215,16 @@ class MainContextWidget(QGroupBox):
             logger.debug("Parsed input as bytes string, final input: %s", byte_string)
             # Don't pass a newline here, the user needs to specify this himself by writing '\n' at the end of his input
             user_input = byte_string
+            # We want the user to get the evaluated string echoed back
+            # However without leading b' and ending ' to avoid confusion with regular string insert
+            user_echo = repr(byte_string)[2:][:-1].encode()
         else:
+            user_echo = user_line.encode() + b"\n"
             user_input = user_line.encode() + b"\n"
         if self.inferior_attached:
             self.gdb_write_input.emit(user_input)
         else:
+            self.update_gui.emit("main", user_echo)
             self.inferior_write.emit(user_input)
         self.input_widget.clear()
 
